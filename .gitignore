@@ -1,0 +1,18 @@
+target/
+.build/
+cache/
+.DS_Store
+**/*.xcodeproj/xcuserdata/
+**/*.xcodeproj/project.xcworkspace/xcuserdata/
+
+# examples/ 底下是 `make oss` clone 下來的大型 OSS 專案（IceCubesApp、swift-build，
+# 合計約 2 GB）與建置產物，一律不進版控。
+# 例外：repo 自己手寫的兩個小型驗證專案。
+examples/*
+!examples/SwiftPMDemo/
+!examples/XcodeDemo/
+examples/SwiftPMDemo/.swiftpm/
+
+# 要放在上面的 negation 之後，否則會被重新納入。
+**/*.xcodeproj/xcuserdata/
+**/*.xcodeproj/project.xcworkspace/xcuserdata/

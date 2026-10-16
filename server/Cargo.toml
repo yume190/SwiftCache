@@ -1,0 +1,33 @@
+[package]
+name = "swiftcache"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.82"
+description = "Remote compilation cache server for Swift/Clang (LLVM CAS remote caching protocol)"
+license = "Apache-2.0"
+
+[[bin]]
+name = "swiftcache"
+path = "src/main.rs"
+
+[dependencies]
+anyhow = "1"
+blake3 = "1"
+clap = { version = "4", features = ["derive", "env"] }
+hex = "0.4"
+hyper-util = "0.1"
+parking_lot = "0.12"
+prost = "0.13"
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "fs", "net", "signal", "sync"] }
+tokio-stream = { version = "0.1", features = ["net"] }
+tonic = "0.12"
+tower = "0.5"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+[build-dependencies]
+tonic-build = "0.12"
+
+[profile.release]
+lto = "thin"
+codegen-units = 1

@@ -1,0 +1,63 @@
+diff --git a/IceCubesApp/App/Tabs/ToolbarTab.swift b/IceCubesApp/App/Tabs/ToolbarTab.swift
+index 2317ed8..2463589 100644
+--- a/IceCubesApp/App/Tabs/ToolbarTab.swift
++++ b/IceCubesApp/App/Tabs/ToolbarTab.swift
+@@ -20,16 +20,8 @@ struct ToolbarTab: ToolbarContent {
+         routerPath: routerPath,
+         visibility: userPreferences.postVisibility)
+       if #available(iOS 26.0, *) {
+-        #if os(iOS) && !targetEnvironment(macCatalyst)
+-          if #available(iOS 27.1, *) {
+-            accountToolbarItem
+-              .axisBehavior(.verticalPreferred)
+-          } else {
+-            accountToolbarItem
+-          }
+-        #else
+-          accountToolbarItem
+-        #endif
++        // 本機 patch：.axisBehavior 要 iOS 27.1 SDK，Xcode 27.0 還沒有。
++        accountToolbarItem
+       } else {
+         ToolbarItem(placement: .navigationBarLeading) {
+           accountSelector
+@@ -46,20 +38,10 @@ struct ToolbarTab: ToolbarContent {
+   @available(iOS 26.0, *)
+   private var accountToolbarItem: some ToolbarContent {
+     ToolbarItem(placement: .navigationBarLeading) {
+-      #if targetEnvironment(macCatalyst)
+-        accountSelector
+-      #elseif os(iOS)
+-        if #available(iOS 27.1, *) {
+-          accountSelector
+-            .modifier(ToolbarAvatarAlignment())
+-        } else {
+-          accountSelector
+-            .offset(x: -12)
+-        }
+-      #else
+-        accountSelector
+-          .offset(x: -12)
+-      #endif
++      // 本機 patch：iOS 27.1 的 ToolbarAvatarAlignment 需要 \.toolbarVerticalEdge，
++      // Xcode 27.0 SDK 還沒有。
++      accountSelector
++        .offset(x: -12)
+     }
+     .matchedTransitionSource(id: CurrentAccount.shared.account?.id ?? "", in: transition)
+     .sharedBackgroundVisibility(.hidden)
+@@ -76,14 +58,3 @@ struct ToolbarTab: ToolbarContent {
+   }
+ }
+ 
+-#if os(iOS) && !targetEnvironment(macCatalyst)
+-@available(iOS 27.1, *)
+-private struct ToolbarAvatarAlignment: ViewModifier {
+-  @Environment(\.toolbarVerticalEdge) private var toolbarVerticalEdge
+-
+-  func body(content: Content) -> some View {
+-    // The horizontal bar's inset correction would shift the avatar off-center in a vertical bar.
+-    content.offset(x: toolbarVerticalEdge == nil ? -12 : 0)
+-  }
+-}
+-#endif
