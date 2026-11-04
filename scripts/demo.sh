@@ -99,7 +99,7 @@ SWIFTCACHE_LOG=swiftcache=info "$SERVER" serve --store "$WORK/store" --tcp 127.0
 SERVER_PID=$!
 trap 'kill $SERVER_PID $PROXY_PID 2>/dev/null || true' EXIT
 sleep 1
-SWIFTCACHE_LOG=swiftcache=info "$SERVER" proxy --socket "$SOCK" --upstream http://127.0.0.1:50551 \
+SWIFTCACHE_LOG=swiftcache=info "$SERVER" proxy --store "$WORK/proxy-store" --socket "$SOCK" --upstream http://127.0.0.1:50551 \
     >"$WORK/proxy.log" 2>&1 &
 PROXY_PID=$!
 for _ in $(seq 50); do [ -S "$SOCK" ] && break; sleep 0.1; done

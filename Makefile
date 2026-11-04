@@ -1,6 +1,9 @@
 # swiftcache — 快取伺服器與真實專案的驗證流程
 #
 #   make server       前景啟動 server（Ctrl-C 停止，socket 會自動清掉）
+#   make ui           打包桌面 UI（debug .app）並開啟
+#   make ui-dev       桌面 UI 開發模式（前端熱更新）
+#   make ui-stop      關掉桌面 UI 與它的 daemon（.app 與 ui-dev 皆是；會停掉執行中的服務）
 #   make oss          clone 驗證用專案到 examples/（IceCubesApp、swift-build）
 #   make icecubes     備妥 IceCubesApp：clone + xcconfig + SDK patch + resolve
 #   make spm          swift build（examples/swift-build）走 server
@@ -33,6 +36,14 @@ SWB_REPO := https://github.com/swiftlang/swift-build.git
 SWB      := $(OSS_DIR)/swift-build
 
 PLUGIN := $(shell xcode-select -p)/usr/lib/libToolchainCASPlugin.dylib
+
+# ---- 桌面 UI（Tauri）--------------------------------------------------------
+UI_DIR := $(CURDIR)/desktop
+UI_APP := $(UI_DIR)/src-tauri/target/debug/bundle/macos/SwiftCache.app
+# 打包進 .app 的兩個執行檔，以及 ui-dev 跑的同名執行檔；pkill 用路徑比對，
+# 不會誤殺 make server。
+UI_SHELL  := SwiftCache.app/Contents/MacOS/swiftcache-desktop|src-tauri/target/debug/swiftcache-desktop|^target/debug/swiftcache-desktop
+UI_DAEMON := SwiftCache.app/Contents/MacOS/swiftcache daemon|src-tauri/target/debug/swiftcache daemon
 
 # ---- SwiftPM ---------------------------------------------------------------
 # 用 swift-build 自己當素材：它是純 SwiftPM 套件、host macOS 直接編得過，
@@ -104,7 +115,7 @@ PKGFLAGS   := \
 	COMPILATION_CACHE_CAS_PATH=$(PKG_CAS) \
 	COMPILATION_CACHE_ENABLE_DIAGNOSTIC_REMARKS=YES
 
-.PHONY: build server oss icecubes spm spm-verify pkg pkg-verify xcode xcode-verify \
+.PHONY: build server ui ui-dev ui-stop oss icecubes spm spm-verify pkg pkg-verify xcode xcode-verify \
         app run \
         swiftbuild swiftbuild-verify toolchain verify status clean-cache clean \
         guard-socket guard-snapshot
@@ -116,6 +127,31 @@ $(SWIFTCACHE): $(wildcard server/src/*.rs) $(CARGO_MANIFEST)
 
 server: build
 	$(SWIFTCACHE) serve --store $(STORE) --socket $(SOCK)
+
+# ---- 桌面 UI ---------------------------------------------------------------
+# beforeBuildCommand / beforeDevCommand 會先 prepare:server（編 server 並放進
+# binaries/），所以這裡不用另外 make build。
+$(UI_DIR)/node_modules: $(UI_DIR)/package.json
+	cd $(UI_DIR) && bun install
+	@touch $@
+
+# 先關掉舊的視窗程序，不然 open 只會把舊版叫到前景。daemon 不動，執行中的服務
+# 照常；若還活著的 daemon 管理 API 版本（server/api-revision）與新版不同，桌面
+# 程式啟動時會自動停掉它（含其中執行中的服務）並換成新版。ui-dev 同理。
+ui: $(UI_DIR)/node_modules
+	cd $(UI_DIR) && bun run tauri build --debug --bundles app
+	@pkill -f 'SwiftCache.app/Contents/MacOS/swiftcache-desktop' || true
+	@while pgrep -f 'SwiftCache.app/Contents/MacOS/swiftcache-desktop' >/dev/null; do sleep 0.2; done
+	open '$(UI_APP)'
+
+ui-dev: $(UI_DIR)/node_modules
+	cd $(UI_DIR) && bun run tauri dev
+
+ui-stop:
+	@pkill -f '$(UI_SHELL)' || true
+	@pkill -f '$(UI_DAEMON)' || true
+	@while pgrep -f '$(UI_SHELL)|$(UI_DAEMON)' >/dev/null; do sleep 0.2; done
+	@echo "桌面 UI 與 daemon 已停止"
 
 oss: $(OSS) $(SWB)
 

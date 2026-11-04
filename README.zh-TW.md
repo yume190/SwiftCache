@@ -16,6 +16,8 @@
 | `docs/` | 中文文件（原理、協定、Xcode/SwiftPM 設定、除錯） |
 | `proto/` | 從 swiftlang/llvm-project 原樣取得的兩份 `.proto` |
 | `server/` | Rust 伺服器（`swiftcache serve` / `swiftcache proxy`） |
+| `desktop/` | Tauri 2 + React 桌面程式（設定、傳輸／事件紀錄、快取用量與清除、macOS 選單列） |
+| `design/` | 桌面程式依循的 SVG 設計稿 |
 | `tools/plugin_probe.c` | 直接驅動 Apple CAS plugin 的探針，開發伺服器時的快速回饋迴圈 |
 | `patches/` | 驗證用 OSS 專案需要的本機 patch |
 | `examples/SwiftPMDemo/` | SwiftPM 驗證專案 |
@@ -79,6 +81,7 @@ graph LR
     A[swiftc / clang] -->|llcas_* C API| B[libToolchainCASPlugin.dylib]
     B -->|gRPC over Unix socket| C[swiftcache proxy<br/>開發機]
     C -->|gRPC over TCP| D[swiftcache serve<br/>共用快取主機]
+    C --> F[(本機 store：objects + kv)]
     D --> E[(磁碟：objects + kv)]
 ```
 
@@ -87,8 +90,12 @@ graph LR
 swiftcache serve --store /var/lib/swiftcache --tcp 0.0.0.0:50051
 
 # 每台開發機
-swiftcache proxy --socket /tmp/swiftcache/cache.sock --upstream http://cache-host:50051
+swiftcache proxy --store /var/tmp/swiftcache-proxy --socket /tmp/swiftcache/cache.sock --upstream http://cache-host:50051
 ```
+
+Proxy 必填本機 `--store`（或 `SWIFTCACHE_STORE`）。讀取先查本機 CAS／KV，未命中時從
+上游取得並保存成功結果；寫入須等上游與本機都成功才回覆。已有快取的 Proxy 可在上游
+離線時重新啟動並提供本機命中；未命中與寫入會回報上游錯誤。
 
 ## 紀錄
 
@@ -106,6 +113,69 @@ INFO session #1 done in 31.5s | kv: 0 hit / 1096 miss / 1764 put | cas: 0 hit / 
 ```
 
 量太大時用 `SWIFTCACHE_LOG=swiftcache=warn` 關掉逐筆紀錄。
+
+## 桌面程式
+
+`desktop/` 是 Tauri 2 + React 的圖形介面。它連到獨立的本機程序 `swiftcache daemon`，
+由 daemon 負責快取服務，所以關閉視窗不會中斷快取，CLI 也照樣能單獨使用。
+
+```bash
+cd desktop && bun install
+bun run tauri dev          # 開發
+bun run tauri build        # 產生目前平台的 .app / .dmg / .msi / AppImage
+```
+
+* **連線**：側欄是服務清單，每筆是一份 serve 或 proxy 設定（TCP、Unix socket、store、
+  blob 目錄、訊息上限、log 層級），各自啟停，可同時執行多個。`+` 開啟單一建立頁，選擇
+  Server 或 Proxy 並填寫設定，儲存後類型即固定；已有連線顯示正常分頁與唯讀類型標示，
+  要用另一種類型請新增連線。頂部狀態列集中「刪除連線／儲存設定／啟動或停止」。刪除會先
+  確認，保留磁碟快取與紀錄。切換連線前
+  若有設定變更，可選擇儲存、捨棄或取消。
+  「組態」可自訂連線名稱，留空則依 TCP 位址、socket 或 upstream 顯示預設名稱。名稱會儲存，
+  並顯示於側欄、狀態標題與選單列；允許重複名稱，舊版未命名的設定仍可正常使用。
+  若另一個執行中的服務已使用相同的 TCP 位址、Unix
+  socket、本機 store 或 blob 目錄，會拒絕啟動。右側全部屬於選取的服務：上方是狀態、
+  監聽位址、store／upstream 與 store 用量，下面分頁：
+  * **組態**：先設定連線與儲存；訊息上限、Log、檔案回應與本機清除路徑放在「進階設定」。
+    提供儲存結果、還原變更與同等 CLI 指令。`⌘S`／`Ctrl+S` 可在主畫面各分頁儲存目前連線，
+    確認視窗開啟、操作進行中或設定無法儲存時不會觸發。Server 與 Proxy 都必填主要快取目錄。
+    儲存、啟停與刪除成功時，右下角會滑入提示，約四秒後淡出，也可手動關閉，不會推移版面；
+    錯誤訊息仍保留在頁面上。提示動畫會配合系統的「減少動態效果」設定。
+    新 Server 與 Proxy 都會預填可修改的 `/tmp/<UUID>` 快取目錄，每筆新連線各自獨立；需要長期保留時可
+    改用永久目錄。TCP 拆成「僅本機 `127.0.0.1`／所有介面 `0.0.0.0`」radio 與獨立 Port
+    欄位（預設 `50051`），既有自訂 IP／IPv6 保留。macOS／Unix 桌面程式的兩種模式都直接
+    填寫本機 socket 路徑，預設為 `/tmp/<UUID>.sock`，沒有啟用勾選。Server 另外提供 TCP；
+    Proxy 透過 TCP 連上游。既有 socket-only Server 保留原設定；既有 TCP-only Server 需先
+    補上 socket 路徑，才能從桌面程式儲存或啟動，供本機工具鏈使用。
+    Proxy 上游拆成「僅本機 `127.0.0.1`／自訂 IP 或主機名稱」與獨立 Port，新連線預設
+    `127.0.0.1:50051`。CLI 會自動組成網址，既有協定、IPv6 與 URL 路徑保留。設定、畫面與
+    CLI 會保留 `/tmp` 等路徑寫法；資源衝突與清除檢查仍以實體路徑比對。
+  * **傳輸明細**：該服務逐筆 RPC 的完整 ID、耗時、請求／回應、references、KV entries 與
+    原始 payload（Hex／Text、匯出），以及它的流量與 KV 命中率。翻到歷史頁會固定目前清單的
+    ID 邊界與時間範圍，新增流量不會推移後續頁面；手動暫停後仍可在同一範圍篩選，按
+    「回到最新並繼續」才恢復更新，匯出也沿用相同邊界。清單內捲動、表頭固定，選取後才展開
+    詳細資料；可用上下鍵移動、Enter／空白鍵選取，在詳細資料內按 Esc 關閉。
+    詳細資料大小同時顯示換算單位與精確 bytes，例如 `62.5 KiB (63,980 bytes)`。
+    「清除傳輸明細」刪除目前連線的全部傳輸紀錄，並重設流量、錯誤與 KV 命中率統計；
+    事件保留，但移除指向已刪除傳輸的連結。
+  * **事件紀錄**：該服務的啟停、每筆 RPC、log 與清除事件，可連回對應傳輸。
+    「清除事件紀錄」只刪除目前連線的事件，保留傳輸與統計。兩種紀錄清除都會先確認，
+    範圍涵蓋該連線全部紀錄，不受篩選影響。服務持續執行，新紀錄仍可出現；已保存的
+    payload、實際編譯快取與設定保留，因此清除紀錄不會回收已保存 payload 的磁碟空間。
+  * **快取**：該服務 store 的磁碟用量，先確認完整路徑再手動清除（要刪的路徑與另一個執行中
+    服務的 store、blob 目錄或 socket 重疊時拒絕）。清除中鎖住啟停與切換連線；計畫過期時先
+    重新載入路徑，再提供重試。清除結果屬於原服務，紀錄存放在 store 之外，清除後保留。
+    Proxy 清除只作用於本機 store，上游快取仍保留。
+* **macOS 選單列**：圖示旁顯示執行中本機 store 的總大小；選單顯示執行中服務數、用量、
+  流量、KV 命中率與錯誤數，每個服務一個子選單可直接啟停。關閉視窗只會隱藏。
+* **設定**：`⌘,`（App 選單或選單列項目）、其他平台 `Ctrl+,`。可設定外觀（跟隨系統／
+  淺色／深色）、語言（跟隨系統／繁體中文／English，選單列一併切換），以及選單列圖示旁
+  是否顯示快取用量。變更立即生效，按 `×` 或 `Esc` 關閉。存在應用程式資料目錄的
+  `desktop.json`。daemon 產生的訊息維持原文。
+
+紀錄存放在應用程式資料目錄（macOS 為 `~/Library/Application Support/dev.yume.SwiftCache`）；
+`swiftcache serve --records <dir>` 也能用同樣格式記錄 CLI 執行。Windows 上只能用 TCP
+`serve`，Unix socket 與 `proxy` 僅支援 Unix 系平台。
 
 ## 驗證狀態
 

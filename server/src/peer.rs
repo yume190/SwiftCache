@@ -9,7 +9,9 @@
 use std::fmt;
 use std::net::SocketAddr;
 
-use tonic::transport::server::{TcpConnectInfo, UdsConnectInfo};
+#[cfg(unix)]
+use tonic::transport::server::UdsConnectInfo;
+use tonic::transport::server::TcpConnectInfo;
 use tonic::Request;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
@@ -23,6 +25,7 @@ pub enum Peer {
 
 impl Peer {
     pub fn of<T>(req: &Request<T>) -> Peer {
+        #[cfg(unix)]
         if let Some(uds) = req.extensions().get::<UdsConnectInfo>() {
             if let Some(pid) = uds.peer_cred.and_then(|c| c.pid()) {
                 return Peer::Pid(pid as u32);

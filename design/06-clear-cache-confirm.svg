@@ -1,0 +1,197 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1680" height="1120" viewBox="0 0 1680 1120" role="img" aria-labelledby="title desc">
+<title id="title">SwiftCache UI 設計稿 — 快取管理</title>
+<desc id="desc">繁體中文桌面介面設計提案。所有記錄與數據均為示意資料，尚未實作。</desc>
+<defs>
+<style>text{font-family:Inter,-apple-system,BlinkMacSystemFont,'PingFang TC','Noto Sans CJK TC',sans-serif}.mono{font-family:'SF Mono',Menlo,monospace}text{text-rendering:optimizeLegibility}</style>
+</defs>
+<rect x="0" y="0" width="1680" height="1120" rx="0" fill="#F4F7F8" stroke="none"/>
+<rect x="0" y="0" width="1680" height="36" rx="0" fill="#EAF0F2" stroke="none"/>
+<circle cx="22" cy="18" r="5" fill="#D5A1A0"/>
+<circle cx="41" cy="18" r="5" fill="#DCC78B"/>
+<circle cx="60" cy="18" r="5" fill="#9BBEAC"/>
+<text x="750" y="23" font-size="12" fill="#71818D" font-weight="600">SwiftCache</text>
+<text x="1445" y="23" font-size="11" fill="#71818D" font-weight="600">UI CONCEPT / 示意資料</text>
+<rect x="0" y="36" width="200" height="1040" rx="0" fill="#fff" stroke="none"/>
+<rect x="22" y="65" width="34" height="34" rx="10" fill="#087F75" stroke="none"/>
+<text x="30" y="88" font-size="23" fill="#fff" font-weight="700">S</text>
+<text x="67" y="88" font-size="18" fill="#172C38" font-weight="700">SwiftCache</text>
+<text x="24" y="131" font-size="10" fill="#71818D" font-weight="700">WORKSPACE</text>
+<rect x="16" y="148" width="168" height="61" rx="8" fill="#F5F8F9" stroke="#E1E8EB"/>
+<circle cx="32" cy="169" r="4" fill="#087F75"/>
+<text x="44" y="173" font-size="13" fill="#172C38" font-weight="600">本機快取服務</text>
+<text x="32" y="193" font-size="11" fill="#71818D" font-weight="400">Serve · TCP :50051</text>
+<rect x="12" y="235" width="176" height="39" rx="7" fill="#fff" stroke="none"/>
+<text x="26" y="260" font-size="19" fill="#71818D" font-weight="400">▤</text>
+<text x="55" y="259" font-size="14" fill="#71818D" font-weight="400">服務設定</text>
+<rect x="12" y="282" width="176" height="39" rx="7" fill="#fff" stroke="none"/>
+<text x="26" y="307" font-size="19" fill="#71818D" font-weight="400">↕</text>
+<text x="55" y="306" font-size="14" fill="#71818D" font-weight="400">傳輸明細</text>
+<rect x="12" y="329" width="176" height="39" rx="7" fill="#fff" stroke="none"/>
+<text x="26" y="354" font-size="19" fill="#71818D" font-weight="400">≡</text>
+<text x="55" y="353" font-size="14" fill="#71818D" font-weight="400">事件紀錄</text>
+<rect x="12" y="376" width="176" height="39" rx="7" fill="#E8F3F0" stroke="none"/>
+<text x="26" y="401" font-size="19" fill="#087F75" font-weight="400">▦</text>
+<text x="55" y="400" font-size="14" fill="#087F75" font-weight="600">快取管理</text>
+<path d="M22 444H178" fill="none" stroke="#E1E8EB"/>
+<text x="24" y="477" font-size="11" fill="#71818D" font-weight="600">已儲存的連線</text>
+<circle cx="29" cy="509" r="4" fill="#9BA9B1"/>
+<text x="43" y="514" font-size="12" fill="#71818D" font-weight="400">團隊遠端 Proxy</text>
+<rect x="16" y="779" width="168" height="153" rx="9" fill="#F3F8F7" stroke="#DFEAE6"/>
+<text x="29" y="804" font-size="11" fill="#71818D" font-weight="600">目前快取用量</text>
+<text x="29" y="837" font-size="27" fill="#172C38" font-weight="650">768</text>
+<text x="93" y="836" font-size="12" fill="#71818D" font-weight="400">MiB</text>
+<rect x="29" y="851" width="142" height="6" rx="3" fill="#E1E9E7" stroke="none"/>
+<rect x="29" y="851" width="136" height="6" rx="3" fill="#087F75" stroke="none"/>
+<rect x="165" y="851" width="6" height="6" rx="2" fill="#7755B6" stroke="none"/>
+<text x="29" y="878" font-size="10" fill="#71818D" font-weight="400">Server store · 示意</text>
+<text x="29" y="900" font-size="11" fill="#087F75" font-weight="600">查看用量與清除  →</text>
+<text x="24" y="967" font-size="11" fill="#71818D" font-weight="400">CLI 與 UI 共用操作概念</text>
+<text x="24" y="990" font-size="12" fill="#172C38" font-weight="500" class="mono">serve / proxy</text>
+<path d="M0 1076H1680" fill="none" stroke="#E1E8EB"/>
+<text x="24" y="1102" font-size="11" fill="#71818D" font-weight="600">DESIGN PROPOSAL   /   02</text>
+<text x="365" y="1102" font-size="12" fill="#71818D" font-weight="400">所有用量與記錄均為示意；UI 管理、用量掃描、詳細記錄與清除流程尚待實作。</text>
+<text x="1456" y="1102" font-size="12" fill="#087F75" font-weight="600">架構尚未選定</text>
+<text x="236" y="83" font-size="28" fill="#172C38" font-weight="650">快取管理</text>
+<text x="236" y="111" font-size="14" fill="#71818D" font-weight="400">查看 server 的磁碟用量，明確選擇清除範圍，保留操作紀錄。</text>
+<rect x="236" y="140" width="1408" height="64" rx="10" fill="#fff" stroke="#E1E8EB"/>
+<circle cx="259" cy="172" r="4" fill="#087F75"/>
+<text x="273" y="170" font-size="14" fill="#172C38" font-weight="600">服務執行中</text>
+<text x="273" y="189" font-size="11" fill="#71818D" font-weight="400">已執行 00:12:34</text>
+<text x="470" y="167" font-size="10" fill="#71818D" font-weight="600">LISTENER</text>
+<text x="470" y="188" font-size="13" fill="#172C38" font-weight="400" class="mono">0.0.0.0:50051</text>
+<text x="710" y="167" font-size="10" fill="#71818D" font-weight="600">STORE</text>
+<text x="710" y="188" font-size="13" fill="#172C38" font-weight="400" class="mono">./cache/store</text>
+<rect x="1008" y="159" width="140" height="25" rx="6" fill="#E7F4F0" stroke="none"/>
+<text x="1017" y="176" font-size="12" fill="#087F75" font-weight="600">●  詳細記錄開啟</text>
+<rect x="1370" y="154" width="112" height="36" rx="7" fill="#fff" stroke="#E1E8EB"/>
+<text x="1384" y="177" font-size="13" fill="#172C38" font-weight="600">編輯設定</text>
+<rect x="1494" y="154" width="130" height="36" rx="7" fill="#fff" stroke="#E1E8EB"/>
+<text x="1508" y="177" font-size="13" fill="#172C38" font-weight="600">■  停止服務</text>
+<rect x="236" y="226" width="520" height="124" rx="10" fill="#fff" stroke="#E1E8EB"/>
+<text x="256" y="252" font-size="11" fill="#71818D" font-weight="600">SERVER STORE · 磁碟佔用</text>
+<text x="256" y="297" font-size="38" fill="#172C38" font-weight="650">768</text>
+<text x="342" y="295" font-size="15" fill="#71818D" font-weight="400">MiB</text>
+<text x="256" y="328" font-size="12" fill="#71818D" font-weight="400">15,382 個快取檔案 · 未設定容量上限</text>
+<rect x="597" y="245" width="138" height="25" rx="6" fill="#E7F4F0" stroke="none"/>
+<text x="606" y="262" font-size="12" fill="#087F75" font-weight="600">已於 14:32:20 掃描</text>
+<rect x="776" y="226" width="424" height="124" rx="10" fill="#fff" stroke="#E1E8EB"/>
+<text x="796" y="252" font-size="11" fill="#71818D" font-weight="600">所在磁碟 · 可用空間</text>
+<text x="796" y="297" font-size="38" fill="#172C38" font-weight="650">121.4</text>
+<text x="919" y="295" font-size="15" fill="#71818D" font-weight="400">GiB</text>
+<text x="796" y="328" font-size="11" fill="#71818D" font-weight="400">容量 512 GiB · 包含其他應用程式與系統資料</text>
+<rect x="1220" y="226" width="424" height="124" rx="10" fill="#fff" stroke="#E1E8EB"/>
+<text x="1240" y="252" font-size="11" fill="#71818D" font-weight="600">UI 紀錄與 PAYLOAD 保存</text>
+<text x="1240" y="297" font-size="38" fill="#7755B6" font-weight="650">186</text>
+<text x="1326" y="295" font-size="15" fill="#71818D" font-weight="400">MiB</text>
+<text x="1240" y="328" font-size="11" fill="#71818D" font-weight="400">獨立於 server store；清除快取時保留</text>
+<rect x="236" y="370" width="870" height="248" rx="10" fill="#fff" stroke="#E1E8EB"/>
+<text x="256" y="400" font-size="16" fill="#172C38" font-weight="650">快取資料分布</text>
+<rect x="951" y="383" width="134" height="36" rx="7" fill="#fff" stroke="#E1E8EB"/>
+<text x="965" y="406" font-size="13" fill="#172C38" font-weight="600">重新掃描用量</text>
+<rect x="256" y="421" width="830" height="14" rx="7" fill="#E5EEEB" stroke="none"/>
+<rect x="256" y="421" width="795" height="14" rx="7" fill="#087F75" stroke="none"/>
+<rect x="1051" y="421" width="35" height="14" rx="5" fill="#7755B6" stroke="none"/>
+<circle cx="263" cy="462" r="4" fill="#087F75"/>
+<text x="278" y="466" font-size="13" fill="#172C38" font-weight="500">CAS objects</text>
+<text x="465" y="466" font-size="12" fill="#71818D" font-weight="400" class="mono">objects/</text>
+<text x="705" y="466" font-size="12" fill="#71818D" font-weight="400" class="mono">14,286 個</text>
+<text x="954" y="466" font-size="13" fill="#172C38" font-weight="500" class="mono">736 MiB</text>
+<circle cx="263" cy="505" r="4" fill="#7755B6"/>
+<text x="278" y="509" font-size="13" fill="#172C38" font-weight="500">Action cache</text>
+<text x="465" y="509" font-size="12" fill="#71818D" font-weight="400" class="mono">kv/</text>
+<text x="705" y="509" font-size="12" fill="#71818D" font-weight="400" class="mono">1,096 個</text>
+<text x="954" y="509" font-size="13" fill="#172C38" font-weight="500" class="mono">32 MiB</text>
+<circle cx="263" cy="548" r="4" fill="#B0BDC3"/>
+<text x="278" y="552" font-size="13" fill="#172C38" font-weight="500">暫存寫入</text>
+<text x="465" y="552" font-size="12" fill="#71818D" font-weight="400" class="mono">tmp/</text>
+<text x="705" y="552" font-size="12" fill="#71818D" font-weight="400" class="mono">0 個</text>
+<text x="954" y="552" font-size="13" fill="#172C38" font-weight="500" class="mono">0 B</text>
+<text x="256" y="602" font-size="11" fill="#71818D" font-weight="400">用量以掃描時的磁碟佔用為準；與累計上傳／下載流量分別計算。</text>
+<rect x="236" y="638" width="870" height="392" rx="10" fill="#fff" stroke="#E1E8EB"/>
+<text x="256" y="670" font-size="16" fill="#172C38" font-weight="650">手動清除</text>
+<text x="256" y="695" font-size="12" fill="#71818D" font-weight="400">先選範圍，再查看完整路徑與影響；不會在此直接刪除。</text>
+<rect x="256" y="716" width="830" height="88" rx="8" fill="#F4F8F7" stroke="#E1E8EB"/>
+<rect x="272" y="732" width="16" height="16" rx="4" fill="#087F75" stroke="#087F75"/>
+<text x="275" y="744" font-size="12" fill="#fff" font-weight="650">✓</text>
+<text x="299" y="745" font-size="13" fill="#172C38" font-weight="500">Server 快取</text>
+<text x="299" y="773" font-size="12" fill="#71818D" font-weight="400" class="mono">objects/ + kv/ + tmp/  ·  約 768 MiB</text>
+<rect x="905" y="732" width="164" height="25" rx="6" fill="#E7F4F0" stroke="none"/>
+<text x="914" y="749" font-size="12" fill="#087F75" font-weight="600">CAS 與 KV 一併清空</text>
+<rect x="256" y="816" width="830" height="74" rx="8" fill="#fff" stroke="#E1E8EB"/>
+<rect x="272" y="832" width="16" height="16" rx="4" fill="#fff" stroke="#B5C3CB"/>
+<text x="299" y="845" font-size="13" fill="#172C38" font-weight="500">本機建置快取與產物</text>
+<text x="299" y="867" font-size="12" fill="#71818D" font-weight="400">Xcode CAS / DerivedData、SwiftPM CAS / .build  ·  展開路徑 ▾</text>
+<text x="256" y="920" font-size="12" fill="#71818D" font-weight="400">保留：事件紀錄、傳輸明細、已保存的 payload 與服務設定。</text>
+<text x="256" y="944" font-size="11" fill="#71818D" font-weight="400">若勾選本機建置項目，下次建置會重新產生對應產物。</text>
+<rect x="906" y="976" width="180" height="36" rx="7" fill="#fff" stroke="#E1E8EB"/>
+<text x="920" y="999" font-size="13" fill="#172C38" font-weight="600">檢視範圍並清除…</text>
+<rect x="1126" y="370" width="518" height="285" rx="10" fill="#fff" stroke="#E1E8EB"/>
+<text x="1146" y="401" font-size="16" fill="#172C38" font-weight="650">清除機制</text>
+<rect x="1492" y="384" width="130" height="25" rx="6" fill="#F0F3F5" stroke="none"/>
+<text x="1501" y="401" font-size="12" fill="#71818D" font-weight="600">目前：手動清除</text>
+<text x="1146" y="441" font-size="13" fill="#172C38" font-weight="600">自動清理</text>
+<text x="1310" y="441" font-size="13" fill="#71818D" font-weight="400">未提供</text>
+<text x="1146" y="476" font-size="12" fill="#71818D" font-weight="400">容量上限 / quota</text>
+<text x="1390" y="476" font-size="12" fill="#71818D" font-weight="400">未設定 · 尚未實作</text>
+<text x="1146" y="509" font-size="12" fill="#71818D" font-weight="400">過期時間 / TTL</text>
+<text x="1390" y="509" font-size="12" fill="#71818D" font-weight="400">尚未實作</text>
+<text x="1146" y="542" font-size="12" fill="#71818D" font-weight="400">淘汰策略 / LRU、GC</text>
+<text x="1390" y="542" font-size="12" fill="#71818D" font-weight="400">尚未實作</text>
+<path d="M1146 565H1624" fill="none" stroke="#E1E8EB"/>
+<text x="1146" y="593" font-size="12" fill="#172C38" font-weight="400">UI 清除流程：暫停服務、等待請求完成後再清空。</text>
+<text x="1146" y="620" font-size="12" fill="#71818D" font-weight="400">可選擇完成後重啟，恢復接收快取請求。</text>
+<rect x="1126" y="675" width="518" height="355" rx="10" fill="#fff" stroke="#E1E8EB"/>
+<text x="1146" y="707" font-size="16" fill="#172C38" font-weight="650">最近清除紀錄</text>
+<text x="1538" y="707" font-size="11" fill="#087F75" font-weight="600">查看全部 →</text>
+<rect x="1146" y="730" width="63" height="25" rx="6" fill="#E7F4F0" stroke="none"/>
+<text x="1155" y="747" font-size="12" fill="#087F75" font-weight="600">成功</text>
+<text x="1220" y="748" font-size="12" fill="#172C38" font-weight="500">10/31 18:40  ·  手動清除</text>
+<text x="1146" y="783" font-size="12" fill="#71818D" font-weight="400">範圍</text>
+<text x="1270" y="783" font-size="12" fill="#172C38" font-weight="400" class="mono">Server store</text>
+<text x="1146" y="818" font-size="12" fill="#71818D" font-weight="400">實際回收</text>
+<text x="1270" y="818" font-size="12" fill="#172C38" font-weight="600" class="mono">1.24 GiB</text>
+<text x="1146" y="853" font-size="12" fill="#71818D" font-weight="400">操作結果</text>
+<text x="1270" y="853" font-size="12" fill="#172C38" font-weight="400">完成後已重啟服務</text>
+<text x="1146" y="888" font-size="12" fill="#71818D" font-weight="400">未刪除</text>
+<text x="1270" y="888" font-size="12" fill="#172C38" font-weight="400">本機建置產物、歷史紀錄</text>
+<path d="M1146 911H1624" fill="none" stroke="#E1E8EB"/>
+<text x="1146" y="940" font-size="12" fill="#71818D" font-weight="400">每次清除記錄時間、範圍、結果與回收容量。</text>
+<text x="1146" y="969" font-size="12" fill="#71818D" font-weight="400">清除失敗時保留原因，並標示服務目前狀態。</text>
+<text x="1146" y="1000" font-size="10" fill="#71818D" font-weight="400">示意歷史資料</text>
+<rect x="0" y="36" width="1680" height="1040" rx="0" fill="#152C3B" fill-opacity="0.42" stroke="none"/>
+<rect x="438" y="151" width="836" height="829" rx="16" fill="#fff" stroke="none"/>
+<rect x="466" y="178" width="99" height="25" rx="6" fill="#FCF0EA" stroke="none"/>
+<text x="475" y="195" font-size="12" fill="#AD4D3F" font-weight="600">清除確認</text>
+<text x="466" y="239" font-size="26" fill="#172C38" font-weight="650">清空 Server 快取？</text>
+<text x="466" y="271" font-size="13" fill="#71818D" font-weight="400">將刪除 CAS 物件與 action cache。下次查詢可能未命中並重新上傳。</text>
+<path d="M466 294H1246" fill="none" stroke="#E1E8EB"/>
+<text x="466" y="324" font-size="12" fill="#71818D" font-weight="400">此快取主機</text>
+<text x="624" y="324" font-size="13" fill="#172C38" font-weight="500">本機 serve · TCP 0.0.0.0:50051</text>
+<text x="466" y="361" font-size="12" fill="#71818D" font-weight="400">刪除範圍</text>
+<rect x="624" y="341" width="622" height="120" rx="8" fill="#F5F8F9" stroke="none"/>
+<text x="638" y="368" font-size="12" fill="#172C38" font-weight="400" class="mono">/Users/yume/git/yume/SwiftCache/cache/store/</text>
+<text x="638" y="397" font-size="12" fill="#172C38" font-weight="400" class="mono">objects/    CAS 內容與 references</text>
+<text x="638" y="422" font-size="12" fill="#172C38" font-weight="400" class="mono">kv/         Action cache entries</text>
+<text x="638" y="447" font-size="12" fill="#172C38" font-weight="400" class="mono">tmp/        暫存檔（服務停止後清理）</text>
+<text x="466" y="499" font-size="12" fill="#71818D" font-weight="400">預計回收</text>
+<text x="624" y="499" font-size="14" fill="#172C38" font-weight="600">約 768 MiB · 15,382 個快取檔案</text>
+<text x="624" y="524" font-size="11" fill="#71818D" font-weight="400">最終回收容量以服務停止後的清除結果為準。</text>
+<text x="466" y="563" font-size="12" fill="#71818D" font-weight="400">保留資料</text>
+<text x="624" y="563" font-size="12" fill="#172C38" font-weight="400">本機 CAS、DerivedData、SwiftPM .build</text>
+<text x="624" y="590" font-size="12" fill="#172C38" font-weight="400">事件紀錄、傳輸明細、已保存的 payload、設定</text>
+<rect x="466" y="618" width="780" height="143" rx="8" fill="#FBF6ED" stroke="none"/>
+<text x="484" y="647" font-size="14" fill="#8C672A" font-weight="600">清除期間此服務暫時無法處理快取請求</text>
+<text x="484" y="675" font-size="12" fill="#172C38" font-weight="400">01  停止接收新請求，等待正在處理的請求完成</text>
+<text x="484" y="702" font-size="12" fill="#172C38" font-weight="400">02  一併清空 objects、kv 與暫存資料</text>
+<text x="484" y="729" font-size="12" fill="#172C38" font-weight="400">03  寫入清除結果；依下方選項重新啟動服務</text>
+<rect x="466" y="791" width="16" height="16" rx="4" fill="#087F75" stroke="#087F75"/>
+<text x="469" y="803" font-size="12" fill="#fff" font-weight="650">✓</text>
+<text x="493" y="804" font-size="13" fill="#172C38" font-weight="500">完成後重新啟動服務</text>
+<text x="466" y="840" font-size="12" fill="#71818D" font-weight="400">取消不會修改資料。清除結果與回收容量會保留在事件紀錄中。</text>
+<path d="M466 867H1246" fill="none" stroke="#E1E8EB"/>
+<rect x="908" y="897" width="112" height="36" rx="7" fill="#fff" stroke="#E1E8EB"/>
+<text x="922" y="920" font-size="13" fill="#172C38" font-weight="600">取消</text>
+<rect x="1032" y="897" width="214" height="36" rx="7" fill="#AD4D3F" stroke="none"/>
+<text x="1046" y="920" font-size="13" fill="#fff" font-weight="600">停止服務並清空快取</text>
+<text x="466" y="952" font-size="11" fill="#71818D" font-weight="400">設計提案 · 此畫面不會實際刪除任何資料</text>
+</svg>

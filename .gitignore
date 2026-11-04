@@ -16,3 +16,14 @@ examples/SwiftPMDemo/.swiftpm/
 # 要放在上面的 negation 之後，否則會被重新納入。
 **/*.xcodeproj/xcuserdata/
 **/*.xcodeproj/project.xcworkspace/xcuserdata/
+
+node_modules/
+desktop/dist/
+desktop/src-tauri/gen/
+desktop/src-tauri/binaries/
+desktop/src-tauri/icons/*.png
+desktop/src-tauri/icons/*.ico
+desktop/src-tauri/icons/*.icns
+desktop/src-tauri/icons/android/
+desktop/src-tauri/icons/ios/
+*.tsbuildinfo

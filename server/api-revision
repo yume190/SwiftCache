@@ -1,0 +1,16 @@
+// Management API revision, `include!`d by the daemon (server/src/management.rs)
+// and the desktop app (desktop/src-tauri/src/lib.rs). Bump on any incompatible
+// change to the /api/* contract: the desktop replaces a running daemon whose
+// revision differs instead of talking to it.
+// 2: multiple services. 3: per-service journal attribution and summaries.
+// 4: per-service `busy` state (409 while starting/stopping/clearing), cached
+//    usage with `fresh=1`, batched journal writer.
+// 5: (superseded by 9) proxy configurations accepted an empty store.
+// 6: persisted custom connection names, defaulting to endpoint-derived labels.
+// 7: a saved connection's service type cannot be changed.
+// 8: POST /api/history/clear resets one service's transfers or events (older
+//    daemons lack the endpoint, so a newer desktop must replace them).
+// 9: every mode requires a local store; Proxy is a disk-backed read-through
+//    cache (blank legacy proxy stores are migrated to per-service dirs), usage
+//    and clear apply to it, and Usage drops `remote_unavailable`.
+9
