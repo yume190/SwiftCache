@@ -20,10 +20,10 @@ pub struct Config {
 
 impl Default for Config {
     fn default() -> Self {
-        let id = uuid::Uuid::new_v4();
+        let id = uuid::Uuid::new_v4().as_fields().0;
         Self {
-            name: String::new(), mode: "serve".into(), store: format!("/tmp/{id}"),
-            socket: cfg!(unix).then(|| format!("/tmp/{id}.sock")),
+            name: format!("Server-{id:08x}"), mode: "serve".into(), store: format!("/tmp/{id:08x}"),
+            socket: cfg!(unix).then(|| format!("/tmp/{id:08x}.sock")),
             tcp: Some("127.0.0.1:50051".into()), upstream: "http://127.0.0.1:50051".into(),
             blob_dir: None, max_message_size: 512 * 1024 * 1024,
             log_level: "swiftcache=info".into(), local_cache_paths: Vec::new(),

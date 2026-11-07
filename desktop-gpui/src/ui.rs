@@ -1,7 +1,7 @@
 use gpui_kit::{App, Global, Hsla, px, rgb};
 use gpui_kit::component::{Theme, ThemeMode};
 
-/// Colors shared with desktop/src/styles.css.
+/// Shared colors for the native desktop interface.
 pub struct Palette {
     dark: bool,
     pub bg: Hsla,

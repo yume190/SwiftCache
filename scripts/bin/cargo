@@ -1,0 +1,21 @@
+#!/bin/sh
+set -eu
+
+root="$(CDPATH= cd -- "$(dirname -- "$0")/../.." && pwd)"
+version=0.102.0-9
+tool_dir="$root/.tools/cargo/$version"
+export CARGO_FORK_AUTO_UPDATE=0
+
+if [ ! -x "$tool_dir/cargo" ]; then
+    mkdir -p "$tool_dir"
+    installer="$(mktemp "$tool_dir/install.XXXXXX")"
+    trap 'rm -f "$installer"' 0
+    curl --proto '=https' --tlsv1.2 --fail --silent --show-error --location \
+        "https://github.com/huacnlee/cargo/releases/download/v$version/install.sh" \
+        --output "$installer"
+    sh "$installer" --version "$version" --dir "$tool_dir"
+    rm -f "$installer"
+    trap - 0
+fi
+
+exec "$tool_dir/cargo" "$@"

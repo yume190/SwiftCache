@@ -1,6 +1,5 @@
 //! Service (connection) editor: draft state, validation, CLI preview and save/create/start.
 //!
-//! Mirrors `desktop/src/pages/ServicePage.tsx` + the draft/save logic of `App.tsx`.
 //! The editable widgets keep their text in retained `InputState` entities; everything else
 //! (mode, listen scope, host choices, units, toggles) lives in [`Parts`]. A draft is turned into a
 //! [`Config`] with [`Parts::compose`], which keeps the original spelling of any value the user
@@ -719,8 +718,16 @@ impl Workspace {
                     seg = if disabled {
                         seg.opacity(0.5)
                     } else {
-                        seg.cursor_pointer().on_click(cx.listener(move |this, _, _, cx| {
+                        seg.cursor_pointer().on_click(cx.listener(move |this, _, window, cx| {
                             if this.service.parts.mode != m {
+                                // The new draft's baseline keeps its generated Server name, even after changing roles.
+                                if let Some(id) = this.service.baseline.name.strip_prefix("Server-") {
+                                    let role = if this.service.parts.serve() { "Server-" } else { "Proxy-" };
+                                    if this.service.name.read(cx).value().strip_prefix(role) == Some(id) {
+                                        let name = format!("{}-{id}", if m == "serve" { "Server" } else { "Proxy" });
+                                        set_input(&this.service.name, &name, window, cx);
+                                    }
+                                }
                                 this.service.parts.mode = m.to_string();
                                 if m == "proxy" {
                                     this.service.parts.proxy_tcp = None;

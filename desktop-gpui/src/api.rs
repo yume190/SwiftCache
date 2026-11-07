@@ -1,6 +1,6 @@
 //! Client for the SwiftCache daemon's management API.
 //!
-//! Mirrors the Tauri shell: discovers (or launches) the detached daemon via its
+//! Discovers (or launches) the detached daemon via its
 //! descriptor file, checks the API revision, and sends bearer-authenticated
 //! requests. All network I/O runs on a private Tokio runtime so callers can
 //! await from the GPUI executor without a Tokio context.

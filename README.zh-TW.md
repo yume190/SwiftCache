@@ -15,9 +15,8 @@
 | --- | --- |
 | `docs/` | 中文文件（原理、協定、Xcode/SwiftPM 設定、除錯） |
 | `proto/` | 從 swiftlang/llvm-project 原樣取得的兩份 `.proto` |
-| `server/` | Rust 伺服器（`swiftcache serve` / `swiftcache proxy`） |
-| `desktop/` | Tauri 2 + React 桌面程式（設定、傳輸／事件紀錄、快取用量與清除、macOS 選單列） |
-| `desktop-gpui/` | 實驗分支的 GPUI／GPUI Kit 原生桌面介面，使用相同 daemon API |
+| `server/` | Rust CAS/KV 快取伺服器、本機 Proxy 與桌面管理 daemon |
+| `desktop-gpui/` | 使用 GPUI／GPUI Kit 的 Rust 原生桌面程式，負責管理 daemon |
 | `design/` | 桌面程式依循的 SVG 設計稿 |
 | `tools/plugin_probe.c` | 直接驅動 Apple CAS plugin 的探針，開發伺服器時的快速回饋迴圈 |
 | `patches/` | 驗證用 OSS 專案需要的本機 patch |
@@ -38,9 +37,17 @@
 
 ## 快速開始
 
+本專案使用 [huacnlee/cargo](https://huacnlee.github.io/cargo/) **v0.102.0-9**。
+`make` 會自動選用；直接執行 Cargo 指令時請用 `./scripts/bin/cargo`。
+第一次執行會透過官方 installer 下載固定版本並驗證 checksum，安裝至不進版控的
+`.tools/cargo/`。已停用自動更新，系統 Cargo 保持原樣。此 launcher 支援 macOS／Linux，
+需要 `curl`、`tar`、SHA-256 工具及已安裝的 Rust 編譯器。
+中間產物共用於 `~/.cargo/targets/`，最終執行檔仍在各 crate 的 `target/` 下；
+這個 fork 會忽略 `CARGO_TARGET_DIR` 與 `--target-dir`。
+
 ```bash
 # 1. 編譯伺服器（需要 protoc）
-cargo build --release --manifest-path server/Cargo.toml
+./scripts/bin/cargo build --release --manifest-path server/Cargo.toml
 
 # 2. 啟動（單機：編譯器直接連 Unix socket）
 ./server/target/release/swiftcache serve \
@@ -117,18 +124,13 @@ INFO session #1 done in 31.5s | kv: 0 hit / 1096 miss / 1764 put | cas: 0 hit / 
 
 ## 桌面程式
 
-`desktop/` 是 Tauri 2 + React 的圖形介面。它連到獨立的本機程序 `swiftcache daemon`，
-由 daemon 負責快取服務，所以關閉視窗不會中斷快取，CLI 也照樣能單獨使用。
+`desktop-gpui/` 是使用 GPUI Kit 0.9.0 的原生桌面程式，連到獨立的本機程序
+`swiftcache daemon`，由 daemon 管理快取服務、已儲存連線與歷史紀錄。關閉視窗不會
+中斷快取，CLI 也能獨立使用；桌面偏好設定儲存在 daemon 資料目錄旁的 `desktop.json`。
 
-```bash
-cd desktop && bun install
-bun run tauri dev          # 開發
-bun run tauri build        # 產生目前平台的 .app / .dmg / .msi / AppImage
-```
-
-實驗版 `desktop-gpui/` 使用 GPUI Kit 0.9.0 繪製以下功能，與既有介面共用獨立
-daemon、已儲存連線、歷史紀錄及 `desktop.json` 偏好設定。需要 Rust 1.92 以上；
-下列指令也會建置 server：
+需要 Rust 1.92 以上，下列指令也會建置 server。App 與選單列圖示的 SVG 原始檔，
+以及執行時使用的 PNG／ICNS，皆放在 `desktop-gpui/assets/` 並納入版控。
+`.app` 打包指令需在 macOS 執行：
 
 ```bash
 make gpui                         # 執行原生桌面介面
@@ -136,10 +138,15 @@ make gpui-app                     # 建置並開啟 macOS .app
 make gpui-app GPUI_PROFILE=release # 建置最佳化的 macOS .app
 ```
 
-`.app` 內含 `swiftcache` 執行檔。若要用獨立資料比較，可執行
+兩種執行方式皆使用 `SwiftCache.app`，Dock 顯示名稱為 **SwiftCache**。
+
+`.app` 內含 `swiftcache` 執行檔。若要使用獨立資料目錄，可執行
 `SWIFTCACHE_DATA_DIR=/tmp/swiftcache-gpui make gpui`；開發時亦可用
-`SWIFTCACHE_BIN` 指定 server。結束任一介面都會保留 daemon 與執行中的服務。
-上方 Tauri 指令仍可使用，方便比較。
+`SWIFTCACHE_BIN` 指定 server。結束程式會保留 daemon 與執行中的服務。
+
+GPUI 新連線預設名稱為 `Server-<UUID8>` 或 `Proxy-<UUID8>`，`UUID8` 是同一個 UUID
+的前 8 碼十六進位字元；快取目錄為 `/tmp/<UUID8>`，socket 為 `/tmp/<UUID8>.sock`，
+皆可修改。切換草稿類型時會更新預設名稱的前綴，保留自訂名稱與路徑。
 
 * **連線**：側欄是服務清單，每筆是一份 serve 或 proxy 設定（TCP、Unix socket、store、
   blob 目錄、訊息上限、log 層級），各自啟停，可同時執行多個。`+` 開啟單一建立頁，選擇
@@ -157,10 +164,10 @@ make gpui-app GPUI_PROFILE=release # 建置最佳化的 macOS .app
     確認視窗開啟、操作進行中或設定無法儲存時不會觸發。Server 與 Proxy 都必填主要快取目錄。
     儲存、啟停與刪除成功時，右下角會滑入提示，約四秒後淡出，也可手動關閉，不會推移版面；
     錯誤訊息仍保留在頁面上。提示動畫會配合系統的「減少動態效果」設定。
-    新 Server 與 Proxy 都會預填可修改的 `/tmp/<UUID>` 快取目錄，每筆新連線各自獨立；需要長期保留時可
+    新 Server 與 Proxy 都會在 `/tmp` 下預填可修改的快取目錄，每筆新連線各自獨立；需要長期保留時可
     改用永久目錄。TCP 拆成「僅本機 `127.0.0.1`／所有介面 `0.0.0.0`」radio 與獨立 Port
     欄位（預設 `50051`），既有自訂 IP／IPv6 保留。macOS／Unix 桌面程式的兩種模式都直接
-    填寫本機 socket 路徑，預設為 `/tmp/<UUID>.sock`，沒有啟用勾選。Server 另外提供 TCP；
+    填寫本機 socket 路徑，預設位於 `/tmp` 下，沒有啟用勾選。Server 另外提供 TCP；
     Proxy 透過 TCP 連上游。既有 socket-only Server 保留原設定；既有 TCP-only Server 需先
     補上 socket 路徑，才能從桌面程式儲存或啟動，供本機工具鏈使用。
     Proxy 上游拆成「僅本機 `127.0.0.1`／自訂 IP 或主機名稱」與獨立 Port，新連線預設

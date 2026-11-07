@@ -13,15 +13,15 @@ esac
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 frontend="$root/desktop-gpui/target/$profile/swiftcache-gpui"
 daemon="$root/server/target/release/swiftcache"
-icon="$root/desktop/src-tauri/icons/icon.icns"
+icon="$root/desktop-gpui/assets/icon.icns"
 for binary in "$frontend" "$daemon" "$icon"; do
     if [[ ! -f "$binary" ]]; then
-        echo "Missing: $binary. Build the frontend and server and generate the icons first (make gpui-app does all three)." >&2
+        echo "Missing: $binary. Build the frontend and server first (make gpui-app builds both)." >&2
         exit 1
     fi
 done
 
-app="$root/desktop-gpui/target/$profile/bundle/macos/SwiftCache GPUI.app"
+app="$root/desktop-gpui/target/$profile/bundle/macos/SwiftCache.app"
 mkdir -p "$app/Contents/MacOS" "$app/Contents/Resources"
 install -m 755 "$frontend" "$app/Contents/MacOS/swiftcache-gpui"
 install -m 755 "$daemon" "$app/Contents/MacOS/swiftcache"
@@ -31,8 +31,8 @@ cat > "$app/Contents/Info.plist" <<'PLIST'
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0"><dict>
     <key>CFBundleIdentifier</key><string>dev.yume.SwiftCache.GPUI</string>
-    <key>CFBundleName</key><string>SwiftCache GPUI</string>
-    <key>CFBundleDisplayName</key><string>SwiftCache GPUI</string>
+    <key>CFBundleName</key><string>SwiftCache</string>
+    <key>CFBundleDisplayName</key><string>SwiftCache</string>
     <key>CFBundleExecutable</key><string>swiftcache-gpui</string>
     <key>CFBundleIconFile</key><string>AppIcon</string>
     <key>CFBundlePackageType</key><string>APPL</string>

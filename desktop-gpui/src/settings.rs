@@ -1,9 +1,8 @@
 //! Desktop-only preferences (appearance, language, menu bar title).
 //!
-//! Persisted as `desktop.json` next to the daemon's data — the same file and
-//! shape the Tauri app uses; the daemon never reads it. `language` is the
-//! user's choice; `locale` is that choice resolved (so "follow system" is
-//! looked up from the OS) and persisted for consumers that cannot resolve it.
+//! Persisted as `desktop.json` next to the daemon's data; the daemon never reads it.
+//! `language` is the user's choice; `locale` is that choice resolved (so "follow system"
+//! is looked up from the OS) and persisted for consumers that cannot resolve it.
 
 use std::fs;
 

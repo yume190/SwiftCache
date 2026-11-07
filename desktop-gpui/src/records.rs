@@ -421,7 +421,7 @@ fn opt(label: impl Into<SharedString>, on: bool, act: impl Fn(&mut Workspace, &m
     Opt { label: label.into(), on, act: Rc::new(act) }
 }
 
-/// CSS variables of the Tauri stylesheet, copied out of the global palette so listeners can borrow `cx` freely.
+/// Record-page colors copied out of the global palette so listeners can borrow `cx` freely.
 #[derive(Clone)]
 struct Pal {
     panel: Hsla,
@@ -1881,9 +1881,8 @@ impl Workspace {
         );
         let range_sel = self.rec_range_select(&p, Tab::Transfers, tf.range, &t, cx);
 
-        // `.table` cells (browser auto layout): each column starts at its max-content width (measured from the Tauri
-        // table, per language) and takes a share of the spare width proportional to it. Column 2, Object ID, is the
-        // only one that may shrink below it.
+        // Columns share spare width in proportion to their language-specific content widths.
+        // Object ID is the only column that may shrink below its preferred width.
         let widths: [f32; 6] = if zh { [169., 114., 126., 64., 72., 67.] } else { [169., 114., 126., 89., 72., 71.] };
         let cell = |i: usize| {
             let w = widths[i];
@@ -2421,8 +2420,8 @@ impl Workspace {
             .children(kind_menu);
         let range_sel = self.rec_range_select(&p, Tab::Events, ef.range, &t, cx);
 
-        // Rendered widths of the Tauri table's fixed columns at its usual 1276px width, per language: max-content plus
-        // the browser's proportional share of the spare width. Message takes the rest; the others never wrap.
+        // Language-specific preferred widths for fixed columns. Message takes the rest;
+        // the other columns never wrap.
         let widths: [f32; 6] = if zh { [124., 75., 74., 0., 86., 102.] } else { [120., 73., 72., 0., 118., 99.] };
         let cell = |i: usize| match i {
             3 => div().px(px(12.)).flex_1().min_w(px(220.)),

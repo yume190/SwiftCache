@@ -927,7 +927,7 @@ impl Workspace {
         root.child(grid).into_any_element()
     }
 
-    /// Body of the clear-confirmation dialog (Tauri `ClearDialog`), rendered by `ClearReviewView` inside a native
+    /// Body of the clear-confirmation dialog, rendered by `ClearReviewView` inside a native
     /// focus-trapped dialog (Escape/backdrop → `on_cancel`, which refuses while a clear is in flight).
     fn render_clear_review(&self, pal: &Pal, ws: &Entity<Workspace>) -> Div {
         let Some(review) = self.cache.review.as_ref() else { return div() };

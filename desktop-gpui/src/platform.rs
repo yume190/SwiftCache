@@ -17,11 +17,11 @@ use tray_icon::{Icon, TrayIcon, TrayIconBuilder};
 use crate::settings::{load_prefs, Locale, Prefs};
 use crate::types::{format_bytes, service_label, ServiceStatus, Status};
 
-const ICON: &[u8] = include_bytes!("../../desktop/src-tauri/icons/tray/tray.png");
+const ICON: &[u8] = include_bytes!("../assets/tray/tray.png");
 
 /// `cargo run` launches a bare executable, so macOS shows the generic one in the Dock; give it the
 /// app icon the bundle declares (`CFBundleIconFile`). A bundled launch keeps the bundle's own icon,
-/// and a missing icon file (never generated on this checkout) leaves the default.
+/// and an unreadable icon file leaves the default.
 #[cfg(target_os = "macos")]
 pub fn set_dev_dock_icon() {
     use objc2::MainThreadMarker;
@@ -33,7 +33,7 @@ pub fn set_dev_dock_icon() {
     if bundled {
         return;
     }
-    let path = concat!(env!("CARGO_MANIFEST_DIR"), "/../desktop/src-tauri/icons/icon.png");
+    let path = concat!(env!("CARGO_MANIFEST_DIR"), "/assets/icon.png");
     let Some(mtm) = MainThreadMarker::new() else { return };
     let Some(image) = NSImage::initWithContentsOfFile(NSImage::alloc(), &NSString::from_str(path)) else { return };
     // SAFETY: on the main thread (checked above) with a valid image.

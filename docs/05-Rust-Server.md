@@ -3,7 +3,7 @@
 ## 1. 編譯與執行
 
 ```bash
-cargo build --release --manifest-path server/Cargo.toml
+./scripts/bin/cargo build --release --manifest-path server/Cargo.toml
 ```
 
 需要 `protoc`（`brew install protobuf`）。產物：`server/target/release/swiftcache`。
@@ -226,9 +226,8 @@ INFO session #2 done in 7.1s | kv: 1764 hit / 0 miss / 0 put | cas: 2931 hit / 0
   服務另有操作進行中時回 409。刪除與紀錄寫入共用 writer transaction，服務不必停止，
   清除後提交的新紀錄照常保留；其他服務及未歸屬 CLI 紀錄不受影響。已保存的 payload
   bytes／檔案與 CAS / KV store 保留，以免影響正在處理的請求；此操作不會回收 payload 空間。
-  桌面 WebView 的請求另受 `desktop/src-tauri/src/lib.rs` 的 `route_allowed` 限制；此路徑
-  只允許 `POST`。新增 UI 使用的管理端點時，必須同步更新原生允許清單並驗證 Tauri IPC。
-  Vite 的 `/api` proxy 不經過這層，因此瀏覽器驗證無法涵蓋原生呼叫權限。
+  GPUI 介面的請求另受 `desktop-gpui/src/api.rs` 的 `route_allowed` 限制；此路徑
+  只允許 `POST`。新增 UI 使用的管理端點時，必須同步更新原生允許清單並驗證實際呼叫。
 * 編譯快取清除流程：比對確認視窗顯示時的設定版本（`plan_id`），不符就拒絕；接著停止服務、
   等處理中的請求完成，刪除 `objects/`、`kv/`、`tmp/` 與勾選的已登記本機路徑，
   再依選項重啟。家目錄、資料目錄與紀錄目錄（及其上層）一律拒絕刪除。停止與清除在

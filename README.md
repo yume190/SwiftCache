@@ -15,9 +15,8 @@ socket**; implement the two services it expects (`CASDBService` and `KeyValueDB`
 | --- | --- |
 | `docs/` | Documentation in Chinese (concepts, protocol, Xcode/SwiftPM setup, debugging) |
 | `proto/` | The two `.proto` files, taken verbatim from swiftlang/llvm-project |
-| `server/` | The Rust server (`swiftcache serve` / `swiftcache proxy`) |
-| `desktop/` | Tauri 2 + React desktop app (settings, transfer/event history, cache usage and cleanup, macOS menu bar) |
-| `desktop-gpui/` | Native GPUI / GPUI Kit desktop frontend on the experimental branch; uses the same daemon API |
+| `server/` | Rust CAS/KV cache server, local Proxy, and desktop management daemon |
+| `desktop-gpui/` | Native Rust desktop app using GPUI / GPUI Kit; manages the daemon |
 | `design/` | SVG mockups the desktop app follows |
 | `tools/plugin_probe.c` | Drives the Apple CAS plugin directly — a fast feedback loop while developing the server |
 | `patches/` | Local patches needed by the OSS projects used for verification |
@@ -39,9 +38,18 @@ tracked by git.
 
 ## Quick start
 
+This project uses [huacnlee/cargo](https://huacnlee.github.io/cargo/) **v0.102.0-9**.
+`make` selects it automatically; use `./scripts/bin/cargo` for direct Cargo commands.
+The first invocation downloads the pinned release with the official checksum-verifying
+installer into `.tools/cargo/`, which is ignored by git. Automatic updates are disabled;
+the system Cargo stays unchanged. This launcher supports macOS and Linux and requires
+`curl`, `tar`, and a SHA-256 utility, plus an installed Rust compiler.
+The fork shares intermediate artifacts under `~/.cargo/targets/`, while final binaries
+remain under each crate's `target/`. It ignores `CARGO_TARGET_DIR` and `--target-dir`.
+
 ```bash
 # 1. Build the server (requires protoc)
-cargo build --release --manifest-path server/Cargo.toml
+./scripts/bin/cargo build --release --manifest-path server/Cargo.toml
 
 # 2. Run it (single machine: the compiler connects to the unix socket directly)
 ./server/target/release/swiftcache serve \
@@ -128,19 +136,14 @@ Use `SWIFTCACHE_LOG=swiftcache=warn` to silence the per-request lines.
 
 ## Desktop app
 
-`desktop/` is a Tauri 2 + React app for people who prefer a UI over flags. It talks to
-`swiftcache daemon`, a separate local process that owns the cache service, so closing the
-window never stops caching and the CLI keeps working on its own.
+`desktop-gpui/` is the native desktop app, built with GPUI Kit 0.9.0. It talks to
+`swiftcache daemon`, a separate local process that owns the cache services, saved
+connections, and history. Closing the window never stops caching; the CLI also works
+independently. Desktop preferences are saved in `desktop.json` next to the daemon's data.
 
-```bash
-cd desktop && bun install
-bun run tauri dev          # development
-bun run tauri build        # .app / .dmg / .msi / AppImage for the current platform
-```
-
-The experimental `desktop-gpui/` frontend renders these features with GPUI Kit 0.9.0.
-It uses the same independent daemon, saved connections, history, and `desktop.json`
-preferences. Use Rust 1.92 or later; the commands build the server as well:
+Use Rust 1.92 or later. The commands below build the server as well. App and menu-bar
+icons, including SVG sources and the PNG/ICNS files used at runtime, are checked in
+under `desktop-gpui/assets/`. The `.app` packaging command requires macOS:
 
 ```bash
 make gpui                         # run the native desktop app
@@ -148,10 +151,17 @@ make gpui-app                     # build and open the macOS .app
 make gpui-app GPUI_PROFILE=release # optimized macOS .app
 ```
 
-The bundle includes its own `swiftcache` executable. For an isolated comparison, run
+Both commands launch `SwiftCache.app`, whose Dock display name is **SwiftCache**.
+
+The bundle includes its own `swiftcache` executable. For an isolated data directory, run
 `SWIFTCACHE_DATA_DIR=/tmp/swiftcache-gpui make gpui`. Development also accepts
-`SWIFTCACHE_BIN` to select a server binary. Quitting either frontend keeps the daemon
-and its services running. The Tauri commands above remain available for comparison.
+`SWIFTCACHE_BIN` to select a server binary. Quitting the app keeps the daemon and its
+services running.
+
+New GPUI connections default to `Server-<UUID8>` or `Proxy-<UUID8>`, where `UUID8` is the
+first eight hexadecimal characters of one UUID. The same suffix sets the editable
+store `/tmp/<UUID8>` and socket `/tmp/<UUID8>.sock`. Changing the draft's role updates
+the generated name prefix and preserves custom names and paths.
 
 * **Connections** — the sidebar lists services, each a serve or proxy config (TCP, unix
   socket, store, blob dir, message limit, log level) with its own start/stop; any number can
@@ -175,11 +185,11 @@ and its services running. The Tauri commands above remain available for comparis
     Successful save/start/stop/delete actions show a small toast sliding in at the bottom
     right; it fades after about four seconds or can be dismissed. It does not move the page.
     Errors remain inline until resolved or dismissed. Reduced-motion preferences are respected.
-    New Server and Proxy connections prefill an editable `/tmp/<UUID>` store, unique to each draft;
+    New Server and Proxy connections prefill an editable store under `/tmp`, unique to each draft;
     use a persistent location if the cache should survive temporary-file cleanup. TCP uses
     Local only (`127.0.0.1`) / All interfaces (`0.0.0.0`) radio choices plus a separate port
     (default `50051`). Existing custom IP/IPv6 addresses are preserved. On Unix, both desktop
-    roles require a local socket path, prefilled as `/tmp/<UUID>.sock`, with no enable checkbox.
+    roles require a local socket path, prefilled under `/tmp`, with no enable checkbox.
     Server also listens on TCP; Proxy uses TCP to connect upstream. Existing socket-only
     Servers are preserved. An existing TCP-only Server needs a socket path before it can be
     saved or started from the desktop for local toolchain use.
