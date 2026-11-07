@@ -17,6 +17,7 @@
 | `proto/` | 從 swiftlang/llvm-project 原樣取得的兩份 `.proto` |
 | `server/` | Rust 伺服器（`swiftcache serve` / `swiftcache proxy`） |
 | `desktop/` | Tauri 2 + React 桌面程式（設定、傳輸／事件紀錄、快取用量與清除、macOS 選單列） |
+| `desktop-gpui/` | 實驗分支的 GPUI／GPUI Kit 原生桌面介面，使用相同 daemon API |
 | `design/` | 桌面程式依循的 SVG 設計稿 |
 | `tools/plugin_probe.c` | 直接驅動 Apple CAS plugin 的探針，開發伺服器時的快速回饋迴圈 |
 | `patches/` | 驗證用 OSS 專案需要的本機 patch |
@@ -124,6 +125,21 @@ cd desktop && bun install
 bun run tauri dev          # 開發
 bun run tauri build        # 產生目前平台的 .app / .dmg / .msi / AppImage
 ```
+
+實驗版 `desktop-gpui/` 使用 GPUI Kit 0.9.0 繪製以下功能，與既有介面共用獨立
+daemon、已儲存連線、歷史紀錄及 `desktop.json` 偏好設定。需要 Rust 1.92 以上；
+下列指令也會建置 server：
+
+```bash
+make gpui                         # 執行原生桌面介面
+make gpui-app                     # 建置並開啟 macOS .app
+make gpui-app GPUI_PROFILE=release # 建置最佳化的 macOS .app
+```
+
+`.app` 內含 `swiftcache` 執行檔。若要用獨立資料比較，可執行
+`SWIFTCACHE_DATA_DIR=/tmp/swiftcache-gpui make gpui`；開發時亦可用
+`SWIFTCACHE_BIN` 指定 server。結束任一介面都會保留 daemon 與執行中的服務。
+上方 Tauri 指令仍可使用，方便比較。
 
 * **連線**：側欄是服務清單，每筆是一份 serve 或 proxy 設定（TCP、Unix socket、store、
   blob 目錄、訊息上限、log 層級），各自啟停，可同時執行多個。`+` 開啟單一建立頁，選擇

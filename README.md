@@ -17,6 +17,7 @@ socket**; implement the two services it expects (`CASDBService` and `KeyValueDB`
 | `proto/` | The two `.proto` files, taken verbatim from swiftlang/llvm-project |
 | `server/` | The Rust server (`swiftcache serve` / `swiftcache proxy`) |
 | `desktop/` | Tauri 2 + React desktop app (settings, transfer/event history, cache usage and cleanup, macOS menu bar) |
+| `desktop-gpui/` | Native GPUI / GPUI Kit desktop frontend on the experimental branch; uses the same daemon API |
 | `design/` | SVG mockups the desktop app follows |
 | `tools/plugin_probe.c` | Drives the Apple CAS plugin directly — a fast feedback loop while developing the server |
 | `patches/` | Local patches needed by the OSS projects used for verification |
@@ -136,6 +137,21 @@ cd desktop && bun install
 bun run tauri dev          # development
 bun run tauri build        # .app / .dmg / .msi / AppImage for the current platform
 ```
+
+The experimental `desktop-gpui/` frontend renders these features with GPUI Kit 0.9.0.
+It uses the same independent daemon, saved connections, history, and `desktop.json`
+preferences. Use Rust 1.92 or later; the commands build the server as well:
+
+```bash
+make gpui                         # run the native desktop app
+make gpui-app                     # build and open the macOS .app
+make gpui-app GPUI_PROFILE=release # optimized macOS .app
+```
+
+The bundle includes its own `swiftcache` executable. For an isolated comparison, run
+`SWIFTCACHE_DATA_DIR=/tmp/swiftcache-gpui make gpui`. Development also accepts
+`SWIFTCACHE_BIN` to select a server binary. Quitting either frontend keeps the daemon
+and its services running. The Tauri commands above remain available for comparison.
 
 * **Connections** — the sidebar lists services, each a serve or proxy config (TCP, unix
   socket, store, blob dir, message limit, log level) with its own start/stop; any number can

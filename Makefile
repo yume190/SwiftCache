@@ -3,6 +3,8 @@
 #   make server       前景啟動 server（Ctrl-C 停止，socket 會自動清掉）
 #   make ui           打包桌面 UI（debug .app）並開啟
 #   make ui-dev       桌面 UI 開發模式（前端熱更新）
+#   make gpui         執行 GPUI／GPUI Kit 原生桌面介面
+#   make gpui-app     打包並開啟 GPUI macOS .app（GPUI_PROFILE=release 可建 release）
 #   make ui-stop      關掉桌面 UI 與它的 daemon（.app 與 ui-dev 皆是；會停掉執行中的服務）
 #   make oss          clone 驗證用專案到 examples/（IceCubesApp、swift-build）
 #   make icecubes     備妥 IceCubesApp：clone + xcconfig + SDK patch + resolve
@@ -44,6 +46,13 @@ UI_APP := $(UI_DIR)/src-tauri/target/debug/bundle/macos/SwiftCache.app
 # 不會誤殺 make server。
 UI_SHELL  := SwiftCache.app/Contents/MacOS/swiftcache-desktop|src-tauri/target/debug/swiftcache-desktop|^target/debug/swiftcache-desktop
 UI_DAEMON := SwiftCache.app/Contents/MacOS/swiftcache daemon|src-tauri/target/debug/swiftcache daemon
+
+# ---- 原生桌面 UI（GPUI / GPUI Kit）------------------------------------------
+GPUI_DIR := $(CURDIR)/desktop-gpui
+GPUI_PROFILE ?= debug
+GPUI_APP = $(GPUI_DIR)/target/$(GPUI_PROFILE)/bundle/macos/SwiftCache GPUI.app
+# 與 Tauri 共用的 app icon：由 icon.svg 產生（產物不進版控）。
+APP_ICON := $(UI_DIR)/src-tauri/icons/icon.icns
 
 # ---- SwiftPM ---------------------------------------------------------------
 # 用 swift-build 自己當素材：它是純 SwiftPM 套件、host macOS 直接編得過，
@@ -120,6 +129,8 @@ PKGFLAGS   := \
         swiftbuild swiftbuild-verify toolchain verify status clean-cache clean \
         guard-socket guard-snapshot
 
+.PHONY: gpui gpui-app
+
 build: $(SWIFTCACHE)
 
 $(SWIFTCACHE): $(wildcard server/src/*.rs) $(CARGO_MANIFEST)
@@ -146,6 +157,19 @@ ui: $(UI_DIR)/node_modules
 
 ui-dev: $(UI_DIR)/node_modules
 	cd $(UI_DIR) && bun run tauri dev
+
+# tauri icon 一次產生 icon.png（make gpui 的 Dock 圖示）與 icon.icns（.app 圖示）。
+$(APP_ICON): $(UI_DIR)/src-tauri/icons/icon.svg | $(UI_DIR)/node_modules
+	cd $(UI_DIR) && bun x tauri icon src-tauri/icons/icon.svg
+	@touch $@
+
+gpui: build $(APP_ICON)
+	cargo run --manifest-path $(GPUI_DIR)/Cargo.toml
+
+gpui-app: build $(APP_ICON)
+	cargo build --manifest-path $(GPUI_DIR)/Cargo.toml $(if $(filter release,$(GPUI_PROFILE)),--release)
+	bash $(GPUI_DIR)/bundle-macos.sh $(GPUI_PROFILE)
+	open '$(GPUI_APP)'
 
 ui-stop:
 	@pkill -f '$(UI_SHELL)' || true
