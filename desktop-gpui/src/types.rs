@@ -178,3 +178,54 @@ pub fn service_label(config: &Config) -> String {
     else if config.mode == "proxy" { format!("→ {}", config.upstream) }
     else { config.tcp.as_ref().or(config.socket.as_ref()).cloned().unwrap_or_else(|| config.store.clone()) }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn new_connection_defaults_share_one_short_id() {
+        let a = Config::default();
+        let id = a.name.strip_prefix("Server-").expect("generated Server name");
+        assert_eq!(id.len(), 8);
+        assert!(id.bytes().all(|b| b.is_ascii_hexdigit() && !b.is_ascii_uppercase()), "{id}");
+        assert_eq!(a.store, format!("/tmp/{id}"));
+        if cfg!(unix) {
+            assert_eq!(a.socket.as_deref(), Some(format!("/tmp/{id}.sock").as_str()));
+        }
+        assert_ne!(Config::default().name, a.name, "each draft gets its own id");
+    }
+
+    #[test]
+    fn service_label_falls_back_by_role() {
+        let mut c = Config { name: "  ".into(), ..Config::default() };
+        c.tcp = Some("127.0.0.1:50061".into());
+        assert_eq!(service_label(&c), "127.0.0.1:50061");
+        c.tcp = None;
+        c.socket = Some("/tmp/a.sock".into());
+        assert_eq!(service_label(&c), "/tmp/a.sock");
+        c.socket = None;
+        assert_eq!(service_label(&c), c.store);
+        c.mode = "proxy".into();
+        assert_eq!(service_label(&c), "→ http://127.0.0.1:50051");
+        c.name = "Proxy Demo".into();
+        assert_eq!(service_label(&c), "Proxy Demo");
+    }
+
+    #[test]
+    fn byte_and_integer_formatting_boundaries() {
+        assert_eq!(format_bytes(0), "0 B");
+        assert_eq!(format_bytes(1023), "1023 B");
+        assert_eq!(format_bytes(1024), "1.00 KiB");
+        assert_eq!(format_bytes(10 * 1024), "10.0 KiB");
+        assert_eq!(format_bytes(100 * 1024), "100 KiB");
+        assert_eq!(format_bytes(1024u64.pow(4) * 2048), "2048 TiB", "TiB is the largest unit");
+        assert_eq!(format_int(0), "0");
+        assert_eq!(format_int(999), "999");
+        assert_eq!(format_int(1000), "1,000");
+        assert_eq!(format_int(1_234_567), "1,234,567");
+        assert_eq!(format_duration(999), "999 µs");
+        assert_eq!(format_duration(1500), "1.5 ms");
+        assert_eq!(format_duration(2_500_000), "2.50 s");
+    }
+}

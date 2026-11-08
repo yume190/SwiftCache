@@ -167,6 +167,14 @@ fn normalize(c: Config) -> Config {
     }
 }
 
+/// Name a new draft takes when its role changes. Only a name still generated for this draft
+/// (`Server-<id>` / `Proxy-<id>`, with the `id` from `generated`) follows the role; custom names stay.
+fn role_default_name(generated: &str, current: &str, from_serve: bool, to_serve: bool) -> Option<String> {
+    let id = generated.strip_prefix("Server-")?;
+    let role = if from_serve { "Server-" } else { "Proxy-" };
+    (current.strip_prefix(role) == Some(id)).then(|| format!("{}-{id}", if to_serve { "Server" } else { "Proxy" }))
+}
+
 /// Everything a draft is made of. The `String` fields at the bottom are mirrored from the input
 /// widgets; the rest is owned here.
 #[derive(Clone, Debug)]
@@ -721,12 +729,9 @@ impl Workspace {
                         seg.cursor_pointer().on_click(cx.listener(move |this, _, window, cx| {
                             if this.service.parts.mode != m {
                                 // The new draft's baseline keeps its generated Server name, even after changing roles.
-                                if let Some(id) = this.service.baseline.name.strip_prefix("Server-") {
-                                    let role = if this.service.parts.serve() { "Server-" } else { "Proxy-" };
-                                    if this.service.name.read(cx).value().strip_prefix(role) == Some(id) {
-                                        let name = format!("{}-{id}", if m == "serve" { "Server" } else { "Proxy" });
-                                        set_input(&this.service.name, &name, window, cx);
-                                    }
+                                let current = this.service.name.read(cx).value().to_string();
+                                if let Some(name) = role_default_name(&this.service.baseline.name, &current, this.service.parts.serve(), m == "serve") {
+                                    set_input(&this.service.name, &name, window, cx);
                                 }
                                 this.service.parts.mode = m.to_string();
                                 if m == "proxy" {
@@ -1157,5 +1162,133 @@ impl Workspace {
         } else {
             page.child(h_flex().items_start().gap(px(18.)).child(left.flex_1()).child(right.w(px(400.)).flex_none())).into_any_element()
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    // Not `super::*`: that re-exports `gpui_kit::*`, whose `test` macro shadows the built-in one.
+    use super::{GIB, MIB, Parts, SizeUnit, build_cli, role_default_name, shell_quote, split_tcp, split_upstream};
+    use crate::types::Config;
+
+    fn config(mode: &str) -> Config {
+        Config {
+            name: "Demo".into(),
+            mode: mode.into(),
+            store: "/var/cache/swiftcache".into(),
+            socket: Some("/tmp/swiftcache/cache.sock".into()),
+            tcp: if mode == "serve" { Some("0.0.0.0:50051".into()) } else { None },
+            upstream: "http://127.0.0.1:50051".into(),
+            blob_dir: None,
+            max_message_size: 512 * MIB,
+            log_level: "swiftcache=info".into(),
+            local_cache_paths: Vec::new(),
+        }
+    }
+
+    #[test]
+    fn generated_name_follows_role_and_custom_names_stay() {
+        assert_eq!(role_default_name("Server-1a2b3c4d", "Server-1a2b3c4d", true, false).as_deref(), Some("Proxy-1a2b3c4d"));
+        assert_eq!(role_default_name("Server-1a2b3c4d", "Proxy-1a2b3c4d", false, true).as_deref(), Some("Server-1a2b3c4d"));
+        // A user-typed name, or one carrying another draft's id, is never replaced.
+        assert_eq!(role_default_name("Server-1a2b3c4d", "My cache", true, false), None);
+        assert_eq!(role_default_name("Server-1a2b3c4d", "Server-ffffffff", true, false), None);
+        // The current name must match the role being left, not the other one.
+        assert_eq!(role_default_name("Server-1a2b3c4d", "Proxy-1a2b3c4d", true, false), None);
+        // Saved connections have no generated baseline.
+        assert_eq!(role_default_name("Local Cache", "Local Cache", true, false), None);
+    }
+
+    #[test]
+    fn loading_a_config_and_composing_it_unchanged_is_lossless() {
+        let mut odd = config("serve");
+        odd.tcp = Some("[::1]:7000".into());
+        odd.max_message_size = 512 * MIB + 1;
+        odd.blob_dir = Some("/tmp/blobs".into());
+        odd.local_cache_paths = vec!["/tmp/a".into(), "/tmp/b".into()];
+        let mut proxy = config("proxy");
+        proxy.upstream = "HTTPS://[fe80::1]:9443/cache?x=1".into();
+        proxy.max_message_size = 2 * GIB;
+        let mut hostname = config("proxy");
+        hostname.upstream = "http://cache-host".into();
+        let mut legacy_proxy_tcp = config("proxy");
+        legacy_proxy_tcp.tcp = Some("127.0.0.1:1".into());
+        for c in [config("serve"), odd, proxy, hostname, legacy_proxy_tcp] {
+            // A difference here would mark every freshly loaded connection as unsaved.
+            assert_eq!(Parts::from_config(&c, true).compose(), c, "{c:?}");
+        }
+    }
+
+    #[test]
+    fn serve_without_unix_sockets_keeps_its_saved_socket_value() {
+        let mut c = config("serve");
+        c.socket = None;
+        assert_eq!(Parts::from_config(&c, false).compose().socket, None);
+    }
+
+    #[test]
+    fn edited_upstream_keeps_scheme_brackets_and_path() {
+        let mut c = config("proxy");
+        c.upstream = "https://[::1]:9000/cache".into();
+        let mut parts = Parts::from_config(&c, true);
+        parts.up_port = "9001".into();
+        assert_eq!(parts.compose().upstream, "https://[::1]:9001/cache");
+
+        parts.up_host = "fe80::2".into();
+        assert_eq!(parts.compose().upstream, "https://[fe80::2]:9001/cache");
+
+        let mut parts = Parts::from_config(&config("proxy"), true);
+        parts.up_local = false;
+        parts.up_host = "cache-host".into();
+        assert_eq!(parts.compose().upstream, "http://cache-host:50051");
+    }
+
+    #[test]
+    fn edited_tcp_and_size_are_rebuilt_from_the_fields() {
+        let mut parts = Parts::from_config(&config("serve"), true);
+        parts.tcp_host = "127.0.0.1".into();
+        parts.tcp_port = "6000".into();
+        parts.size = "2".into();
+        parts.size_unit = SizeUnit::Gib;
+        let c = parts.compose();
+        assert_eq!(c.tcp.as_deref(), Some("127.0.0.1:6000"));
+        assert_eq!(c.max_message_size, 2 * GIB);
+
+        parts.tcp_enabled = false;
+        parts.size = "garbage".into();
+        let c = parts.compose();
+        assert_eq!(c.tcp, None);
+        assert_eq!(c.max_message_size, 0, "unparsable sizes become 0 so validation rejects them");
+    }
+
+    #[test]
+    fn upstream_and_tcp_splitting() {
+        let up = split_upstream("http://cache-host:50051/x");
+        assert_eq!((up.prefix.as_str(), up.host.as_str(), up.port.as_str(), up.suffix.as_str()), ("http://", "cache-host", "50051", "/x"));
+        let up = split_upstream("https://cache-host");
+        assert_eq!((up.host.as_str(), up.port.as_str()), ("cache-host", "443"));
+        let up = split_upstream("cache-host");
+        assert_eq!((up.prefix.as_str(), up.host.as_str(), up.port.as_str()), ("http://", "cache-host", "50051"));
+        assert_eq!(split_tcp("[::1]:50051"), ("[::1]".to_string(), "50051".to_string()));
+        assert_eq!(split_tcp("localhost"), ("localhost".to_string(), String::new()));
+    }
+
+    #[test]
+    fn cli_preview_matches_role_and_quotes_unsafe_values() {
+        let mut serve = config("serve");
+        serve.store = "/tmp/my cache".into();
+        assert_eq!(
+            build_cli(&serve),
+            "SWIFTCACHE_LOG=swiftcache=info swiftcache serve \\\n  --store '/tmp/my cache' \\\n  --tcp 0.0.0.0:50051 \\\n  --socket /tmp/swiftcache/cache.sock \\\n  --max-message-size 536870912"
+        );
+        let mut proxy = config("proxy");
+        proxy.tcp = Some("127.0.0.1:1".into());
+        proxy.log_level = String::new();
+        let cli = build_cli(&proxy);
+        assert!(cli.starts_with("swiftcache proxy"), "{cli}");
+        assert!(cli.contains("--upstream http://127.0.0.1:50051"), "{cli}");
+        assert!(!cli.contains("--tcp"), "proxy never listens on TCP: {cli}");
+        assert_eq!(shell_quote("it's"), r"'it'\''s'");
+        assert_eq!(shell_quote(""), "''");
     }
 }

@@ -200,6 +200,19 @@ GPUI 新連線預設名稱為 `Server-<UUID8>` 或 `Proxy-<UUID8>`，`UUID8` 是
 `swiftcache serve --records <dir>` 也能用同樣格式記錄 CLI 執行。Windows 上只能用 TCP
 `serve`，Unix socket 與 `proxy` 僅支援 Unix 系平台。
 
+## 測試與 CI
+
+```bash
+./scripts/bin/cargo test --manifest-path server/Cargo.toml        # store、proxy、journal、management
+./scripts/bin/cargo test --manifest-path desktop-gpui/Cargo.toml  # API 路由、連線編輯器、預設值
+scripts/demo.sh                                                   # 端到端：probe、Xcode、SwiftPM、proxy
+```
+
+GitHub Actions（`.github/workflows/ci.yml`）會在每個 PR 及推送到 `main` 時執行：在 Linux
+與 macOS 跑 server 測試；在 macOS 跑 desktop-gpui 測試並檢查 `SwiftCache.app` 打包；另用
+runner 內建的 Xcode 執行 `scripts/demo.sh`。CI 使用 runner 的標準 Cargo，`scripts/demo.sh`
+可透過 `CARGO` 指定。
+
 ## 驗證狀態
 
 在 macOS 27.0 / Xcode 27.0（Swift 6.4）與 Swift 6.5-dev snapshot 上實測通過：
