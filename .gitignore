@@ -1,5 +1,6 @@
 target/
 .build/
+.tools/
 cache/
 .DS_Store
 **/*.xcodeproj/xcuserdata/
@@ -17,13 +18,5 @@ examples/SwiftPMDemo/.swiftpm/
 **/*.xcodeproj/xcuserdata/
 **/*.xcodeproj/project.xcworkspace/xcuserdata/
 
-node_modules/
-desktop/dist/
-desktop/src-tauri/gen/
-desktop/src-tauri/binaries/
-desktop/src-tauri/icons/*.png
-desktop/src-tauri/icons/*.ico
-desktop/src-tauri/icons/*.icns
-desktop/src-tauri/icons/android/
-desktop/src-tauri/icons/ios/
-*.tsbuildinfo
+# 已移除前端來源；保留本機舊版建置產物，避免影響仍在執行的服務。
+/desktop/
