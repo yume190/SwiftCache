@@ -19,19 +19,19 @@ use tracing::info;
 
 use crate::blob::{self, BlobDir};
 use crate::journal::{blob_json, entries_json, refs_json, Rec, Recorder};
+use crate::peer::Peer;
 use crate::proto::cas::casdb_service_client::CasdbServiceClient;
 use crate::proto::cas::casdb_service_server::CasdbService;
 use crate::proto::cas::{
-    cas_bytes, cas_get_response, cas_load_response, cas_put_response, cas_save_response, CasBlob,
-    CasBytes, CasDataId, CasGetRequest, CasGetResponse, CasLoadRequest, CasLoadResponse, CasObject,
-    CasPutRequest, CasPutResponse, CasSaveRequest, CasSaveResponse,
+    cas_bytes, cas_get_response, cas_load_response, cas_put_response, cas_save_response, CasBlob, CasBytes, CasDataId,
+    CasGetRequest, CasGetResponse, CasLoadRequest, CasLoadResponse, CasObject, CasPutRequest, CasPutResponse,
+    CasSaveRequest, CasSaveResponse,
 };
 use crate::proto::kv::key_value_db_client::KeyValueDbClient;
 use crate::proto::kv::key_value_db_server::KeyValueDb;
 use crate::proto::kv::{
     get_value_response, GetValueRequest, GetValueResponse, PutValueRequest, PutValueResponse, Value,
 };
-use crate::peer::Peer;
 use crate::store::{human_bytes, valid_id, Staged, Store};
 
 pub struct CasProxy {
@@ -73,7 +73,9 @@ fn describe_request_blob(rec: &mut Rec, blob: Option<&CasBytes>) {
 /// Stores the (already inlined) request blob bytes; returns its payload
 /// digest and length for [`Rec::remember`] once the upstream id is known.
 fn record_request_blob(rec: &mut Rec, blob: Option<&CasBytes>) -> Option<(String, usize)> {
-    let Some(cas_bytes::Contents::Data(d)) = blob.and_then(|b| b.contents.as_ref()) else { return None };
+    let Some(cas_bytes::Contents::Data(d)) = blob.and_then(|b| b.contents.as_ref()) else {
+        return None;
+    };
     let digest = rec.payload("request.blob", d);
     rec.request["blob"]["bytes"] = json!(d.len());
     rec.request["blob"]["payload"] = json!(digest);
@@ -93,11 +95,7 @@ fn has_payload(blob: &Option<CasBytes>) -> bool {
 
 /// Writes an upload's (already inlined) bytes and references to a staging
 /// file; the bytes are moved out of the request and back, not copied.
-async fn stage_upload(
-    store: &Store,
-    refs: Vec<Vec<u8>>,
-    blob: &mut Option<CasBytes>,
-) -> Result<Staged, Status> {
+async fn stage_upload(store: &Store, refs: Vec<Vec<u8>>, blob: &mut Option<CasBytes>) -> Result<Staged, Status> {
     let data = match blob.as_mut().and_then(|b| b.contents.as_mut()) {
         Some(cas_bytes::Contents::Data(d)) => std::mem::take(d),
         _ => Vec::new(),
@@ -126,11 +124,7 @@ impl CasProxy {
             obj.blob = inline(obj.blob.take()).await?;
         }
         let recorded = record_request_blob(rec, req.data.as_ref().and_then(|o| o.blob.as_ref()));
-        let len = req
-            .data
-            .as_ref()
-            .map(|o| blob::len(&o.blob))
-            .unwrap_or_default();
+        let len = req.data.as_ref().map(|o| blob::len(&o.blob)).unwrap_or_default();
         let refs: Vec<Vec<u8>> = req
             .data
             .iter()
@@ -177,11 +171,7 @@ impl CasProxy {
             blob.blob = inline(blob.blob.take()).await?;
         }
         let recorded = record_request_blob(rec, req.data.as_ref().and_then(|b| b.blob.as_ref()));
-        let len = req
-            .data
-            .as_ref()
-            .map(|b| blob::len(&b.blob))
-            .unwrap_or_default();
+        let len = req.data.as_ref().map(|b| blob::len(&b.blob)).unwrap_or_default();
         let staged = match req.data.as_mut() {
             Some(blob) => stage_upload(&self.store, Vec::new(), &mut blob.blob).await?,
             None => stage_upload(&self.store, Vec::new(), &mut None).await?,
@@ -260,10 +250,7 @@ impl CasProxy {
             if let Some(cas_get_response::Contents::Data(obj)) = resp.contents.take() {
                 let complete = has_payload(&obj.blob);
                 let mut data = blob::read(obj.blob).await.map_err(io)?;
-                info!(
-                    "{peer} down cas get  ← upstream {}",
-                    human_bytes(data.len() as u64)
-                );
+                info!("{peer} down cas get  ← upstream {}", human_bytes(data.len() as u64));
                 if cacheable && complete {
                     let refs = obj.references.iter().map(|r| r.id.clone()).collect();
                     data = self.store.cache_object(&id, refs, data).await.map_err(io)?;
@@ -323,10 +310,7 @@ impl CasProxy {
         let cacheable = valid_id(&id);
         if cacheable {
             if let Some(data) = self.store.get_blob(&id).await.map_err(io)? {
-                info!(
-                    "{peer} down cas load ← local cache {}",
-                    human_bytes(data.len() as u64)
-                );
+                info!("{peer} down cas load ← local cache {}", human_bytes(data.len() as u64));
                 let digest = rec.object_payload("response.blob", &id, &data);
                 let blob = blob::respond(data, req.write_to_disk, self.blob_dir.as_deref())
                     .await
@@ -348,10 +332,7 @@ impl CasProxy {
             if let Some(cas_load_response::Contents::Data(b)) = resp.contents.take() {
                 let complete = has_payload(&b.blob);
                 let mut data = blob::read(b.blob).await.map_err(io)?;
-                info!(
-                    "{peer} down cas load ← upstream {}",
-                    human_bytes(data.len() as u64)
-                );
+                info!("{peer} down cas load ← upstream {}", human_bytes(data.len() as u64));
                 if cacheable && complete {
                     data = self.store.cache_blob(&id, data).await.map_err(io)?;
                 }
@@ -364,9 +345,7 @@ impl CasProxy {
                 described["payload"] = json!(digest);
                 rec.outcome("hit");
                 rec.response = json!({ "outcome": "success", "blob": described });
-                resp.contents = Some(cas_load_response::Contents::Data(CasBlob {
-                    blob: Some(blob),
-                }));
+                resp.contents = Some(cas_load_response::Contents::Data(CasBlob { blob: Some(blob) }));
             } else {
                 rec.response = json!({ "outcome": "success" });
                 upstream_error(rec, Some("upstream success without data"));
@@ -508,20 +487,14 @@ impl KvProxy {
 
 #[tonic::async_trait]
 impl KeyValueDb for KvProxy {
-    async fn get_value(
-        &self,
-        req: Request<GetValueRequest>,
-    ) -> Result<Response<GetValueResponse>, Status> {
+    async fn get_value(&self, req: Request<GetValueRequest>) -> Result<Response<GetValueResponse>, Status> {
         let peer = Peer::of(&req);
         let mut rec = self.journal.begin("KV.GetValue", "down", peer);
         let res = self.do_get(&mut rec, peer, req.into_inner()).await;
         rec.done(res).await
     }
 
-    async fn put_value(
-        &self,
-        req: Request<PutValueRequest>,
-    ) -> Result<Response<PutValueResponse>, Status> {
+    async fn put_value(&self, req: Request<PutValueRequest>) -> Result<Response<PutValueResponse>, Status> {
         let peer = Peer::of(&req);
         let mut rec = self.journal.begin("KV.PutValue", "up", peer);
         let res = self.do_put(&mut rec, peer, req.into_inner()).await;
@@ -573,7 +546,11 @@ mod tests {
                     .await
                     .unwrap();
             });
-            Upstream { addr, stop: Some(stop), task: Some(task) }
+            Upstream {
+                addr,
+                stop: Some(stop),
+                task: Some(task),
+            }
         }
 
         async fn stop(&mut self) {
@@ -609,7 +586,11 @@ mod tests {
                 journal: journal.recorder(Some("proxy")),
                 store: store.clone(),
             },
-            KvProxy { upstream: KeyValueDbClient::new(channel), journal: journal.recorder(Some("proxy")), store },
+            KvProxy {
+                upstream: KeyValueDbClient::new(channel),
+                journal: journal.recorder(Some("proxy")),
+                store,
+            },
         )
     }
 
@@ -618,16 +599,31 @@ mod tests {
         let journal = Arc::new(Journal::open(&root.join("up-journal")).unwrap());
         let upstream_store = Arc::new(Store::open(&root.join("upstream")).await.unwrap());
         let upstream = Upstream::start(
-            CasService { store: upstream_store.clone(), blob_dir: None, journal: journal.recorder(None) },
-            KvService { store: upstream_store.clone(), journal: journal.recorder(None) },
+            CasService {
+                store: upstream_store.clone(),
+                blob_dir: None,
+                journal: journal.recorder(None),
+            },
+            KvService {
+                store: upstream_store.clone(),
+                journal: journal.recorder(None),
+            },
         )
         .await;
         let (cas, kv) = proxies(&root, upstream.addr).await;
-        Rig { root, upstream_store, upstream, cas, kv }
+        Rig {
+            root,
+            upstream_store,
+            upstream,
+            cas,
+            kv,
+        }
     }
 
     fn bytes(data: &[u8]) -> Option<CasBytes> {
-        Some(CasBytes { contents: Some(cas_bytes::Contents::Data(data.to_vec())) })
+        Some(CasBytes {
+            contents: Some(cas_bytes::Contents::Data(data.to_vec())),
+        })
     }
 
     fn put_request(refs: &[Vec<u8>], data: &[u8]) -> Request<CasPutRequest> {
@@ -640,11 +636,17 @@ mod tests {
     }
 
     fn get_request(id: &[u8]) -> Request<CasGetRequest> {
-        Request::new(CasGetRequest { cas_id: Some(CasDataId { id: id.to_vec() }), write_to_disk: false })
+        Request::new(CasGetRequest {
+            cas_id: Some(CasDataId { id: id.to_vec() }),
+            write_to_disk: false,
+        })
     }
 
     fn load_request(id: &[u8]) -> Request<CasLoadRequest> {
-        Request::new(CasLoadRequest { cas_id: Some(CasDataId { id: id.to_vec() }), write_to_disk: false })
+        Request::new(CasLoadRequest {
+            cas_id: Some(CasDataId { id: id.to_vec() }),
+            write_to_disk: false,
+        })
     }
 
     fn inline_data(blob: Option<CasBytes>) -> Vec<u8> {
@@ -657,13 +659,20 @@ mod tests {
     /// `(data, references)` of a successful `CAS.Get`.
     fn object_of(resp: CasGetResponse) -> (Vec<u8>, Vec<Vec<u8>>) {
         assert_eq!(resp.outcome, cas_get_response::Outcome::Success as i32);
-        let Some(cas_get_response::Contents::Data(obj)) = resp.contents else { panic!("get without data") };
-        (inline_data(obj.blob), obj.references.into_iter().map(|r| r.id).collect())
+        let Some(cas_get_response::Contents::Data(obj)) = resp.contents else {
+            panic!("get without data")
+        };
+        (
+            inline_data(obj.blob),
+            obj.references.into_iter().map(|r| r.id).collect(),
+        )
     }
 
     fn loaded(resp: CasLoadResponse) -> Vec<u8> {
         assert_eq!(resp.outcome, cas_load_response::Outcome::Success as i32);
-        let Some(cas_load_response::Contents::Data(b)) = resp.contents else { panic!("load without data") };
+        let Some(cas_load_response::Contents::Data(b)) = resp.contents else {
+            panic!("load without data")
+        };
         inline_data(b.blob)
     }
 
@@ -685,7 +694,11 @@ mod tests {
     async fn cold_read_populates_cache_that_outlives_upstream() {
         let mut rig = rig("cold").await;
         let leaf = rig.upstream_store.put_object(vec![], b"leaf".to_vec()).await.unwrap();
-        let id = rig.upstream_store.put_object(vec![leaf.clone()], b"payload".to_vec()).await.unwrap();
+        let id = rig
+            .upstream_store
+            .put_object(vec![leaf.clone()], b"payload".to_vec())
+            .await
+            .unwrap();
 
         // A miss followed by the object appearing upstream must hit.
         let late = hash_object(&[], b"late").to_vec();
@@ -701,7 +714,10 @@ mod tests {
         rig.upstream.stop().await;
         let (data, refs) = object_of(rig.cas.get(get_request(&id)).await.unwrap().into_inner());
         assert_eq!((data.as_slice(), refs), (&b"payload"[..], vec![leaf]));
-        assert_eq!(loaded(rig.cas.load(load_request(&id)).await.unwrap().into_inner()), b"payload");
+        assert_eq!(
+            loaded(rig.cas.load(load_request(&id)).await.unwrap().into_inner()),
+            b"payload"
+        );
         let (data, _) = object_of(rig.cas.get(get_request(&late)).await.unwrap().into_inner());
         assert_eq!(data, b"late");
         // The upstream really is down: an uncached object is an error, not a miss.
@@ -714,12 +730,25 @@ mod tests {
     async fn load_result_never_satisfies_get() {
         let mut rig = rig("load").await;
         let leaf = rig.upstream_store.put_object(vec![], b"leaf".to_vec()).await.unwrap();
-        let id = rig.upstream_store.put_object(vec![leaf.clone()], b"payload".to_vec()).await.unwrap();
+        let id = rig
+            .upstream_store
+            .put_object(vec![leaf.clone()], b"payload".to_vec())
+            .await
+            .unwrap();
 
-        assert_eq!(loaded(rig.cas.load(load_request(&id)).await.unwrap().into_inner()), b"payload");
+        assert_eq!(
+            loaded(rig.cas.load(load_request(&id)).await.unwrap().into_inner()),
+            b"payload"
+        );
         rig.upstream.stop().await;
-        assert_eq!(loaded(rig.cas.load(load_request(&id)).await.unwrap().into_inner()), b"payload");
-        assert!(rig.cas.get(get_request(&id)).await.is_err(), "Get must go upstream, not reuse the blob");
+        assert_eq!(
+            loaded(rig.cas.load(load_request(&id)).await.unwrap().into_inner()),
+            b"payload"
+        );
+        assert!(
+            rig.cas.get(get_request(&id)).await.is_err(),
+            "Get must go upstream, not reuse the blob"
+        );
     }
 
     /// Uploads are written through and are local hits afterwards, with the
@@ -729,7 +758,9 @@ mod tests {
         let mut rig = rig("upload").await;
         let saved = rig
             .cas
-            .save(Request::new(CasSaveRequest { data: Some(CasBlob { blob: bytes(b"leaf") }) }))
+            .save(Request::new(CasSaveRequest {
+                data: Some(CasBlob { blob: bytes(b"leaf") }),
+            }))
             .await
             .unwrap()
             .into_inner();
@@ -737,8 +768,14 @@ mod tests {
             Some(cas_save_response::Contents::CasId(id)) => id.id,
             other => panic!("save failed: {other:?}"),
         };
-        let id = put_id(rig.cas.put(put_request(&[leaf.clone()], b"payload")).await.unwrap().into_inner());
-        assert_eq!(id, hash_object(&[leaf.clone()], b"payload"));
+        let id = put_id(
+            rig.cas
+                .put(put_request(std::slice::from_ref(&leaf), b"payload"))
+                .await
+                .unwrap()
+                .into_inner(),
+        );
+        assert_eq!(id, hash_object(std::slice::from_ref(&leaf), b"payload"));
         assert_eq!(staging_files(&rig.root), 0);
         // The upstream received the same objects.
         assert!(rig.upstream_store.get_object(&id).await.unwrap().is_some());
@@ -750,11 +787,14 @@ mod tests {
         assert_eq!((data.as_slice(), refs), (&b"leaf"[..], vec![]));
     }
 
+    /// Stored object: references and data, keyed by its opaque id.
+    type OpaqueObjects = HashMap<Vec<u8>, (Vec<Vec<u8>>, Vec<u8>)>;
+
     /// Toolchain ids are opaque (65-byte `luxon.blake2b` digests); they must
     /// be kept exactly, not re-derived locally.
     struct Opaque {
         fail_puts: Arc<AtomicBool>,
-        objects: Mutex<HashMap<Vec<u8>, (Vec<Vec<u8>>, Vec<u8>)>>,
+        objects: Mutex<OpaqueObjects>,
     }
 
     fn opaque_id(data: &[u8]) -> Vec<u8> {
@@ -767,15 +807,21 @@ mod tests {
     impl CasdbService for Opaque {
         async fn put(&self, req: Request<CasPutRequest>) -> Result<Response<CasPutResponse>, Status> {
             if self.fail_puts.load(Ordering::SeqCst) {
-                let error = ResponseError { description: "disk full".into() };
-                return Ok(Response::new(CasPutResponse { contents: Some(cas_put_response::Contents::Error(error)) }));
+                let error = ResponseError {
+                    description: "disk full".into(),
+                };
+                return Ok(Response::new(CasPutResponse {
+                    contents: Some(cas_put_response::Contents::Error(error)),
+                }));
             }
             let obj = req.into_inner().data.unwrap();
             let data = inline_data(obj.blob);
             let id = opaque_id(&data);
             let refs = obj.references.into_iter().map(|r| r.id).collect();
             self.objects.lock().insert(id.clone(), (refs, data));
-            Ok(Response::new(CasPutResponse { contents: Some(cas_put_response::Contents::CasId(CasDataId { id })) }))
+            Ok(Response::new(CasPutResponse {
+                contents: Some(cas_put_response::Contents::CasId(CasDataId { id })),
+            }))
         }
 
         async fn get(&self, req: Request<CasGetRequest>) -> Result<Response<CasGetResponse>, Status> {
@@ -788,7 +834,10 @@ mod tests {
                         references: refs.iter().cloned().map(|id| CasDataId { id }).collect(),
                     })),
                 },
-                None => CasGetResponse { outcome: cas_get_response::Outcome::ObjectNotFound as i32, contents: None },
+                None => CasGetResponse {
+                    outcome: cas_get_response::Outcome::ObjectNotFound as i32,
+                    contents: None,
+                },
             }))
         }
 
@@ -807,8 +856,14 @@ mod tests {
         let kv_store = Arc::new(Store::open(&root.join("upstream")).await.unwrap());
         let fail_puts = Arc::new(AtomicBool::new(false));
         let upstream = Upstream::start(
-            Opaque { fail_puts: fail_puts.clone(), objects: Mutex::new(HashMap::new()) },
-            KvService { store: kv_store, journal: journal.recorder(None) },
+            Opaque {
+                fail_puts: fail_puts.clone(),
+                objects: Mutex::new(HashMap::new()),
+            },
+            KvService {
+                store: kv_store,
+                journal: journal.recorder(None),
+            },
         )
         .await;
         let (cas, _) = proxies(&root, upstream.addr).await;
@@ -843,16 +898,23 @@ mod tests {
         upstream.stop().await;
         assert!(cas.put(put_request(&[], b"y")).await.is_err());
         assert_eq!(staging_files(&root), 0);
-        assert!(cas.get(get_request(&opaque_id(b"y"))).await.is_err(), "failed upload must not be a local hit");
+        assert!(
+            cas.get(get_request(&opaque_id(b"y"))).await.is_err(),
+            "failed upload must not be a local hit"
+        );
     }
 
     fn value(k: &str, v: &[u8]) -> Value {
-        Value { entries: HashMap::from([(k.to_string(), v.to_vec())]) }
+        Value {
+            entries: HashMap::from([(k.to_string(), v.to_vec())]),
+        }
     }
 
     fn entries_of(resp: GetValueResponse) -> HashMap<String, Vec<u8>> {
         assert_eq!(resp.outcome, get_value_response::Outcome::Success as i32);
-        let Some(get_value_response::Contents::Value(v)) = resp.contents else { panic!("get without value") };
+        let Some(get_value_response::Contents::Value(v)) = resp.contents else {
+            panic!("get without value")
+        };
         v.entries
     }
 
@@ -861,26 +923,60 @@ mod tests {
     async fn action_cache_is_read_through_and_write_through() {
         let mut rig = rig("kv").await;
         let key = b"swift-key".to_vec();
-        let miss = rig.kv.get_value(Request::new(GetValueRequest { key: key.clone() })).await.unwrap().into_inner();
+        let miss = rig
+            .kv
+            .get_value(Request::new(GetValueRequest { key: key.clone() }))
+            .await
+            .unwrap()
+            .into_inner();
         assert_eq!(miss.outcome, get_value_response::Outcome::KeyNotFound as i32);
 
-        rig.upstream_store.put_value(&key, value("a", b"1").encode_to_vec()).await.unwrap();
-        let got = rig.kv.get_value(Request::new(GetValueRequest { key: key.clone() })).await.unwrap().into_inner();
+        rig.upstream_store
+            .put_value(&key, value("a", b"1").encode_to_vec())
+            .await
+            .unwrap();
+        let got = rig
+            .kv
+            .get_value(Request::new(GetValueRequest { key: key.clone() }))
+            .await
+            .unwrap()
+            .into_inner();
         assert_eq!(entries_of(got), value("a", b"1").entries);
 
         let written = b"written".to_vec();
-        let put = PutValueRequest { key: written.clone(), value: Some(value("b", b"2")) };
-        assert!(rig.kv.put_value(Request::new(put)).await.unwrap().into_inner().error.is_none());
+        let put = PutValueRequest {
+            key: written.clone(),
+            value: Some(value("b", b"2")),
+        };
+        assert!(rig
+            .kv
+            .put_value(Request::new(put))
+            .await
+            .unwrap()
+            .into_inner()
+            .error
+            .is_none());
         assert!(rig.upstream_store.get_value(&written).await.unwrap().is_some());
 
         rig.upstream.stop().await;
         for (key, want) in [(key, value("a", b"1")), (written, value("b", b"2"))] {
-            let got = rig.kv.get_value(Request::new(GetValueRequest { key })).await.unwrap().into_inner();
+            let got = rig
+                .kv
+                .get_value(Request::new(GetValueRequest { key }))
+                .await
+                .unwrap()
+                .into_inner();
             assert_eq!(entries_of(got), want.entries);
         }
-        let put = PutValueRequest { key: b"never".to_vec(), value: Some(value("c", b"3")) };
+        let put = PutValueRequest {
+            key: b"never".to_vec(),
+            value: Some(value("c", b"3")),
+        };
         assert!(rig.kv.put_value(Request::new(put)).await.is_err());
         let key = b"never".to_vec();
-        assert!(rig.kv.get_value(Request::new(GetValueRequest { key })).await.is_err(), "failed put must not be a local hit");
+        assert!(
+            rig.kv.get_value(Request::new(GetValueRequest { key })).await.is_err(),
+            "failed put must not be a local hit"
+        );
     }
 }

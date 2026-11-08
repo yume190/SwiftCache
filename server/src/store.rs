@@ -107,9 +107,7 @@ impl Stats {
 
     /// Drains the client list; the next session starts with a clean slate.
     pub fn take_peers(&self) -> Vec<Peer> {
-        std::mem::take(&mut *self.peers.lock())
-            .into_iter()
-            .collect()
+        std::mem::take(&mut *self.peers.lock()).into_iter().collect()
     }
 }
 
@@ -174,7 +172,11 @@ impl Store {
     /// A unique staging file name. A timestamp is not unique enough (see
     /// `staging_seq`).
     fn staging(&self) -> PathBuf {
-        self.tmp.join(format!("{}.{}", std::process::id(), self.staging_seq.fetch_add(1, Ordering::Relaxed)))
+        self.tmp.join(format!(
+            "{}.{}",
+            std::process::id(),
+            self.staging_seq.fetch_add(1, Ordering::Relaxed)
+        ))
     }
 
     // ---- CAS ------------------------------------------------------------
@@ -205,9 +207,7 @@ impl Store {
             return Ok(None);
         };
         self.stats.cas_get_hit.fetch_add(1, Ordering::Relaxed);
-        self.stats
-            .bytes_out
-            .fetch_add(obj.data.len() as u64, Ordering::Relaxed);
+        self.stats.bytes_out.fetch_add(obj.data.len() as u64, Ordering::Relaxed);
         Ok(Some(obj))
     }
 
@@ -236,9 +236,7 @@ impl Store {
             return Ok(None);
         };
         self.stats.cas_get_hit.fetch_add(1, Ordering::Relaxed);
-        self.stats
-            .bytes_out
-            .fetch_add(obj.data.len() as u64, Ordering::Relaxed);
+        self.stats.bytes_out.fetch_add(obj.data.len() as u64, Ordering::Relaxed);
         Ok(Some(obj.data))
     }
 
@@ -277,7 +275,13 @@ impl Store {
         let (tmp, staging, objects) = (self.tmp.clone(), self.staging(), self.objects.clone());
         tokio::task::spawn_blocking(move || -> Result<_> {
             stage_file(&tmp, &staging, &[&encode_header(&refs, data.len()), &data])?;
-            Ok((Staged { objects, path: Some(staging) }, data))
+            Ok((
+                Staged {
+                    objects,
+                    path: Some(staging),
+                },
+                data,
+            ))
         })
         .await
         .context("store task")?
@@ -347,7 +351,9 @@ async fn read_record(path: &Path) -> Result<Option<Object>> {
         Err(e) if e.kind() == ErrorKind::NotFound => return Ok(None),
         Err(e) => return Err(e).with_context(|| format!("reading {}", path.display())),
     };
-    decode(raw).map(Some).with_context(|| format!("decoding {}", path.display()))
+    decode(raw)
+        .map(Some)
+        .with_context(|| format!("decoding {}", path.display()))
 }
 
 /// Writes `parts` to `staging`, then publishes it at `dest` with a rename so

@@ -1,0 +1,3 @@
+# Formatting-only commits; GitHub and `git blame --ignore-revs-file` skip them.
+# Format Rust sources with rustfmt
+cd366b7e762b039c19246407caec6a2c64ff3548

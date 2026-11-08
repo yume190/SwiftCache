@@ -14,7 +14,7 @@ use std::{
 };
 
 use directories::ProjectDirs;
-use serde::{de::DeserializeOwned, Deserialize};
+use serde::{Deserialize, de::DeserializeOwned};
 use serde_json::Value;
 use tokio::sync::Mutex;
 
@@ -124,7 +124,9 @@ fn server_binary() -> Result<PathBuf, String> {
         }
     }
     // Development: the workspace's release build of the server.
-    let development = Path::new(env!("CARGO_MANIFEST_DIR")).join("../server/target/release").join(&file);
+    let development = Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../server/target/release")
+        .join(&file);
     if development.is_file() {
         return Ok(development);
     }
@@ -211,21 +213,22 @@ async fn retire(info: &Discovery) -> Result<(), String> {
 async fn establish(client: &reqwest::Client) -> Result<Discovery, String> {
     let data = data_dir()?;
     let file = descriptor(&data);
-    if let Some(info) = read_discovery(&file) {
-        if alive(client, &info).await {
-            if info.api == Some(API_REVISION) {
-                return Ok(info);
-            }
-            // A daemon left running by an older build speaks an older API; the UI would break on it.
-            retire(&info).await?;
+    if let Some(info) = read_discovery(&file)
+        && alive(client, &info).await
+    {
+        if info.api == Some(API_REVISION) {
+            return Ok(info);
         }
+        // A daemon left running by an older build speaks an older API; the UI would break on it.
+        retire(&info).await?;
     }
     launch_daemon(&data)?;
     for _ in 0..100 {
-        if let Some(info) = read_discovery(&file) {
-            if info.api == Some(API_REVISION) && alive(client, &info).await {
-                return Ok(info);
-            }
+        if let Some(info) = read_discovery(&file)
+            && info.api == Some(API_REVISION)
+            && alive(client, &info).await
+        {
+            return Ok(info);
         }
         tokio::time::sleep(Duration::from_millis(100)).await;
     }
@@ -242,10 +245,10 @@ impl Inner {
         if let Some(info) = self.connection.lock().await.clone() {
             return Ok(info);
         }
-        if let Some((at, error)) = launch.as_ref() {
-            if at.elapsed() < LAUNCH_BACKOFF {
-                return Err(error.clone());
-            }
+        if let Some((at, error)) = launch.as_ref()
+            && at.elapsed() < LAUNCH_BACKOFF
+        {
+            return Err(error.clone());
         }
         match establish(&self.client).await {
             Ok(info) => {
@@ -281,8 +284,7 @@ impl Inner {
             *self.connection.lock().await = None;
         }
         let text = response.text().await.map_err(|e| e.to_string())?;
-        let value: Value =
-            serde_json::from_str(&text).map_err(|_| format!("無效的管理回應（{code}）：{text}"))?;
+        let value: Value = serde_json::from_str(&text).map_err(|_| format!("無效的管理回應（{code}）：{text}"))?;
         if !code.is_success() {
             return Err(value.get("error").and_then(Value::as_str).unwrap_or(&text).to_string());
         }
@@ -297,15 +299,15 @@ fn route_allowed(method: &reqwest::Method, pathname: &str) -> bool {
     if parts.first() != Some(&"api") || parts.iter().skip(1).any(|part| part.is_empty()) {
         return false;
     }
-    match (method, &parts[1..]) {
-        (&M::GET, ["status" | "usage" | "transfers" | "events" | "clear-plan"]) => true,
-        (&M::POST, ["services"] | ["clear"]) => true,
-        (&M::POST, ["history", "clear"]) => true,
-        (&M::PUT | &M::DELETE, ["services", _]) => true,
-        (&M::POST, ["services", _, "start" | "stop"]) => true,
-        (&M::GET, ["payload", _] | ["transfers", _] | ["transfers", _, "export"]) => true,
-        _ => false,
-    }
+    matches!(
+        (method, &parts[1..]),
+        (&M::GET, ["status" | "usage" | "transfers" | "events" | "clear-plan"])
+            | (&M::POST, ["services"] | ["clear"])
+            | (&M::POST, ["history", "clear"])
+            | (&M::PUT | &M::DELETE, ["services", _])
+            | (&M::POST, ["services", _, "start" | "stop"])
+            | (&M::GET, ["payload", _] | ["transfers", _] | ["transfers", _, "export"])
+    )
 }
 
 fn validate(method: &str, path: &str) -> Result<reqwest::Method, String> {
@@ -345,7 +347,11 @@ impl ApiClient {
             .map_err(|e| format!("無法建立 HTTP 用戶端：{e}"))?;
         Ok(Self {
             runtime: Some(runtime),
-            inner: Arc::new(Inner { client, connection: Mutex::new(None), launch: Mutex::new(None) }),
+            inner: Arc::new(Inner {
+                client,
+                connection: Mutex::new(None),
+                launch: Mutex::new(None),
+            }),
         })
     }
 
@@ -397,7 +403,10 @@ mod tests {
     fn query_encodes_and_skips_empty_values() {
         assert_eq!(query("/api/events", &[("a", String::new())]), "/api/events");
         assert_eq!(
-            query("/api/events", &[("q", "a b&c".into()), ("x", String::new()), ("n", "1".into())]),
+            query(
+                "/api/events",
+                &[("q", "a b&c".into()), ("x", String::new()), ("n", "1".into())]
+            ),
             "/api/events?q=a+b%26c&n=1"
         );
         assert_eq!(query("/api/x?a=1", &[("b", "2".into())]), "/api/x?a=1&b=2");

@@ -17,6 +17,19 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
+  fmt:
+    name: rustfmt
+    runs-on: ubuntu-26.04
+    steps:
+      - uses: actions/checkout@v5
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - name: Check formatting
+        run: |
+          cargo fmt --manifest-path server/Cargo.toml --check
+          cargo fmt --manifest-path desktop-gpui/Cargo.toml --check
+
   server:
     name: server (${{ matrix.os }})
     strategy:
@@ -28,6 +41,8 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
       # arduino/setup-protoc@v3 (latest) still targets the deprecated Node 20 runtime.
       - name: Install protoc
         run: |
@@ -38,6 +53,8 @@ jobs:
           workspaces: server
       - name: Test
         run: cargo test --locked --manifest-path server/Cargo.toml
+      - name: Clippy
+        run: cargo clippy --locked --all-targets --manifest-path server/Cargo.toml -- -D warnings
 
   desktop:
     name: desktop-gpui (macOS)
@@ -45,6 +62,8 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
       - name: Install protoc
         run: brew install protobuf && protoc --version
       - uses: Swatinem/rust-cache@v2
@@ -54,6 +73,8 @@ jobs:
             desktop-gpui
       - name: Test
         run: cargo test --locked --manifest-path desktop-gpui/Cargo.toml
+      - name: Clippy
+        run: cargo clippy --locked --all-targets --manifest-path desktop-gpui/Cargo.toml -- -D warnings
       - name: Build
         run: |
           cargo build --locked --release --manifest-path server/Cargo.toml

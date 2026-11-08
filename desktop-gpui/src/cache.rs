@@ -16,7 +16,9 @@ use serde_json::{Value, json};
 
 use crate::api::query;
 use crate::app::Workspace;
-use crate::types::{AppEvent, ClearPlan, ClearResult, Page, PageKind, Usage, format_bytes, format_int, format_time, service_label};
+use crate::types::{
+    AppEvent, ClearPlan, ClearResult, Page, PageKind, Usage, format_bytes, format_int, format_time, service_label,
+};
 
 const USAGE_TTL: Duration = Duration::from_secs(30);
 const USAGE_RETRY: Duration = Duration::from_secs(5);
@@ -155,9 +157,21 @@ impl Pal {
             info_text: c.info_text,
             on_accent: c.on_accent,
             mono: cx.theme().mono_font_family.clone(),
-            v_plain: ButtonCustomVariant::new(cx).color(c.panel).foreground(c.text).hover(c.subtle).active(c.subtle),
-            v_danger: ButtonCustomVariant::new(cx).color(c.panel).foreground(c.danger).hover(c.subtle).active(c.subtle),
-            v_solid: ButtonCustomVariant::new(cx).color(c.danger).foreground(c.on_accent).hover(c.danger_hover).active(c.danger_hover),
+            v_plain: ButtonCustomVariant::new(cx)
+                .color(c.panel)
+                .foreground(c.text)
+                .hover(c.subtle)
+                .active(c.subtle),
+            v_danger: ButtonCustomVariant::new(cx)
+                .color(c.panel)
+                .foreground(c.danger)
+                .hover(c.subtle)
+                .active(c.subtle),
+            v_solid: ButtonCustomVariant::new(cx)
+                .color(c.danger)
+                .foreground(c.on_accent)
+                .hover(c.danger_hover)
+                .active(c.danger_hover),
             v_link: ButtonCustomVariant::new(cx).foreground(c.accent),
         }
     }
@@ -189,7 +203,11 @@ fn card(p: &Pal) -> Div {
 
 /// `h2`: 16px / 650.
 fn h2(p: &Pal, text: impl Into<SharedString>) -> Div {
-    div().text_size(px(16.)).font_weight(FontWeight(650.)).text_color(p.text).child(text.into())
+    div()
+        .text_size(px(16.))
+        .font_weight(FontWeight(650.))
+        .text_color(p.text)
+        .child(text.into())
 }
 
 /// `p.muted.small`: 12px muted.
@@ -199,7 +217,14 @@ fn note(p: &Pal, text: impl Into<SharedString>) -> Div {
 
 /// `.empty.small`: centred 13px muted, padding 18/8.
 fn empty_small(p: &Pal, text: impl Into<SharedString>) -> Div {
-    div().px(px(8.)).py(px(18.)).flex().justify_center().text_size(px(13.)).text_color(p.muted).child(text.into())
+    div()
+        .px(px(8.))
+        .py(px(18.))
+        .flex()
+        .justify_center()
+        .text_size(px(13.))
+        .text_color(p.muted)
+        .child(text.into())
 }
 
 /// `.mono`: 12.5px monospace (use 12 for `.mono.small`).
@@ -223,12 +248,18 @@ fn kv(p: &Pal, dt_w: f32, key: impl Into<SharedString>, value: impl IntoElement)
 
 /// `ul.plain.mono.small`: 12px monospace lines, 4px above.
 fn mono_list(p: &Pal, items: &[String]) -> Div {
-    v_flex().mt(px(4.)).children(items.iter().map(|s| mono(p, 12.).child(s.clone())))
+    v_flex()
+        .mt(px(4.))
+        .children(items.iter().map(|s| mono(p, 12.).child(s.clone())))
 }
 
 /// `.banner`: padding 10/14, radius 8, 13px, 1px border. `error` selects the danger palette, otherwise info.
 fn banner(p: &Pal, error: bool, text: impl Into<SharedString>) -> Div {
-    let (bg, border, fg) = if error { (p.danger_bg, p.danger_border, p.danger_text) } else { (p.info_bg, p.info_border, p.info_text) };
+    let (bg, border, fg) = if error {
+        (p.danger_bg, p.danger_border, p.danger_text)
+    } else {
+        (p.info_bg, p.info_border, p.info_text)
+    };
     div()
         .w_full()
         .px(px(14.))
@@ -283,11 +314,21 @@ fn btn(
         // A custom variant paints only 20% of its color at rest; the solid button needs the full fill.
         .when(matches!(kind, BtnKind::Solid) && !disabled, |b| b.bg(p.danger))
         .on_click(on_click)
-        .child(div().text_size(px(if small { 12. } else { 13. })).font_weight(FontWeight::SEMIBOLD).child(label))
+        .child(
+            div()
+                .text_size(px(if small { 12. } else { 13. }))
+                .font_weight(FontWeight::SEMIBOLD)
+                .child(label),
+        )
 }
 
 /// `.link`: native `Button` with a transparent accent-text variant, 12.5px / 600.
-fn link(p: &Pal, id: impl Into<ElementId>, label: impl Into<SharedString>, on_click: impl Fn(&ClickEvent, &mut Window, &mut App) + 'static) -> Button {
+fn link(
+    p: &Pal,
+    id: impl Into<ElementId>,
+    label: impl Into<SharedString>,
+    on_click: impl Fn(&ClickEvent, &mut Window, &mut App) + 'static,
+) -> Button {
     let label: SharedString = label.into();
     Button::new(id)
         .custom(p.v_link)
@@ -322,7 +363,12 @@ fn check(
 /// `.check.disabled` with a checked box: the whole row at 0.7 opacity and the box still full accent. gpui-kit's
 /// disabled `Checkbox` halves the box and glyph instead, which leaves the always-included scope looking unticked.
 /// Not focusable or clickable; exposed as a checked checkbox.
-fn locked_check(p: &Pal, id: impl Into<ElementId>, a11y: impl Into<SharedString>, label: impl IntoElement) -> Stateful<Div> {
+fn locked_check(
+    p: &Pal,
+    id: impl Into<ElementId>,
+    a11y: impl Into<SharedString>,
+    label: impl IntoElement,
+) -> Stateful<Div> {
     div()
         .id(id)
         .role(Role::CheckBox)
@@ -360,12 +406,23 @@ impl Workspace {
             return None;
         }
         let id = self.selected_id.as_ref()?;
-        self.status.as_ref()?.services.iter().any(|s| &s.id == id).then(|| id.clone())
+        self.status
+            .as_ref()?
+            .services
+            .iter()
+            .any(|s| &s.id == id)
+            .then(|| id.clone())
     }
 
     fn cache_local_paths(&self) -> Vec<String> {
-        let Some(id) = self.cache_target() else { return Vec::new() };
-        let Some(svc) = self.status.as_ref().and_then(|s| s.services.iter().find(|s| s.id == id)) else {
+        let Some(id) = self.cache_target() else {
+            return Vec::new();
+        };
+        let Some(svc) = self
+            .status
+            .as_ref()
+            .and_then(|s| s.services.iter().find(|s| s.id == id))
+        else {
             return Vec::new();
         };
         let mut seen = HashSet::new();
@@ -379,7 +436,10 @@ impl Workspace {
 
     /// Ticked paths that are still configured, in configuration order.
     fn cache_effective_picked(&self) -> Vec<String> {
-        self.cache_local_paths().into_iter().filter(|p| self.cache.picked.contains(p)).collect()
+        self.cache_local_paths()
+            .into_iter()
+            .filter(|p| self.cache.picked.contains(p))
+            .collect()
     }
 
     /// Loads usage (and, on the Cache page, cleanup history) when stale. Safe to call from every poll.
@@ -404,10 +464,10 @@ impl Workspace {
             if self.cache.scanning {
                 return;
             }
-            if let Some((at, ttl)) = self.cache.usage_at {
-                if at.elapsed() < ttl {
-                    return;
-                }
+            if let Some((at, ttl)) = self.cache.usage_at
+                && at.elapsed() < ttl
+            {
+                return;
             }
         }
         self.cache.usage_seq += 1;
@@ -415,11 +475,20 @@ impl Workspace {
         self.cache.scanning = true;
         let generation = self.generation;
         let api = self.api.clone();
-        let path = query("/api/usage", &[("service", id.clone()), ("fresh", if fresh { "1".to_string() } else { String::new() })]);
+        let path = query(
+            "/api/usage",
+            &[
+                ("service", id.clone()),
+                ("fresh", if fresh { "1".to_string() } else { String::new() }),
+            ],
+        );
         self.cache.usage_task = Some(cx.spawn(async move |this, cx| {
             let result = api.request::<Usage>("GET", &path, None).await;
             let _ = this.update(cx, |this, cx| {
-                if this.generation != generation || this.selected_id.as_deref() != Some(id.as_str()) || this.cache.usage_seq != seq {
+                if this.generation != generation
+                    || this.selected_id.as_deref() != Some(id.as_str())
+                    || this.cache.usage_seq != seq
+                {
                     return;
                 }
                 this.cache.scanning = false;
@@ -457,12 +526,19 @@ impl Workspace {
         let api = self.api.clone();
         let path = query(
             "/api/events",
-            &[("kind", "cleanup".to_string()), ("service_id", id.clone()), ("limit", HISTORY_LIMIT.to_string())],
+            &[
+                ("kind", "cleanup".to_string()),
+                ("service_id", id.clone()),
+                ("limit", HISTORY_LIMIT.to_string()),
+            ],
         );
         self.cache.history_task = Some(cx.spawn(async move |this, cx| {
             let result = api.request::<Page<AppEvent>>("GET", &path, None).await;
             let _ = this.update(cx, |this, cx| {
-                if this.generation != generation || this.selected_id.as_deref() != Some(id.as_str()) || this.cache.history_seq != seq {
+                if this.generation != generation
+                    || this.selected_id.as_deref() != Some(id.as_str())
+                    || this.cache.history_seq != seq
+                {
                     return;
                 }
                 this.cache.history_task = None;
@@ -495,7 +571,13 @@ impl Workspace {
             return;
         }
         let Some(id) = self.cache_target() else { return };
-        let Some(svc) = self.status.as_ref().and_then(|s| s.services.iter().find(|s| s.id == id)) else { return };
+        let Some(svc) = self
+            .status
+            .as_ref()
+            .and_then(|s| s.services.iter().find(|s| s.id == id))
+        else {
+            return;
+        };
         if svc.busy.is_some() {
             return;
         }
@@ -525,7 +607,13 @@ impl Workspace {
                 .py(px(24.))
                 .rounded(px(12.))
                 .close_button(false)
-                .title(div().text_size(px(12.)).font_weight(FontWeight::SEMIBOLD).text_color(accent).child(title))
+                .title(
+                    div()
+                        .text_size(px(12.))
+                        .font_weight(FontWeight::SEMIBOLD)
+                        .text_color(accent)
+                        .child(title),
+                )
                 .child(view.clone())
                 .on_cancel(move |_, _, cx| {
                     // Never close here: `cancel_clear_review` ends the review (refused while clearing) and the
@@ -538,7 +626,9 @@ impl Workspace {
     }
 
     fn fetch_clear_plan(&mut self, cx: &mut Context<Self>) {
-        let Some(review) = self.cache.review.as_mut() else { return };
+        let Some(review) = self.cache.review.as_mut() else {
+            return;
+        };
         self.cache.plan_seq += 1;
         let seq = self.cache.plan_seq;
         review.seq = seq;
@@ -554,7 +644,9 @@ impl Workspace {
                 if this.generation != generation || this.selected_id.as_deref() != Some(id.as_str()) {
                     return;
                 }
-                let Some(review) = this.cache.review.as_mut() else { return };
+                let Some(review) = this.cache.review.as_mut() else {
+                    return;
+                };
                 if review.seq != seq {
                     return;
                 }
@@ -586,10 +678,17 @@ impl Workspace {
             return;
         }
         let Some(id) = self.cache_target() else { return };
-        if self.status.as_ref().and_then(|s| s.services.iter().find(|s| s.id == id)).is_none_or(|s| s.busy.is_some()) {
+        if self
+            .status
+            .as_ref()
+            .and_then(|s| s.services.iter().find(|s| s.id == id))
+            .is_none_or(|s| s.busy.is_some())
+        {
             return;
         }
-        let Some(review) = self.cache.review.as_mut() else { return };
+        let Some(review) = self.cache.review.as_mut() else {
+            return;
+        };
         let Some(plan) = review.plan.as_ref() else { return };
         let body = json!({
             "service": id,
@@ -657,7 +756,10 @@ impl Workspace {
             "{}{}{}",
             self.t("服務", "The service is "),
             state,
-            self.t("，完成前無法使用清除操作。", "; clear actions are unavailable until it finishes.")
+            self.t(
+                "，完成前無法使用清除操作。",
+                "; clear actions are unavailable until it finishes."
+            )
         )
     }
 
@@ -665,17 +767,30 @@ impl Workspace {
         let pal = Pal::new(cx);
         let viewport = window.viewport_size();
         let narrow = viewport.width < px(1320.);
-        let root = v_flex().id("cache-page").size_full().overflow_y_scroll().text_size(px(14.)).text_color(pal.text);
+        let root = v_flex()
+            .id("cache-page")
+            .size_full()
+            .overflow_y_scroll()
+            .text_size(px(14.))
+            .text_color(pal.text);
 
         let Some(id) = self.cache_target() else {
             return root
                 .child(card(&pal).child(empty_small(
                     &pal,
-                    self.t("請先儲存服務，並在側欄選擇後再檢視其快取。", "Save a service first, then pick it in the sidebar to see its cache."),
+                    self.t(
+                        "請先儲存服務，並在側欄選擇後再檢視其快取。",
+                        "Save a service first, then pick it in the sidebar to see its cache.",
+                    ),
                 )))
                 .into_any_element();
         };
-        let Some(svc) = self.status.as_ref().and_then(|s| s.services.iter().find(|s| s.id == id)).cloned() else {
+        let Some(svc) = self
+            .status
+            .as_ref()
+            .and_then(|s| s.services.iter().find(|s| s.id == id))
+            .cloned()
+        else {
             return root.into_any_element();
         };
         let serve = svc.config.mode == "serve";
@@ -696,7 +811,11 @@ impl Workspace {
                 .child(btn(
                     &pal,
                     "cache-rescan",
-                    if scanning { self.t("掃描中…", "Scanning…") } else { self.t("重新掃描用量", "Rescan usage") },
+                    if scanning {
+                        self.t("掃描中…", "Scanning…")
+                    } else {
+                        self.t("重新掃描用量", "Rescan usage")
+                    },
                     BtnKind::Plain,
                     true,
                     scanning || busy_lock,
@@ -704,7 +823,11 @@ impl Workspace {
                 )),
         );
         if let Some(err) = &self.cache.usage_error {
-            dist = dist.child(banner(&pal, true, format!("{}{}", self.t("無法掃描用量：", "Couldn’t scan usage: "), err)));
+            dist = dist.child(banner(
+                &pal,
+                true,
+                format!("{}{}", self.t("無法掃描用量：", "Couldn’t scan usage: "), err),
+            ));
         }
         match &self.cache.usage {
             None if self.cache.usage_error.is_none() => {
@@ -722,8 +845,17 @@ impl Workspace {
                     .child(
                         h_flex()
                             .items_baseline()
-                            .child(div().text_size(px(26.)).font_weight(FontWeight(650.)).child(format_bytes(u.total_bytes)))
-                            .child(div().text_color(pal.muted).child(format!(" · {} {}", format_int(u.total_files), self.t("個檔案", "files")))),
+                            .child(
+                                div()
+                                    .text_size(px(26.))
+                                    .font_weight(FontWeight(650.))
+                                    .child(format_bytes(u.total_bytes)),
+                            )
+                            .child(div().text_color(pal.muted).child(format!(
+                                " · {} {}",
+                                format_int(u.total_files),
+                                self.t("個檔案", "files")
+                            ))),
                     )
                     .child(
                         h_flex()
@@ -732,31 +864,47 @@ impl Workspace {
                             .rounded(px(6.))
                             .overflow_hidden()
                             .bg(pal.track)
-                            .children(parts.iter().map(|(_, _, part, color)| div().h_full().w(relative(part.bytes as f32 / total)).bg(*color))),
+                            .children(parts.iter().map(|(_, _, part, color)| {
+                                div().h_full().w(relative(part.bytes as f32 / total)).bg(*color)
+                            })),
                     )
-                    .child(v_flex().gap(px(10.)).children(parts.iter().map(|(name, dir, part, color)| {
-                        h_flex()
-                            .gap(px(12.))
-                            .items_center()
-                            .px(px(12.))
-                            .py(px(10.))
-                            .rounded(px(8.))
-                            .border_1()
-                            .border_color(pal.border)
-                            .child(div().size(px(10.)).rounded(px(3.)).flex_none().bg(*color))
-                            .child(div().font_weight(FontWeight::BOLD).child(*name))
-                            .child(mono(&pal, 12.5).text_color(pal.muted).child(*dir))
-                            .child(div().flex_1())
-                            .child(div().child(format!("{} {}", format_int(part.files), self.t("個", "files"))))
-                            .child(mono(&pal, 12.5).min_w(px(90.)).text_right().child(format_bytes(part.bytes)))
-                    })))
+                    .child(
+                        v_flex()
+                            .gap(px(10.))
+                            .children(parts.iter().map(|(name, dir, part, color)| {
+                                h_flex()
+                                    .gap(px(12.))
+                                    .items_center()
+                                    .px(px(12.))
+                                    .py(px(10.))
+                                    .rounded(px(8.))
+                                    .border_1()
+                                    .border_color(pal.border)
+                                    .child(div().size(px(10.)).rounded(px(3.)).flex_none().bg(*color))
+                                    .child(div().font_weight(FontWeight::BOLD).child(*name))
+                                    .child(mono(&pal, 12.5).text_color(pal.muted).child(*dir))
+                                    .child(div().flex_1())
+                                    .child(div().child(format!("{} {}", format_int(part.files), self.t("個", "files"))))
+                                    .child(
+                                        mono(&pal, 12.5)
+                                            .min_w(px(90.))
+                                            .text_right()
+                                            .child(format_bytes(part.bytes)),
+                                    )
+                            })),
+                    )
                     .child(
                         kv_box(9., 13.)
                             .child(kv(
                                 &pal,
                                 96.,
                                 self.t("紀錄（獨立保存）", "Records (stored separately)"),
-                                format!("{} · {} {}", format_bytes(u.records.bytes), format_int(u.records.files), self.t("個檔案", "files")),
+                                format!(
+                                    "{} · {} {}",
+                                    format_bytes(u.records.bytes),
+                                    format_int(u.records.files),
+                                    self.t("個檔案", "files")
+                                ),
                             ))
                             .child(kv(
                                 &pal,
@@ -764,7 +912,12 @@ impl Workspace {
                                 self.t("磁碟可用", "Disk available"),
                                 format!("{} / {}", format_bytes(u.disk_available), format_bytes(u.disk_total)),
                             ))
-                            .child(kv(&pal, 96., self.t("掃描時間", "Scanned at"), format_time(u.scanned_at))),
+                            .child(kv(
+                                &pal,
+                                96.,
+                                self.t("掃描時間", "Scanned at"),
+                                format_time(u.scanned_at),
+                            )),
                     );
             }
         }
@@ -812,7 +965,14 @@ impl Workspace {
                     )),
             );
         let mut paths_box = scope_box(&pal, false).child(
-            div().text_size(px(12.)).font_weight(FontWeight::SEMIBOLD).text_color(pal.muted).child(self.t("本機建置快取與產物（選填）", "Local build cache and artifacts (optional)")),
+            div()
+                .text_size(px(12.))
+                .font_weight(FontWeight::SEMIBOLD)
+                .text_color(pal.muted)
+                .child(self.t(
+                    "本機建置快取與產物（選填）",
+                    "Local build cache and artifacts (optional)",
+                )),
         );
         if local_paths.is_empty() {
             paths_box = paths_box.child(note(
@@ -858,7 +1018,11 @@ impl Workspace {
                     self.t("（", " ("),
                     format_int(r.removed_files),
                     self.t(" 個檔案），", " files); service "),
-                    if r.restarted { self.t("服務已重啟", "restarted") } else { self.t("服務保持停止", "left stopped") },
+                    if r.restarted {
+                        self.t("服務已重啟", "restarted")
+                    } else {
+                        self.t("服務保持停止", "left stopped")
+                    },
                     self.t("。", "."),
                 ),
             ));
@@ -918,11 +1082,19 @@ impl Workspace {
 
         // ── Layout: .cache-grid (left fluid, right 400px, gap 18; single column below 1320px) ───
         let left = v_flex().gap(px(18.)).min_w(px(0.)).child(dist).child(clear);
-        let right = v_flex().gap(px(18.)).min_w(px(0.)).child(mechanism).child(self.render_cleanup_history(&pal, cx));
+        let right = v_flex()
+            .gap(px(18.))
+            .min_w(px(0.))
+            .child(mechanism)
+            .child(self.render_cleanup_history(&pal, cx));
         let grid = if narrow {
             v_flex().gap(px(18.)).child(left).child(right)
         } else {
-            h_flex().items_start().gap(px(18.)).child(left.flex_1()).child(right.w(px(400.)).flex_none())
+            h_flex()
+                .items_start()
+                .gap(px(18.))
+                .child(left.flex_1())
+                .child(right.w(px(400.)).flex_none())
         };
         root.child(grid).into_any_element()
     }
@@ -930,8 +1102,14 @@ impl Workspace {
     /// Body of the clear-confirmation dialog, rendered by `ClearReviewView` inside a native
     /// focus-trapped dialog (Escape/backdrop → `on_cancel`, which refuses while a clear is in flight).
     fn render_clear_review(&self, pal: &Pal, ws: &Entity<Workspace>) -> Div {
-        let Some(review) = self.cache.review.as_ref() else { return div() };
-        let svc = self.cache_target().and_then(|id| self.status.as_ref().and_then(|s| s.services.iter().find(|s| s.id == id)));
+        let Some(review) = self.cache.review.as_ref() else {
+            return div();
+        };
+        let svc = self.cache_target().and_then(|id| {
+            self.status
+                .as_ref()
+                .and_then(|s| s.services.iter().find(|s| s.id == id))
+        });
         let serve = svc.is_none_or(|s| s.config.mode == "serve");
         let running = svc.is_some_and(|s| s.running);
         let service_busy = svc.and_then(|s| s.busy.as_deref());
@@ -940,7 +1118,7 @@ impl Workspace {
         let act = |f: fn(&mut Workspace, &mut Context<Workspace>)| {
             let w = ws.clone();
             move |_: &ClickEvent, _: &mut Window, cx: &mut App| {
-                w.update(cx, |this, cx| f(this, cx));
+                w.update(cx, f);
             }
         };
         let mut body = v_flex()
@@ -962,7 +1140,15 @@ impl Workspace {
             }));
         if let Some(err) = &review.plan_error {
             body = body
-                .child(banner(pal, true, format!("{}{}", self.t("無法取得清除計畫：", "Couldn’t get the clear plan: "), err)))
+                .child(banner(
+                    pal,
+                    true,
+                    format!(
+                        "{}{}",
+                        self.t("無法取得清除計畫：", "Couldn’t get the clear plan: "),
+                        err
+                    ),
+                ))
                 .child(h_flex().child(btn(
                     pal,
                     "cache-plan-retry",
@@ -979,7 +1165,10 @@ impl Workspace {
             }
             None => {}
             Some(plan) => {
-                let kept = self.t("事件紀錄、傳輸明細、已保存的 payload、設定", "Event log, transfer details, saved payloads, settings");
+                let kept = self.t(
+                    "事件紀錄、傳輸明細、已保存的 payload、設定",
+                    "Event log, transfer details, saved payloads, settings",
+                );
                 body = body.child(
                     kv_box(14., 13.)
                         .child(kv(
@@ -1025,35 +1214,64 @@ impl Workspace {
         let mut steps = v_flex().mt(px(6.));
         let mut n = 1;
         if is_running {
-            steps = steps.child(step(n, self.t("停止接收新請求，等待正在處理的請求完成", "Stop accepting new requests and wait for in-flight requests to finish").to_string()));
+            steps = steps.child(step(
+                n,
+                self.t(
+                    "停止接收新請求，等待正在處理的請求完成",
+                    "Stop accepting new requests and wait for in-flight requests to finish",
+                )
+                .to_string(),
+            ));
             n += 1;
         }
         steps = steps.child(step(
             n,
             format!(
                 "{}{}",
-                self.t("一併清空 objects、kv 與暫存資料", "Clear objects, kv, and temporary data"),
-                if review.paths.is_empty() { "" } else { self.t("，以及所選本機路徑", ", plus the selected local paths") },
+                self.t(
+                    "一併清空 objects、kv 與暫存資料",
+                    "Clear objects, kv, and temporary data"
+                ),
+                if review.paths.is_empty() {
+                    ""
+                } else {
+                    self.t("，以及所選本機路徑", ", plus the selected local paths")
+                },
             ),
         ));
         steps = steps.child(step(
             n + 1,
             if review.restart {
-                self.t("寫入清除結果；依下方選項重新啟動服務", "Record the result; then restart the service per the option below").to_string()
+                self.t(
+                    "寫入清除結果；依下方選項重新啟動服務",
+                    "Record the result; then restart the service per the option below",
+                )
+                .to_string()
             } else {
-                self.t("寫入清除結果；依下方選項保持服務停止", "Record the result; then leave the service stopped per the option below").to_string()
+                self.t(
+                    "寫入清除結果；依下方選項保持服務停止",
+                    "Record the result; then leave the service stopped per the option below",
+                )
+                .to_string()
             },
         ));
         body = body
             .child(
-                v_flex().px(px(14.)).py(px(12.)).rounded(px(8.)).bg(pal.warn_bg).text_size(px(13.)).child(
-                    div().font_weight(FontWeight::BOLD).child(if is_running {
-                        self.t("清除期間此服務暫時無法處理快取請求", "This service can’t handle cache requests while clearing")
+                v_flex()
+                    .px(px(14.))
+                    .py(px(12.))
+                    .rounded(px(8.))
+                    .bg(pal.warn_bg)
+                    .text_size(px(13.))
+                    .child(div().font_weight(FontWeight::BOLD).child(if is_running {
+                        self.t(
+                            "清除期間此服務暫時無法處理快取請求",
+                            "This service can’t handle cache requests while clearing",
+                        )
                     } else {
                         self.t("服務目前已停止", "The service is currently stopped")
-                    }),
-                )
-                .child(steps),
+                    }))
+                    .child(steps),
             )
             .child(check(
                 pal,
@@ -1077,7 +1295,13 @@ impl Workspace {
                     }
                 },
             ))
-            .child(note(pal, self.t("取消不會修改資料。清除結果與回收容量會保留在事件紀錄中。", "Canceling doesn’t change any data. The result and reclaimed size are kept in the event log.")));
+            .child(note(
+                pal,
+                self.t(
+                    "取消不會修改資料。清除結果與回收容量會保留在事件紀錄中。",
+                    "Canceling doesn’t change any data. The result and reclaimed size are kept in the event log.",
+                ),
+            ));
         if let Some(busy) = service_busy.filter(|_| !clearing) {
             body = body.child(banner(pal, false, self.cache_busy_text(busy)));
         }
@@ -1085,9 +1309,22 @@ impl Workspace {
             let state = if review.plan.as_ref().map_or(running, |p| p.running) {
                 self.t("服務目前運行中。", "The service is currently running.")
             } else {
-                self.t("服務目前已停止，詳情見事件紀錄。", "The service is currently stopped; see the event log for details.")
+                self.t(
+                    "服務目前已停止，詳情見事件紀錄。",
+                    "The service is currently stopped; see the event log for details.",
+                )
             };
-            body = body.child(banner(pal, true, format!("{}{}{} {}", self.t("清除失敗：", "Clear failed: "), err, self.t("。", "."), state)));
+            body = body.child(banner(
+                pal,
+                true,
+                format!(
+                    "{}{}{} {}",
+                    self.t("清除失敗：", "Clear failed: "),
+                    err,
+                    self.t("。", "."),
+                    state
+                ),
+            ));
         }
         let blocked = service_busy.is_some() && !clearing;
         let label = if clearing {
@@ -1103,7 +1340,15 @@ impl Workspace {
             h_flex()
                 .gap(px(8.))
                 .justify_end()
-                .child(btn(pal, "cache-cancel", self.t("取消", "Cancel"), BtnKind::Plain, false, clearing, act(Workspace::cancel_clear_review)))
+                .child(btn(
+                    pal,
+                    "cache-cancel",
+                    self.t("取消", "Cancel"),
+                    BtnKind::Plain,
+                    false,
+                    clearing,
+                    act(Workspace::cancel_clear_review),
+                ))
                 .child(btn(
                     pal,
                     "cache-confirm",
@@ -1118,7 +1363,11 @@ impl Workspace {
     }
 
     fn render_cleanup_history(&self, pal: &Pal, cx: &mut Context<Self>) -> Div {
-        let mut head = h_flex().justify_between().items_center().gap(px(12.)).child(h2(pal, self.t("最近清除紀錄", "Recent clears")));
+        let mut head = h_flex()
+            .justify_between()
+            .items_center()
+            .gap(px(12.))
+            .child(h2(pal, self.t("最近清除紀錄", "Recent clears")));
         if let Some(history) = self.cache.history.as_ref().filter(|h| h.len() > COLLAPSED_HISTORY) {
             head = head.child(link(
                 pal,
@@ -1139,11 +1388,19 @@ impl Workspace {
             section = section.child(banner(pal, true, err.clone()));
         }
         match &self.cache.history {
-            None if self.cache.history_error.is_none() => section = section.child(empty_small(pal, self.t("載入中…", "Loading…"))),
+            None if self.cache.history_error.is_none() => {
+                section = section.child(empty_small(pal, self.t("載入中…", "Loading…")))
+            }
             None => {}
-            Some(items) if items.is_empty() => section = section.child(empty_small(pal, self.t("尚無清除紀錄。", "No clears yet."))),
+            Some(items) if items.is_empty() => {
+                section = section.child(empty_small(pal, self.t("尚無清除紀錄。", "No clears yet.")))
+            }
             Some(items) => {
-                let shown = if self.cache.show_all { items.len() } else { items.len().min(COLLAPSED_HISTORY) };
+                let shown = if self.cache.show_all {
+                    items.len()
+                } else {
+                    items.len().min(COLLAPSED_HISTORY)
+                };
                 for ev in &items[..shown] {
                     section = section.child(self.render_cleanup_item(pal, ev, cx));
                 }
@@ -1159,7 +1416,8 @@ impl Workspace {
     }
 
     fn render_cleanup_item(&self, pal: &Pal, ev: &AppEvent, cx: &mut Context<Self>) -> Div {
-        let failed = ev.level == "ERROR" || ev.level == "WARN" || field(ev, "ok").and_then(Value::as_bool) == Some(false);
+        let failed =
+            ev.level == "ERROR" || ev.level == "WARN" || field(ev, "ok").and_then(Value::as_bool) == Some(false);
         let expanded = self.cache.expanded.contains(&ev.id);
         let event_id = ev.id;
         let reclaimed = field(ev, "reclaimed_bytes").and_then(Value::as_u64);
@@ -1167,9 +1425,16 @@ impl Workspace {
         let restarted = field(ev, "restarted").and_then(Value::as_bool);
         let paths: Vec<String> = field(ev, "local_paths")
             .and_then(Value::as_array)
-            .map(|a| a.iter().map(|v| v.as_str().map(str::to_string).unwrap_or_else(|| v.to_string())).collect())
+            .map(|a| {
+                a.iter()
+                    .map(|v| v.as_str().map(str::to_string).unwrap_or_else(|| v.to_string()))
+                    .collect()
+            })
             .unwrap_or_default();
-        let error = field(ev, "error").and_then(Value::as_str).filter(|s| !s.is_empty()).map(str::to_string);
+        let error = field(ev, "error")
+            .and_then(Value::as_str)
+            .filter(|s| !s.is_empty())
+            .map(str::to_string);
         let reclaimed_text = match (reclaimed, removed) {
             (Some(b), Some(f)) => format!("{} · {} {}", format_bytes(b), format_int(f), self.t("個檔案", "files")),
             (Some(b), None) => format_bytes(b),
@@ -1180,7 +1445,11 @@ impl Workspace {
             Some(false) => self.t("完成後保持停止", "Service left stopped afterward"),
             None => "—",
         };
-        let (tag_bg, tag_fg) = if failed { (pal.danger_bg, pal.danger) } else { (pal.accent_bg, pal.accent) };
+        let (tag_bg, tag_fg) = if failed {
+            (pal.danger_bg, pal.danger)
+        } else {
+            (pal.accent_bg, pal.accent)
+        };
         let tag = div()
             .flex_none()
             .px(px(8.))
@@ -1190,33 +1459,64 @@ impl Workspace {
             .font_weight(FontWeight::SEMIBOLD)
             .bg(tag_bg)
             .text_color(tag_fg)
-            .child(if failed { self.t("失敗", "Failed") } else { self.t("成功", "Succeeded") });
-        let item = v_flex().gap(px(8.)).p(px(12.)).rounded(px(8.)).border_1().border_color(pal.border).child(
-            h_flex()
-                .gap(px(8.))
-                .items_center()
-                .child(tag)
-                .child(div().flex_1().min_w(px(0.)).text_size(px(12.)).text_color(pal.muted).child(format!("{} · {}", format_time(ev.time), ev.message)))
-                .child(link(
-                    pal,
-                    SharedString::from(format!("cache-hist-toggle-{event_id}")),
-                    if expanded { self.t("收合", "Collapse") } else { self.t("展開", "Details") },
-                    cx.listener(move |this, _, _, cx| {
-                        if !this.cache.expanded.remove(&event_id) {
-                            this.cache.expanded.insert(event_id);
-                        }
-                        cx.notify();
-                    }),
-                )),
-        );
+            .child(if failed {
+                self.t("失敗", "Failed")
+            } else {
+                self.t("成功", "Succeeded")
+            });
+        let item = v_flex()
+            .gap(px(8.))
+            .p(px(12.))
+            .rounded(px(8.))
+            .border_1()
+            .border_color(pal.border)
+            .child(
+                h_flex()
+                    .gap(px(8.))
+                    .items_center()
+                    .child(tag)
+                    .child(
+                        div()
+                            .flex_1()
+                            .min_w(px(0.))
+                            .text_size(px(12.))
+                            .text_color(pal.muted)
+                            .child(format!("{} · {}", format_time(ev.time), ev.message)),
+                    )
+                    .child(link(
+                        pal,
+                        SharedString::from(format!("cache-hist-toggle-{event_id}")),
+                        if expanded {
+                            self.t("收合", "Collapse")
+                        } else {
+                            self.t("展開", "Details")
+                        },
+                        cx.listener(move |this, _, _, cx| {
+                            if !this.cache.expanded.remove(&event_id) {
+                                this.cache.expanded.insert(event_id);
+                            }
+                            cx.notify();
+                        }),
+                    )),
+            );
         let mut rows = kv_box(5., 12.5)
             .child(kv(pal, 96., self.t("實際回收", "Reclaimed"), reclaimed_text))
             .child(kv(pal, 96., self.t("操作結果", "Result"), outcome_text));
         if !paths.is_empty() {
-            rows = rows.child(kv(pal, 96., self.t("本機路徑", "Local paths"), mono(pal, 12.5).child(paths.join(self.t("、", ", ")))));
+            rows = rows.child(kv(
+                pal,
+                96.,
+                self.t("本機路徑", "Local paths"),
+                mono(pal, 12.5).child(paths.join(self.t("、", ", "))),
+            ));
         }
         if let Some(err) = &error {
-            rows = rows.child(kv(pal, 96., self.t("錯誤", "Error"), div().text_color(pal.danger).child(err.clone())));
+            rows = rows.child(kv(
+                pal,
+                96.,
+                self.t("錯誤", "Error"),
+                div().text_color(pal.danger).child(err.clone()),
+            ));
         }
         if expanded {
             let scope = ev
@@ -1233,7 +1533,12 @@ impl Workspace {
             rows = rows
                 .child(kv(pal, 96., self.t("服務範圍", "Service scope"), scope))
                 .child(kv(pal, 96., self.t("等級", "Level"), ev.level.clone()))
-                .child(kv(pal, 96., self.t("事件", "Event"), format!("#{} · {}", ev.id, ev.kind)))
+                .child(kv(
+                    pal,
+                    96.,
+                    self.t("事件", "Event"),
+                    format!("#{} · {}", ev.id, ev.kind),
+                ))
                 .child(kv(
                     pal,
                     96.,
@@ -1271,7 +1576,11 @@ impl ClearReviewView {
             this.closed = true;
             window.close_dialog(cx);
         });
-        ClearReviewView { workspace, closed: false, _observe }
+        ClearReviewView {
+            workspace,
+            closed: false,
+            _observe,
+        }
     }
 }
 

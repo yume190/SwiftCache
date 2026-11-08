@@ -236,13 +236,20 @@ TCP `serve` is available, because unix sockets and `proxy` are Unix-only.
 ```bash
 ./scripts/bin/cargo test --manifest-path server/Cargo.toml        # store, proxy, journal, management
 ./scripts/bin/cargo test --manifest-path desktop-gpui/Cargo.toml  # API routes, connection editor, defaults
+./scripts/bin/cargo clippy --all-targets --manifest-path server/Cargo.toml -- -D warnings  # same for desktop-gpui
+./scripts/bin/cargo fmt --manifest-path server/Cargo.toml       # rustfmt.toml: max_width = 120
 scripts/demo.sh                                                   # end-to-end: probe, Xcode, SwiftPM, proxy
 ```
 
 GitHub Actions (`.github/workflows/ci.yml`) runs on every pull request and on pushes to
-`main`: server tests on Linux and macOS, desktop-gpui tests plus a `SwiftCache.app` bundle
-check on macOS, and `scripts/demo.sh` on the `xcode-27` runner (SwiftPM caching needs
-Swift 6.4+). CI uses the runner's stock Cargo; `scripts/demo.sh` honours `CARGO` for that.
+`main`: `cargo fmt --check`; server tests and clippy on Linux and macOS; desktop-gpui tests,
+clippy and a `SwiftCache.app` bundle check on macOS; and `scripts/demo.sh` on the `xcode-27`
+runner (SwiftPM caching needs Swift 6.4+). Clippy fails on any warning. CI uses the runner's
+stock Cargo; `scripts/demo.sh` honours `CARGO` for that. Dependabot (`.github/dependabot.yml`)
+proposes Action and Cargo updates weekly.
+
+The repository was reformatted once with rustfmt; `.git-blame-ignore-revs` lists that commit
+so GitHub's blame skips it (locally: `git config blame.ignoreRevsFile .git-blame-ignore-revs`).
 
 ## Verified on
 

@@ -1,22 +1,59 @@
 mod native;
-use gpui_kit::*;
-use gpui_kit::component::WindowExt;
-use serde_json::{Value, json};
 use crate::app::Workspace;
+use gpui_kit::component::WindowExt;
+use gpui_kit::*;
+use serde_json::{Value, json};
 
 fn point_click(window: &mut Window, position: Point<Pixels>, cx: &mut App) {
-    window.dispatch_event(MouseMoveEvent { position, pressed_button: None, modifiers: Modifiers::default() }.to_platform_input(), cx);
-    window.dispatch_event(MouseDownEvent { position, button: MouseButton::Left, click_count: 1, modifiers: Modifiers::default(), first_mouse: false }.to_platform_input(), cx);
-    window.dispatch_event(MouseUpEvent { position, button: MouseButton::Left, click_count: 1, modifiers: Modifiers::default() }.to_platform_input(), cx);
+    window.dispatch_event(
+        MouseMoveEvent {
+            position,
+            pressed_button: None,
+            modifiers: Modifiers::default(),
+        }
+        .to_platform_input(),
+        cx,
+    );
+    window.dispatch_event(
+        MouseDownEvent {
+            position,
+            button: MouseButton::Left,
+            click_count: 1,
+            modifiers: Modifiers::default(),
+            first_mouse: false,
+        }
+        .to_platform_input(),
+        cx,
+    );
+    window.dispatch_event(
+        MouseUpEvent {
+            position,
+            button: MouseButton::Left,
+            click_count: 1,
+            modifiers: Modifiers::default(),
+        }
+        .to_platform_input(),
+        cx,
+    );
 }
 fn key(window: &mut Window, text: &str, cx: &mut App) {
     let keystroke = Keystroke::parse_with_os(text, cx.platform_info().os).unwrap();
-    window.dispatch_event(KeyDownEvent { keystroke: keystroke.clone(), is_held: false, prefer_character_input: false }.to_platform_input(), cx);
+    window.dispatch_event(
+        KeyDownEvent {
+            keystroke: keystroke.clone(),
+            is_held: false,
+            prefer_character_input: false,
+        }
+        .to_platform_input(),
+        cx,
+    );
     window.dispatch_event(KeyUpEvent { keystroke }.to_platform_input(), cx);
 }
 
 pub fn start(handle: AnyWindowHandle, workspace: Entity<Workspace>, cx: &mut App) {
-    let Some(dir) = std::env::var_os("SWIFTCACHE_UI_SMOKE") else { return };
+    let Some(dir) = std::env::var_os("SWIFTCACHE_UI_SMOKE") else {
+        return;
+    };
     let dir = std::path::PathBuf::from(dir);
     cx.spawn(async move |cx| {
         let mut last = 0;

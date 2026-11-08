@@ -53,12 +53,16 @@ impl SizeUnit {
     }
     /// Largest unit that shows the value as a whole number (512 MiB, 2 GiB).
     fn fitting(bytes: usize) -> Self {
-        if bytes > 0 && bytes % GIB == 0 { SizeUnit::Gib } else { SizeUnit::Mib }
+        if bytes > 0 && bytes.is_multiple_of(GIB) {
+            SizeUnit::Gib
+        } else {
+            SizeUnit::Mib
+        }
     }
 }
 
 fn size_text(bytes: usize, unit: SizeUnit) -> String {
-    if bytes % unit.bytes() == 0 {
+    if bytes.is_multiple_of(unit.bytes()) {
         (bytes / unit.bytes()).to_string()
     } else {
         format!("{}", bytes as f64 / unit.bytes() as f64)
@@ -88,7 +92,12 @@ fn split_upstream(address: &str) -> UpstreamParts {
     } else if lower.starts_with("http://") {
         7
     } else {
-        return UpstreamParts { prefix: "http://".into(), host: address.into(), port: "50051".into(), suffix: String::new() };
+        return UpstreamParts {
+            prefix: "http://".into(),
+            host: address.into(),
+            port: "50051".into(),
+            suffix: String::new(),
+        };
     };
     let prefix = &address[..scheme_len];
     let rest = &address[scheme_len..];
@@ -108,11 +117,21 @@ fn split_upstream(address: &str) -> UpstreamParts {
             (p[..end].to_string(), p[end..].to_string())
         }
         None => (
-            if prefix.eq_ignore_ascii_case("https://") { "443" } else { "80" }.to_string(),
+            if prefix.eq_ignore_ascii_case("https://") {
+                "443"
+            } else {
+                "80"
+            }
+            .to_string(),
             after.to_string(),
         ),
     };
-    UpstreamParts { prefix: prefix.into(), host: host.into(), port, suffix }
+    UpstreamParts {
+        prefix: prefix.into(),
+        host: host.into(),
+        port,
+        suffix,
+    }
 }
 
 fn digits(s: &str) -> bool {
@@ -124,7 +143,10 @@ fn port_in(s: &str, min: u64, max: u64) -> bool {
 }
 
 pub fn shell_quote(s: &str) -> String {
-    if !s.is_empty() && s.bytes().all(|b| b.is_ascii_alphanumeric() || b"_/.:=@%+,-".contains(&b)) {
+    if !s.is_empty()
+        && s.bytes()
+            .all(|b| b.is_ascii_alphanumeric() || b"_/.:=@%+,-".contains(&b))
+    {
         return s.to_string();
     }
     format!("'{}'", s.replace('\'', "'\\''"))
@@ -132,13 +154,17 @@ pub fn shell_quote(s: &str) -> String {
 
 /// Equivalent `swiftcache serve|proxy` invocation, one flag per line.
 pub fn build_cli(c: &Config) -> String {
-    let env = if c.log_level.is_empty() { String::new() } else { format!("SWIFTCACHE_LOG={} ", shell_quote(&c.log_level)) };
+    let env = if c.log_level.is_empty() {
+        String::new()
+    } else {
+        format!("SWIFTCACHE_LOG={} ", shell_quote(&c.log_level))
+    };
     let mut lines = vec![format!("{env}swiftcache {}", c.mode)];
     lines.push(format!("--store {}", shell_quote(&c.store)));
-    if c.mode == "serve" {
-        if let Some(tcp) = c.tcp.as_deref().filter(|v| !v.is_empty()) {
-            lines.push(format!("--tcp {}", shell_quote(tcp)));
-        }
+    if c.mode == "serve"
+        && let Some(tcp) = c.tcp.as_deref().filter(|v| !v.is_empty())
+    {
+        lines.push(format!("--tcp {}", shell_quote(tcp)));
     }
     if let Some(socket) = c.socket.as_deref().filter(|v| !v.is_empty()) {
         lines.push(format!("--socket {}", shell_quote(socket)));
@@ -162,7 +188,12 @@ fn normalize(c: Config) -> Config {
         socket: c.socket.map(|v| v.trim().to_string()),
         blob_dir: c.blob_dir.map(|v| v.trim().to_string()),
         log_level: c.log_level.trim().to_string(),
-        local_cache_paths: c.local_cache_paths.iter().map(|p| p.trim().to_string()).filter(|p| !p.is_empty()).collect(),
+        local_cache_paths: c
+            .local_cache_paths
+            .iter()
+            .map(|p| p.trim().to_string())
+            .filter(|p| !p.is_empty())
+            .collect(),
         ..c
     }
 }
@@ -260,7 +291,8 @@ impl Parts {
         let tcp = if serve {
             if !self.tcp_enabled {
                 None
-            } else if (self.tcp_host.as_str(), self.tcp_port.as_str()) == (self.tcp_orig.0.as_str(), self.tcp_orig.1.as_str())
+            } else if (self.tcp_host.as_str(), self.tcp_port.as_str())
+                == (self.tcp_orig.0.as_str(), self.tcp_orig.1.as_str())
                 && self.tcp_raw.is_some()
             {
                 self.tcp_raw.clone()
@@ -270,24 +302,47 @@ impl Parts {
         } else {
             self.proxy_tcp.clone()
         };
-        let upstream = if serve || (self.up_local, &self.up_host, &self.up_port) == (self.up_orig.0, &self.up_orig.1, &self.up_orig.2) {
+        let upstream = if serve
+            || (self.up_local, &self.up_host, &self.up_port) == (self.up_orig.0, &self.up_orig.1, &self.up_orig.2)
+        {
             self.up_raw.clone()
         } else {
-            let host = if self.up_local { "127.0.0.1" } else { self.up_host.as_str() };
-            let authority = if host.contains(':') && !host.starts_with('[') { format!("[{host}]") } else { host.to_string() };
+            let host = if self.up_local {
+                "127.0.0.1"
+            } else {
+                self.up_host.as_str()
+            };
+            let authority = if host.contains(':') && !host.starts_with('[') {
+                format!("[{host}]")
+            } else {
+                host.to_string()
+            };
             format!("{}{}:{}{}", self.up_prefix, authority, self.up_port, self.up_suffix)
         };
-        let max_message_size = if (self.size.as_str(), self.size_unit) == (self.size_orig.0.as_str(), self.size_orig.1) {
+        let max_message_size = if (self.size.as_str(), self.size_unit) == (self.size_orig.0.as_str(), self.size_orig.1)
+        {
             self.size_orig.2
         } else {
-            let amount = self.size.trim().parse::<f64>().ok().filter(|v| v.is_finite()).unwrap_or(0.0).max(0.0).round();
+            let amount = self
+                .size
+                .trim()
+                .parse::<f64>()
+                .ok()
+                .filter(|v| v.is_finite())
+                .unwrap_or(0.0)
+                .max(0.0)
+                .round();
             (amount * self.size_unit.bytes() as f64) as usize
         };
         normalize(Config {
             name: self.name.clone(),
             mode: self.mode.clone(),
             store: self.store.clone(),
-            socket: if self.unix_ok || !serve { Some(self.socket.clone()) } else { self.socket_keep.clone() },
+            socket: if self.unix_ok || !serve {
+                Some(self.socket.clone())
+            } else {
+                self.socket_keep.clone()
+            },
             tcp,
             upstream,
             blob_dir: self.blob_enabled.then(|| self.blob.clone()),
@@ -420,7 +475,10 @@ fn sync_placeholder(entity: &Entity<InputState>, text: &str, window: &mut Window
 
 impl Workspace {
     fn unix_supported(&self) -> bool {
-        self.status.as_ref().map(|s| s.unix_socket_supported).unwrap_or(cfg!(unix))
+        self.status
+            .as_ref()
+            .map(|s| s.unix_socket_supported)
+            .unwrap_or(cfg!(unix))
     }
 
     /// A fresh configuration for the "new connection" flow (unique store/socket, socket only
@@ -438,48 +496,101 @@ impl Workspace {
     }
 
     fn service_locked(&self) -> bool {
-        self.service_running() || self.busy || (!self.service.is_new && self.selected_service().map(|s| s.busy.is_some()).unwrap_or(false))
+        self.service_running()
+            || self.busy
+            || (!self.service.is_new && self.selected_service().map(|s| s.busy.is_some()).unwrap_or(false))
     }
 
     fn validate_config(&self, c: &Config) -> Vec<String> {
         let unix_ok = self.unix_supported();
         let mut errs = Vec::new();
         if c.store.trim().is_empty() {
-            errs.push(self.t("請填寫快取目錄（--store）。", "Enter a cache directory (--store).").to_string());
+            errs.push(
+                self.t("請填寫快取目錄（--store）。", "Enter a cache directory (--store).")
+                    .to_string(),
+            );
         }
         if c.mode == "serve" {
             if c.tcp.is_none() && c.socket.as_deref().map(|s| s.is_empty()).unwrap_or(true) {
-                errs.push(self.t("至少啟用 TCP 或 Unix socket 其中一種接收方式。", "Enable at least one of TCP or Unix socket.").to_string());
+                errs.push(
+                    self.t(
+                        "至少啟用 TCP 或 Unix socket 其中一種接收方式。",
+                        "Enable at least one of TCP or Unix socket.",
+                    )
+                    .to_string(),
+                );
             }
         } else {
             if !unix_ok {
-                errs.push(self.t("此平台不支援 Unix socket，無法使用 Proxy 模式。", "This platform does not support Unix sockets, so Proxy mode is unavailable.").to_string());
+                errs.push(
+                    self.t(
+                        "此平台不支援 Unix socket，無法使用 Proxy 模式。",
+                        "This platform does not support Unix sockets, so Proxy mode is unavailable.",
+                    )
+                    .to_string(),
+                );
             }
             let up = split_upstream(c.upstream.trim());
             if up.host.trim().is_empty() {
-                errs.push(self.t("請填寫上游位址（--upstream）。", "Enter an upstream address (--upstream).").to_string());
+                errs.push(
+                    self.t(
+                        "請填寫上游位址（--upstream）。",
+                        "Enter an upstream address (--upstream).",
+                    )
+                    .to_string(),
+                );
             }
             if !port_in(&up.port, 1, 65535) {
-                errs.push(self.t("上游 Port 必須是 1–65535 的整數。", "Upstream port must be an integer from 1 to 65535.").to_string());
+                errs.push(
+                    self.t(
+                        "上游 Port 必須是 1–65535 的整數。",
+                        "Upstream port must be an integer from 1 to 65535.",
+                    )
+                    .to_string(),
+                );
             }
         }
-        if c.mode == "serve" {
-            if let Some(tcp) = &c.tcp {
-                if tcp.trim().is_empty() {
-                    errs.push(self.t("TCP 位址不可為空。", "The TCP address can’t be empty.").to_string());
-                } else if !port_in(&split_tcp(tcp.trim()).1, 0, 65535) {
-                    errs.push(self.t("TCP Port 必須是 0–65535 的整數。", "TCP port must be an integer from 0 to 65535.").to_string());
-                }
+        if c.mode == "serve"
+            && let Some(tcp) = &c.tcp
+        {
+            if tcp.trim().is_empty() {
+                errs.push(
+                    self.t("TCP 位址不可為空。", "The TCP address can’t be empty.")
+                        .to_string(),
+                );
+            } else if !port_in(&split_tcp(tcp.trim()).1, 0, 65535) {
+                errs.push(
+                    self.t(
+                        "TCP Port 必須是 0–65535 的整數。",
+                        "TCP port must be an integer from 0 to 65535.",
+                    )
+                    .to_string(),
+                );
             }
         }
         if (unix_ok || c.mode == "proxy") && c.socket.as_deref().map(|s| s.trim().is_empty()).unwrap_or(true) {
-            errs.push(self.t("請填寫本機 Unix socket 路徑（--socket）。", "Enter a local Unix socket path (--socket).").to_string());
+            errs.push(
+                self.t(
+                    "請填寫本機 Unix socket 路徑（--socket）。",
+                    "Enter a local Unix socket path (--socket).",
+                )
+                .to_string(),
+            );
         }
         if c.blob_dir.as_deref().map(|b| b.trim().is_empty()).unwrap_or(false) {
-            errs.push(self.t("檔案回應目錄不可為空。", "The file response directory can’t be empty.").to_string());
+            errs.push(
+                self.t("檔案回應目錄不可為空。", "The file response directory can’t be empty.")
+                    .to_string(),
+            );
         }
         if c.max_message_size < MIB {
-            errs.push(self.t("單筆訊息上限至少 1 MiB。", "The maximum message size must be at least 1 MiB.").to_string());
+            errs.push(
+                self.t(
+                    "單筆訊息上限至少 1 MiB。",
+                    "The maximum message size must be at least 1 MiB.",
+                )
+                .to_string(),
+            );
         }
         errs
     }
@@ -488,7 +599,11 @@ impl Workspace {
     pub fn current_config(&self, cx: &App) -> Result<Config, String> {
         let config = self.service.parts_now(cx).compose();
         let errs = self.validate_config(&config);
-        if errs.is_empty() { Ok(config) } else { Err(errs.join("\n")) }
+        if errs.is_empty() {
+            Ok(config)
+        } else {
+            Err(errs.join("\n"))
+        }
     }
 
     /// True for a not-yet-created connection, or when the draft differs from the saved config.
@@ -523,7 +638,13 @@ impl Workspace {
             return;
         }
         if self.service_running() {
-            self.error = Some(self.t("服務執行中；停止後才能修改設定。", "The service is running. Stop it to change settings.").to_string());
+            self.error = Some(
+                self.t(
+                    "服務執行中；停止後才能修改設定。",
+                    "The service is running. Stop it to change settings.",
+                )
+                .to_string(),
+            );
             cx.notify();
             return;
         }
@@ -570,7 +691,10 @@ impl Workspace {
                 };
                 let target = saved.as_ref().map(|s| s.id.clone()).or(id).unwrap_or_default();
                 let started = if start_after {
-                    Some(api.request::<Status>("POST", &format!("/api/services/{target}/start"), None).await)
+                    Some(
+                        api.request::<Status>("POST", &format!("/api/services/{target}/start"), None)
+                            .await,
+                    )
                 } else {
                     None
                 };
@@ -655,30 +779,70 @@ impl Workspace {
                 .or_else(|| Some(config.store.clone()).filter(|v| !v.is_empty()))
                 .unwrap_or_else(|| "Serve".to_string())
         } else {
-            format!("→ {}", config.upstream.trim_start_matches("https://").trim_start_matches("http://"))
+            format!(
+                "→ {}",
+                config
+                    .upstream
+                    .trim_start_matches("https://")
+                    .trim_start_matches("http://")
+            )
         };
         sync_placeholder(&self.service.name, &name_placeholder, window, cx);
-        sync_placeholder(&self.service.store, self.t("/path/to/swiftcache/store", "/path/to/swiftcache/store"), window, cx);
+        sync_placeholder(
+            &self.service.store,
+            self.t("/path/to/swiftcache/store", "/path/to/swiftcache/store"),
+            window,
+            cx,
+        );
         sync_placeholder(&self.service.socket, "/tmp/swiftcache/cache.sock", window, cx);
         sync_placeholder(&self.service.up_host, "192.168.1.10 / cache-host", window, cx);
-        sync_placeholder(&self.service.blob, self.t("未設定；目前回傳 inline bytes", "Not set; inline bytes are returned"), window, cx);
+        sync_placeholder(
+            &self.service.blob,
+            self.t("未設定；目前回傳 inline bytes", "Not set; inline bytes are returned"),
+            window,
+            cx,
+        );
         {
             let placeholder = SharedString::from("~/Library/Developer/Xcode/DerivedData\n/path/to/project/.build");
             if self.service.paths.read(cx).presentation().placeholder() != &placeholder {
-                self.service.paths.update(cx, |s, cx| s.set_placeholder(placeholder, window, cx));
+                self.service
+                    .paths
+                    .update(cx, |s, cx| s.set_placeholder(placeholder, window, cx));
             }
         }
 
         let pal = crate::ui::palette(cx);
-        let (text, muted, border, panel, chip, accent) = (pal.text, pal.muted, pal.border, pal.panel, pal.chip, pal.accent);
+        let (text, muted, border, panel, chip, accent) =
+            (pal.text, pal.muted, pal.border, pal.panel, pal.chip, pal.accent);
         let (field_bg, subtle) = (pal.field, pal.subtle);
         let (warn_bg, warn_border, warn_text) = (pal.warn_bg, pal.warn_border, pal.warn_text);
         let mono = cx.theme().mono_font_family.clone();
         let narrow = window.viewport_size().width < px(1320.);
 
-        let card = move || v_flex().min_w_0().gap(px(14.)).px(px(20.)).py(px(18.)).bg(panel).border_1().border_color(border).rounded(px(10.));
-        let heading = |text: &str| div().text_size(px(16.)).font_weight(FontWeight(650.)).child(text.to_string());
-        let label = move |text: &str| div().text_size(px(12.)).font_weight(FontWeight::SEMIBOLD).text_color(muted).child(text.to_string());
+        let card = move || {
+            v_flex()
+                .min_w_0()
+                .gap(px(14.))
+                .px(px(20.))
+                .py(px(18.))
+                .bg(panel)
+                .border_1()
+                .border_color(border)
+                .rounded(px(10.))
+        };
+        let heading = |text: &str| {
+            div()
+                .text_size(px(16.))
+                .font_weight(FontWeight(650.))
+                .child(text.to_string())
+        };
+        let label = move |text: &str| {
+            div()
+                .text_size(px(12.))
+                .font_weight(FontWeight::SEMIBOLD)
+                .text_color(muted)
+                .child(text.to_string())
+        };
         let hint = move |text: &str| div().text_size(px(12.)).text_color(muted).child(text.to_string());
         let field = || v_flex().gap(px(6.)).min_w_0();
         let banner = move |content: Div| {
@@ -696,7 +860,13 @@ impl Workspace {
         let control = |input: Input, locked: bool| input.h(px(36.)).disabled(locked);
         let mono_control = {
             let mono = mono.clone();
-            move |input: Input, locked: bool| input.h(px(36.)).font_family(mono.clone()).text_size(px(12.5)).disabled(locked)
+            move |input: Input, locked: bool| {
+                input
+                    .h(px(36.))
+                    .font_family(mono.clone())
+                    .text_size(px(12.5))
+                    .disabled(locked)
+            }
         };
 
         // ---- mode bar ----
@@ -705,7 +875,17 @@ impl Workspace {
             _ => self.t("Proxy · 本機中繼", "Proxy · Local relay"),
         };
         let mode_bar = {
-            let mut row = h_flex().flex_wrap().items_center().justify_between().gap(px(12.)).px(px(16.)).py(px(13.)).bg(panel).border_1().border_color(border).rounded(px(10.));
+            let mut row = h_flex()
+                .flex_wrap()
+                .items_center()
+                .justify_between()
+                .gap(px(12.))
+                .px(px(16.))
+                .py(px(13.))
+                .bg(panel)
+                .border_1()
+                .border_color(border)
+                .rounded(px(10.));
             if is_new {
                 let mut group = h_flex().p(px(3.)).gap(px(2.)).bg(chip).rounded(px(8.));
                 for (index, m) in ["serve", "proxy"].into_iter().enumerate() {
@@ -730,7 +910,12 @@ impl Workspace {
                             if this.service.parts.mode != m {
                                 // The new draft's baseline keeps its generated Server name, even after changing roles.
                                 let current = this.service.name.read(cx).value().to_string();
-                                if let Some(name) = role_default_name(&this.service.baseline.name, &current, this.service.parts.serve(), m == "serve") {
+                                if let Some(name) = role_default_name(
+                                    &this.service.baseline.name,
+                                    &current,
+                                    this.service.parts.serve(),
+                                    m == "serve",
+                                ) {
                                     set_input(&this.service.name, &name, window, cx);
                                 }
                                 this.service.parts.mode = m.to_string();
@@ -743,11 +928,21 @@ impl Workspace {
                     };
                     group = group.child(seg);
                 }
-                row = row.child(group).child(hint(self.t("建立時選擇類型，儲存後即固定。", "Choose the type when creating this connection. Saving makes it permanent.")));
+                row = row.child(group).child(hint(self.t(
+                    "建立時選擇類型，儲存後即固定。",
+                    "Choose the type when creating this connection. Saving makes it permanent.",
+                )));
             } else {
                 row = row
-                    .child(div().font_weight(FontWeight::BOLD).child(mode_title(&parts.mode).to_string()))
-                    .child(hint(self.t("類型已固定；如需改用另一種類型，請新增連線。", "The type is fixed. Create another connection to use a different type.")));
+                    .child(
+                        div()
+                            .font_weight(FontWeight::BOLD)
+                            .child(mode_title(&parts.mode).to_string()),
+                    )
+                    .child(hint(self.t(
+                        "類型已固定；如需改用另一種類型，請新增連線。",
+                        "The type is fixed. Create another connection to use a different type.",
+                    )));
             }
             row
         };
@@ -852,8 +1047,13 @@ impl Workspace {
                 );
             }
             connection = connection.child(two_columns(
-                v_flex().gap(px(10.)).child(label(self.t("監聽範圍", "Listen scope"))).child(radios),
-                field().child(label(self.t("Port", "Port"))).child(mono_control(Input::new(&self.service.tcp_port), locked)),
+                v_flex()
+                    .gap(px(10.))
+                    .child(label(self.t("監聽範圍", "Listen scope")))
+                    .child(radios),
+                field()
+                    .child(label(self.t("Port", "Port")))
+                    .child(mono_control(Input::new(&self.service.tcp_port), locked)),
             ));
         }
 
@@ -880,16 +1080,26 @@ impl Workspace {
                             cx.notify();
                         })),
                 );
-            let mut host_col = field().child(v_flex().gap(px(10.)).child(label(self.t("上游主機", "Upstream host"))).child(radios));
+            let mut host_col = field().child(
+                v_flex()
+                    .gap(px(10.))
+                    .child(label(self.t("上游主機", "Upstream host")))
+                    .child(radios),
+            );
             if !parts.up_local {
                 host_col = host_col.child(mono_control(Input::new(&self.service.up_host), locked));
             }
             connection = connection.child(
                 field()
-                    .child(label(self.t("上游 Serve · --upstream / SWIFTCACHE_UPSTREAM", "Upstream Serve · --upstream / SWIFTCACHE_UPSTREAM")))
+                    .child(label(self.t(
+                        "上游 Serve · --upstream / SWIFTCACHE_UPSTREAM",
+                        "Upstream Serve · --upstream / SWIFTCACHE_UPSTREAM",
+                    )))
                     .child(two_columns(
                         host_col,
-                        field().child(label(self.t("Port", "Port"))).child(mono_control(Input::new(&self.service.up_port), locked)),
+                        field()
+                            .child(label(self.t("Port", "Port")))
+                            .child(mono_control(Input::new(&self.service.up_port), locked)),
                     )),
             );
         }
@@ -904,12 +1114,15 @@ impl Workspace {
                     this.service.advanced_open = !this.service.advanced_open;
                     cx.notify();
                 }))
-                .child(
-                    div()
-                        .font_weight(FontWeight::SEMIBOLD)
-                        .child(format!("{} {}", if advanced_open { "▾" } else { "▸" }, self.t("進階設定", "Advanced settings"))),
-                )
-                .child(div().ml(px(16.)).mt(px(5.)).child(hint(self.t("訊息上限、Log、檔案回應與本機清除路徑", "Message limit, logs, file responses, and local cleanup paths")))),
+                .child(div().font_weight(FontWeight::SEMIBOLD).child(format!(
+                    "{} {}",
+                    if advanced_open { "▾" } else { "▸" },
+                    self.t("進階設定", "Advanced settings")
+                )))
+                .child(div().ml(px(16.)).mt(px(5.)).child(hint(self.t(
+                    "訊息上限、Log、檔案回應與本機清除路徑",
+                    "Message limit, logs, file responses, and local cleanup paths",
+                )))),
         );
         if advanced_open {
             let mut advanced = v_flex().min_w_0().gap(px(12.)).mt(px(16.));
@@ -971,18 +1184,28 @@ impl Workspace {
                     .child(
                         field()
                             .flex_1()
-                            .child(label(self.t("單筆訊息上限 · --max-message-size", "Maximum message size · --max-message-size")))
+                            .child(label(self.t(
+                                "單筆訊息上限 · --max-message-size",
+                                "Maximum message size · --max-message-size",
+                            )))
                             .child(
                                 h_flex()
                                     .gap(px(8.))
-                                    .child(div().flex_1().min_w_0().child(mono_control(Input::new(&self.service.size), locked)))
+                                    .child(
+                                        div()
+                                            .flex_1()
+                                            .min_w_0()
+                                            .child(mono_control(Input::new(&self.service.size), locked)),
+                                    )
                                     .child(units),
                             ),
                     )
                     .child(
                         field()
                             .flex_1()
-                            .child(label(self.t("文字 Log 層級 · SWIFTCACHE_LOG", "Text log level · SWIFTCACHE_LOG")))
+                            .child(label(
+                                self.t("文字 Log 層級 · SWIFTCACHE_LOG", "Text log level · SWIFTCACHE_LOG"),
+                            ))
                             .child(mono_control(Input::new(&self.service.log), locked))
                             .child(presets),
                     ),
@@ -1053,16 +1276,30 @@ impl Workspace {
         left = left.child(mode_bar);
         if !is_new {
             left = left.child(hint(if busy {
-                self.t("服務正在處理操作，完成後可修改設定。", "A service operation is in progress. Settings can be changed when it finishes.")
+                self.t(
+                    "服務正在處理操作，完成後可修改設定。",
+                    "A service operation is in progress. Settings can be changed when it finishes.",
+                )
             } else if running {
-                self.t("服務執行中；停止後才能修改設定。", "The service is running. Stop it to change settings.")
+                self.t(
+                    "服務執行中；停止後才能修改設定。",
+                    "The service is running. Stop it to change settings.",
+                )
             } else {
-                self.t("設定儲存後，按啟動服務開始接收請求。", "Save your settings, then start the service to accept requests.")
+                self.t(
+                    "設定儲存後，按啟動服務開始接收請求。",
+                    "Save your settings, then start the service to accept requests.",
+                )
             }));
         }
         left = left.child(connection);
 
-        let page = v_flex().id("service-page").size_full().overflow_y_scroll().text_size(px(14.)).text_color(text);
+        let page = v_flex()
+            .id("service-page")
+            .size_full()
+            .overflow_y_scroll()
+            .text_size(px(14.))
+            .text_color(text);
         if is_new {
             return page.child(left).into_any_element();
         }
@@ -1158,9 +1395,17 @@ impl Workspace {
 
         // `.service-grid`: fluid + 400px, gap 18; one column below 1320px.
         if narrow {
-            page.child(v_flex().gap(px(18.)).child(left).child(right)).into_any_element()
+            page.child(v_flex().gap(px(18.)).child(left).child(right))
+                .into_any_element()
         } else {
-            page.child(h_flex().items_start().gap(px(18.)).child(left.flex_1()).child(right.w(px(400.)).flex_none())).into_any_element()
+            page.child(
+                h_flex()
+                    .items_start()
+                    .gap(px(18.))
+                    .child(left.flex_1())
+                    .child(right.w(px(400.)).flex_none()),
+            )
+            .into_any_element()
         }
     }
 }
@@ -1177,7 +1422,11 @@ mod tests {
             mode: mode.into(),
             store: "/var/cache/swiftcache".into(),
             socket: Some("/tmp/swiftcache/cache.sock".into()),
-            tcp: if mode == "serve" { Some("0.0.0.0:50051".into()) } else { None },
+            tcp: if mode == "serve" {
+                Some("0.0.0.0:50051".into())
+            } else {
+                None
+            },
             upstream: "http://127.0.0.1:50051".into(),
             blob_dir: None,
             max_message_size: 512 * MIB,
@@ -1188,13 +1437,25 @@ mod tests {
 
     #[test]
     fn generated_name_follows_role_and_custom_names_stay() {
-        assert_eq!(role_default_name("Server-1a2b3c4d", "Server-1a2b3c4d", true, false).as_deref(), Some("Proxy-1a2b3c4d"));
-        assert_eq!(role_default_name("Server-1a2b3c4d", "Proxy-1a2b3c4d", false, true).as_deref(), Some("Server-1a2b3c4d"));
+        assert_eq!(
+            role_default_name("Server-1a2b3c4d", "Server-1a2b3c4d", true, false).as_deref(),
+            Some("Proxy-1a2b3c4d")
+        );
+        assert_eq!(
+            role_default_name("Server-1a2b3c4d", "Proxy-1a2b3c4d", false, true).as_deref(),
+            Some("Server-1a2b3c4d")
+        );
         // A user-typed name, or one carrying another draft's id, is never replaced.
         assert_eq!(role_default_name("Server-1a2b3c4d", "My cache", true, false), None);
-        assert_eq!(role_default_name("Server-1a2b3c4d", "Server-ffffffff", true, false), None);
+        assert_eq!(
+            role_default_name("Server-1a2b3c4d", "Server-ffffffff", true, false),
+            None
+        );
         // The current name must match the role being left, not the other one.
-        assert_eq!(role_default_name("Server-1a2b3c4d", "Proxy-1a2b3c4d", true, false), None);
+        assert_eq!(
+            role_default_name("Server-1a2b3c4d", "Proxy-1a2b3c4d", true, false),
+            None
+        );
         // Saved connections have no generated baseline.
         assert_eq!(role_default_name("Local Cache", "Local Cache", true, false), None);
     }
@@ -1258,17 +1519,31 @@ mod tests {
         parts.size = "garbage".into();
         let c = parts.compose();
         assert_eq!(c.tcp, None);
-        assert_eq!(c.max_message_size, 0, "unparsable sizes become 0 so validation rejects them");
+        assert_eq!(
+            c.max_message_size, 0,
+            "unparsable sizes become 0 so validation rejects them"
+        );
     }
 
     #[test]
     fn upstream_and_tcp_splitting() {
         let up = split_upstream("http://cache-host:50051/x");
-        assert_eq!((up.prefix.as_str(), up.host.as_str(), up.port.as_str(), up.suffix.as_str()), ("http://", "cache-host", "50051", "/x"));
+        assert_eq!(
+            (
+                up.prefix.as_str(),
+                up.host.as_str(),
+                up.port.as_str(),
+                up.suffix.as_str()
+            ),
+            ("http://", "cache-host", "50051", "/x")
+        );
         let up = split_upstream("https://cache-host");
         assert_eq!((up.host.as_str(), up.port.as_str()), ("cache-host", "443"));
         let up = split_upstream("cache-host");
-        assert_eq!((up.prefix.as_str(), up.host.as_str(), up.port.as_str()), ("http://", "cache-host", "50051"));
+        assert_eq!(
+            (up.prefix.as_str(), up.host.as_str(), up.port.as_str()),
+            ("http://", "cache-host", "50051")
+        );
         assert_eq!(split_tcp("[::1]:50051"), ("[::1]".to_string(), "50051".to_string()));
         assert_eq!(split_tcp("localhost"), ("localhost".to_string(), String::new()));
     }

@@ -22,11 +22,16 @@ impl Default for Config {
     fn default() -> Self {
         let id = uuid::Uuid::new_v4().as_fields().0;
         Self {
-            name: format!("Server-{id:08x}"), mode: "serve".into(), store: format!("/tmp/{id:08x}"),
+            name: format!("Server-{id:08x}"),
+            mode: "serve".into(),
+            store: format!("/tmp/{id:08x}"),
             socket: cfg!(unix).then(|| format!("/tmp/{id:08x}.sock")),
-            tcp: Some("127.0.0.1:50051".into()), upstream: "http://127.0.0.1:50051".into(),
-            blob_dir: None, max_message_size: 512 * 1024 * 1024,
-            log_level: "swiftcache=info".into(), local_cache_paths: Vec::new(),
+            tcp: Some("127.0.0.1:50051".into()),
+            upstream: "http://127.0.0.1:50051".into(),
+            blob_dir: None,
+            max_message_size: 512 * 1024 * 1024,
+            log_level: "swiftcache=info".into(),
+            local_cache_paths: Vec::new(),
         }
     }
 }
@@ -62,7 +67,10 @@ pub struct Status {
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
-pub struct UsagePart { pub bytes: u64, pub files: u64 }
+pub struct UsagePart {
+    pub bytes: u64,
+    pub files: u64,
+}
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Usage {
@@ -78,7 +86,11 @@ pub struct Usage {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct PayloadRef { pub id: String, pub label: String, pub bytes: u64 }
+pub struct PayloadRef {
+    pub id: String,
+    pub label: String,
+    pub bytes: u64,
+}
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Transfer {
@@ -113,7 +125,10 @@ pub struct AppEvent {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct Page<T> { pub items: Vec<T>, pub total: u64 }
+pub struct Page<T> {
+    pub items: Vec<T>,
+    pub total: u64,
+}
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct PayloadChunk {
@@ -143,40 +158,76 @@ pub struct ClearResult {
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum PageKind { Service, Transfers, Events, Cache }
+pub enum PageKind {
+    Service,
+    Transfers,
+    Events,
+    Cache,
+}
 
 pub fn format_bytes(bytes: u64) -> String {
     const UNITS: [&str; 5] = ["B", "KiB", "MiB", "GiB", "TiB"];
     let mut value = bytes as f64;
     let mut unit = 0;
-    while value >= 1024.0 && unit + 1 < UNITS.len() { value /= 1024.0; unit += 1; }
-    if unit == 0 { format!("{bytes} B") }
-    else if value >= 100.0 { format!("{value:.0} {}", UNITS[unit]) }
-    else if value >= 10.0 { format!("{value:.1} {}", UNITS[unit]) }
-    else { format!("{value:.2} {}", UNITS[unit]) }
+    while value >= 1024.0 && unit + 1 < UNITS.len() {
+        value /= 1024.0;
+        unit += 1;
+    }
+    if unit == 0 {
+        format!("{bytes} B")
+    } else if value >= 100.0 {
+        format!("{value:.0} {}", UNITS[unit])
+    } else if value >= 10.0 {
+        format!("{value:.1} {}", UNITS[unit])
+    } else {
+        format!("{value:.2} {}", UNITS[unit])
+    }
 }
 
 pub fn format_int(value: u64) -> String {
     let text = value.to_string();
     let mut output = String::with_capacity(text.len() + text.len() / 3);
     for (i, ch) in text.chars().enumerate() {
-        if i > 0 && (text.len() - i).is_multiple_of(3) { output.push(','); }
+        if i > 0 && (text.len() - i).is_multiple_of(3) {
+            output.push(',');
+        }
         output.push(ch);
     }
     output
 }
 
-pub fn exact_bytes(bytes: u64) -> String { format!("{} ({} bytes)", format_bytes(bytes), format_int(bytes)) }
+pub fn exact_bytes(bytes: u64) -> String {
+    format!("{} ({} bytes)", format_bytes(bytes), format_int(bytes))
+}
 pub fn format_time(ms: i64) -> String {
-    Local.timestamp_millis_opt(ms).single().map(|time| time.format("%Y-%m-%d %H:%M:%S%.3f").to_string()).unwrap_or_else(|| ms.to_string())
+    Local
+        .timestamp_millis_opt(ms)
+        .single()
+        .map(|time| time.format("%Y-%m-%d %H:%M:%S%.3f").to_string())
+        .unwrap_or_else(|| ms.to_string())
 }
 pub fn format_duration(us: u64) -> String {
-    if us < 1000 { format!("{us} µs") } else if us < 1_000_000 { format!("{:.1} ms", us as f64 / 1000.0) } else { format!("{:.2} s", us as f64 / 1_000_000.0) }
+    if us < 1000 {
+        format!("{us} µs")
+    } else if us < 1_000_000 {
+        format!("{:.1} ms", us as f64 / 1000.0)
+    } else {
+        format!("{:.2} s", us as f64 / 1_000_000.0)
+    }
 }
 pub fn service_label(config: &Config) -> String {
-    if !config.name.trim().is_empty() { config.name.clone() }
-    else if config.mode == "proxy" { format!("→ {}", config.upstream) }
-    else { config.tcp.as_ref().or(config.socket.as_ref()).cloned().unwrap_or_else(|| config.store.clone()) }
+    if !config.name.trim().is_empty() {
+        config.name.clone()
+    } else if config.mode == "proxy" {
+        format!("→ {}", config.upstream)
+    } else {
+        config
+            .tcp
+            .as_ref()
+            .or(config.socket.as_ref())
+            .cloned()
+            .unwrap_or_else(|| config.store.clone())
+    }
 }
 
 #[cfg(test)]
@@ -188,7 +239,10 @@ mod tests {
         let a = Config::default();
         let id = a.name.strip_prefix("Server-").expect("generated Server name");
         assert_eq!(id.len(), 8);
-        assert!(id.bytes().all(|b| b.is_ascii_hexdigit() && !b.is_ascii_uppercase()), "{id}");
+        assert!(
+            id.bytes().all(|b| b.is_ascii_hexdigit() && !b.is_ascii_uppercase()),
+            "{id}"
+        );
         assert_eq!(a.store, format!("/tmp/{id}"));
         if cfg!(unix) {
             assert_eq!(a.socket.as_deref(), Some(format!("/tmp/{id}.sock").as_str()));
@@ -198,7 +252,10 @@ mod tests {
 
     #[test]
     fn service_label_falls_back_by_role() {
-        let mut c = Config { name: "  ".into(), ..Config::default() };
+        let mut c = Config {
+            name: "  ".into(),
+            ..Config::default()
+        };
         c.tcp = Some("127.0.0.1:50061".into());
         assert_eq!(service_label(&c), "127.0.0.1:50061");
         c.tcp = None;
@@ -219,7 +276,11 @@ mod tests {
         assert_eq!(format_bytes(1024), "1.00 KiB");
         assert_eq!(format_bytes(10 * 1024), "10.0 KiB");
         assert_eq!(format_bytes(100 * 1024), "100 KiB");
-        assert_eq!(format_bytes(1024u64.pow(4) * 2048), "2048 TiB", "TiB is the largest unit");
+        assert_eq!(
+            format_bytes(1024u64.pow(4) * 2048),
+            "2048 TiB",
+            "TiB is the largest unit"
+        );
         assert_eq!(format_int(0), "0");
         assert_eq!(format_int(999), "999");
         assert_eq!(format_int(1000), "1,000");

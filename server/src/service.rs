@@ -13,17 +13,17 @@ use tracing::{info, warn};
 use crate::blob::{self, BlobDir};
 use crate::hash::short_id;
 use crate::journal::{blob_json, entries_json, refs_json, Rec, Recorder};
+use crate::peer::Peer;
 use crate::proto::cas::casdb_service_server::CasdbService;
 use crate::proto::cas::{
-    cas_get_response, cas_load_response, cas_put_response, cas_save_response, CasBlob, CasDataId,
-    CasGetRequest, CasGetResponse, CasLoadRequest, CasLoadResponse, CasObject, CasPutRequest,
-    CasPutResponse, CasSaveRequest, CasSaveResponse,
+    cas_get_response, cas_load_response, cas_put_response, cas_save_response, CasBlob, CasDataId, CasGetRequest,
+    CasGetResponse, CasLoadRequest, CasLoadResponse, CasObject, CasPutRequest, CasPutResponse, CasSaveRequest,
+    CasSaveResponse,
 };
 use crate::proto::kv::key_value_db_server::KeyValueDb;
 use crate::proto::kv::{
     get_value_response, GetValueRequest, GetValueResponse, PutValueRequest, PutValueResponse, Value,
 };
-use crate::peer::Peer;
 use crate::store::{human_bytes, valid_id, Store};
 
 pub struct CasService {
@@ -43,12 +43,7 @@ fn internal(e: anyhow::Error) -> Status {
 }
 
 impl CasService {
-    async fn do_put(
-        &self,
-        rec: &mut Rec,
-        peer: Peer,
-        req: CasPutRequest,
-    ) -> Result<Response<CasPutResponse>, Status> {
+    async fn do_put(&self, rec: &mut Rec, peer: Peer, req: CasPutRequest) -> Result<Response<CasPutResponse>, Status> {
         let data = req.data.unwrap_or_default();
         rec.request = json!({
             "references": refs_json(data.references.iter().map(|r| r.id.as_slice())),
@@ -61,11 +56,7 @@ impl CasService {
         rec.request["blob"]["payload"] = json!(digest);
         let len = payload.len();
         let nrefs = refs.len();
-        let id = self
-            .store
-            .put_object(refs, payload)
-            .await
-            .map_err(internal)?;
+        let id = self.store.put_object(refs, payload).await.map_err(internal)?;
         rec.remember(&id, &digest, len);
         rec.object(&id);
         rec.response = json!({ "cas_id": hex::encode(&id) });
@@ -79,12 +70,7 @@ impl CasService {
         }))
     }
 
-    async fn do_get(
-        &self,
-        rec: &mut Rec,
-        peer: Peer,
-        req: CasGetRequest,
-    ) -> Result<Response<CasGetResponse>, Status> {
+    async fn do_get(&self, rec: &mut Rec, peer: Peer, req: CasGetRequest) -> Result<Response<CasGetResponse>, Status> {
         let id = req.cas_id.unwrap_or_default().id;
         rec.object(&id);
         rec.request = json!({
@@ -126,11 +112,7 @@ impl CasService {
             outcome: cas_get_response::Outcome::Success as i32,
             contents: Some(cas_get_response::Contents::Data(CasObject {
                 blob: Some(blob),
-                references: obj
-                    .refs
-                    .into_iter()
-                    .map(|id| CasDataId { id })
-                    .collect(),
+                references: obj.refs.into_iter().map(|id| CasDataId { id }).collect(),
             })),
         }))
     }
@@ -148,19 +130,11 @@ impl CasService {
         rec.request["blob"]["bytes"] = json!(payload.len());
         rec.request["blob"]["payload"] = json!(digest);
         let len = payload.len();
-        let id = self
-            .store
-            .put_object(Vec::new(), payload)
-            .await
-            .map_err(internal)?;
+        let id = self.store.put_object(Vec::new(), payload).await.map_err(internal)?;
         rec.remember(&id, &digest, len);
         rec.object(&id);
         rec.response = json!({ "cas_id": hex::encode(&id) });
-        info!(
-            "{peer} up   cas save {} {}",
-            short_id(&id),
-            human_bytes(len as u64)
-        );
+        info!("{peer} up   cas save {} {}", short_id(&id), human_bytes(len as u64));
         Ok(Response::new(CasSaveResponse {
             contents: Some(cas_save_response::Contents::CasId(CasDataId { id })),
         }))
@@ -205,9 +179,7 @@ impl CasService {
         rec.response = json!({ "outcome": "success", "blob": described });
         Ok(Response::new(CasLoadResponse {
             outcome: cas_load_response::Outcome::Success as i32,
-            contents: Some(cas_load_response::Contents::Data(CasBlob {
-                blob: Some(blob),
-            })),
+            contents: Some(cas_load_response::Contents::Data(CasBlob { blob: Some(blob) })),
         }))
     }
 }
@@ -329,10 +301,7 @@ impl KeyValueDb for KvService {
     /// Action cache lookup. A miss is `KEY_NOT_FOUND`, never a gRPC error:
     /// the compiler treats transport errors as fatal when
     /// `COMPILATION_CACHE_ENABLE_STRICT_CAS_ERRORS` is on.
-    async fn get_value(
-        &self,
-        req: Request<GetValueRequest>,
-    ) -> Result<Response<GetValueResponse>, Status> {
+    async fn get_value(&self, req: Request<GetValueRequest>) -> Result<Response<GetValueResponse>, Status> {
         let peer = Peer::of(&req);
         self.store.stats.note_peer(peer);
         let mut rec = self.journal.begin("KV.GetValue", "down", peer);
@@ -340,10 +309,7 @@ impl KeyValueDb for KvService {
         rec.done(res).await
     }
 
-    async fn put_value(
-        &self,
-        req: Request<PutValueRequest>,
-    ) -> Result<Response<PutValueResponse>, Status> {
+    async fn put_value(&self, req: Request<PutValueRequest>) -> Result<Response<PutValueResponse>, Status> {
         let peer = Peer::of(&req);
         self.store.stats.note_peer(peer);
         let mut rec = self.journal.begin("KV.PutValue", "up", peer);
