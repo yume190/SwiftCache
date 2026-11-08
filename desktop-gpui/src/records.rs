@@ -16,7 +16,8 @@ use serde_json::{Value, json};
 use crate::api::query;
 use crate::app::Workspace;
 use crate::types::{
-    AppEvent, Page, PageKind, PayloadChunk, Transfer, exact_bytes, format_bytes, format_duration, format_int, format_time,
+    AppEvent, Page, PageKind, PayloadChunk, Transfer, exact_bytes, format_bytes, format_duration, format_int,
+    format_time,
 };
 
 const PAGE: usize = 50;
@@ -104,7 +105,11 @@ struct TransferFilters {
 
 impl TransferFilters {
     fn active(&self) -> bool {
-        !self.search.is_empty() || !self.direction.is_empty() || !self.service.is_empty() || !self.outcome.is_empty() || self.range != 0
+        !self.search.is_empty()
+            || !self.direction.is_empty()
+            || !self.service.is_empty()
+            || !self.outcome.is_empty()
+            || self.range != 0
     }
     fn json(&self) -> Value {
         json!({"search":self.search,"direction":self.direction,"service":self.service,"outcome":self.outcome,"range":self.range})
@@ -216,15 +221,27 @@ impl RecordsState {
         let e_search = cx.new(|cx| InputState::new(window, cx));
         let e_kind = cx.new(|cx| InputState::new(window, cx));
         let mut subs = Vec::new();
-        subs.push(cx.subscribe_in(&t_search, window, |this: &mut Workspace, state, ev: &InputEvent, _w, cx| {
-            this.rec_input_event(Field::TransferSearch, state.read(cx).value().to_string(), ev, cx)
-        }));
-        subs.push(cx.subscribe_in(&e_search, window, |this: &mut Workspace, state, ev: &InputEvent, _w, cx| {
-            this.rec_input_event(Field::EventSearch, state.read(cx).value().to_string(), ev, cx)
-        }));
-        subs.push(cx.subscribe_in(&e_kind, window, |this: &mut Workspace, state, ev: &InputEvent, _w, cx| {
-            this.rec_input_event(Field::EventKind, state.read(cx).value().trim().to_string(), ev, cx)
-        }));
+        subs.push(cx.subscribe_in(
+            &t_search,
+            window,
+            |this: &mut Workspace, state, ev: &InputEvent, _w, cx| {
+                this.rec_input_event(Field::TransferSearch, state.read(cx).value().to_string(), ev, cx)
+            },
+        ));
+        subs.push(cx.subscribe_in(
+            &e_search,
+            window,
+            |this: &mut Workspace, state, ev: &InputEvent, _w, cx| {
+                this.rec_input_event(Field::EventSearch, state.read(cx).value().to_string(), ev, cx)
+            },
+        ));
+        subs.push(cx.subscribe_in(
+            &e_kind,
+            window,
+            |this: &mut Workspace, state, ev: &InputEvent, _w, cx| {
+                this.rec_input_event(Field::EventKind, state.read(cx).value().trim().to_string(), ev, cx)
+            },
+        ));
         Self {
             transfers: Meta::default(),
             events: Meta::default(),
@@ -294,11 +311,19 @@ fn now_ms() -> i64 {
 }
 
 fn clock(ms: i64) -> String {
-    Local.timestamp_millis_opt(ms).single().map(|t| t.format("%H:%M:%S%.3f").to_string()).unwrap_or_else(|| ms.to_string())
+    Local
+        .timestamp_millis_opt(ms)
+        .single()
+        .map(|t| t.format("%H:%M:%S%.3f").to_string())
+        .unwrap_or_else(|| ms.to_string())
 }
 
 fn date(ms: i64) -> String {
-    Local.timestamp_millis_opt(ms).single().map(|t| t.format("%Y-%m-%d").to_string()).unwrap_or_default()
+    Local
+        .timestamp_millis_opt(ms)
+        .single()
+        .map(|t| t.format("%Y-%m-%d").to_string())
+        .unwrap_or_default()
 }
 
 fn pad_id(id: i64) -> String {
@@ -310,7 +335,11 @@ fn method_label(m: &str) -> String {
 }
 
 fn pretty_lines(v: &Value) -> Vec<SharedString> {
-    serde_json::to_string_pretty(v).unwrap_or_default().lines().map(|l| SharedString::from(l.to_string())).collect()
+    serde_json::to_string_pretty(v)
+        .unwrap_or_default()
+        .lines()
+        .map(|l| SharedString::from(l.to_string()))
+        .collect()
 }
 
 fn decode_hex(hex: &str) -> Result<Vec<u8>, String> {
@@ -320,7 +349,10 @@ fn decode_hex(hex: &str) -> Result<Vec<u8>, String> {
     }
     raw.chunks_exact(2)
         .map(|pair| {
-            std::str::from_utf8(pair).ok().and_then(|s| u8::from_str_radix(s, 16).ok()).ok_or_else(|| "payload hex is invalid".to_string())
+            std::str::from_utf8(pair)
+                .ok()
+                .and_then(|s| u8::from_str_radix(s, 16).ok())
+                .ok_or_else(|| "payload hex is invalid".to_string())
         })
         .collect()
 }
@@ -353,15 +385,32 @@ fn same_transfers(a: &Page<Transfer>, b: &Page<Transfer>) -> bool {
     a.total == b.total
         && a.items.len() == b.items.len()
         && a.items.iter().zip(&b.items).all(|(x, y)| {
-            x.id == y.id && x.outcome == y.outcome && x.bytes == y.bytes && x.duration_us == y.duration_us && x.error == y.error && x.payloads.len() == y.payloads.len()
+            x.id == y.id
+                && x.outcome == y.outcome
+                && x.bytes == y.bytes
+                && x.duration_us == y.duration_us
+                && x.error == y.error
+                && x.payloads.len() == y.payloads.len()
         })
 }
 
 fn same_events(a: &Page<AppEvent>, b: &Page<AppEvent>) -> bool {
-    a.total == b.total && a.items.len() == b.items.len() && a.items.iter().zip(&b.items).all(|(x, y)| x.id == y.id && x.message == y.message && x.transfer_id == y.transfer_id)
+    a.total == b.total
+        && a.items.len() == b.items.len()
+        && a.items
+            .iter()
+            .zip(&b.items)
+            .all(|(x, y)| x.id == y.id && x.message == y.message && x.transfer_id == y.transfer_id)
 }
 
-fn transfer_path(f: &TransferFilters, service_id: &str, at: i64, max_id: Option<i64>, limit: usize, offset: usize) -> String {
+fn transfer_path(
+    f: &TransferFilters,
+    service_id: &str,
+    at: i64,
+    max_id: Option<i64>,
+    limit: usize,
+    offset: usize,
+) -> String {
     query(
         "/api/transfers",
         &[
@@ -369,7 +418,14 @@ fn transfer_path(f: &TransferFilters, service_id: &str, at: i64, max_id: Option<
             ("direction", f.direction.clone()),
             ("service", f.service.clone()),
             ("outcome", f.outcome.clone()),
-            ("since", if f.range > 0 { (at - f.range).to_string() } else { String::new() }),
+            (
+                "since",
+                if f.range > 0 {
+                    (at - f.range).to_string()
+                } else {
+                    String::new()
+                },
+            ),
             ("service_id", service_id.to_string()),
             ("max_id", max_id.map(|v| v.to_string()).unwrap_or_default()),
             ("limit", limit.to_string()),
@@ -385,7 +441,14 @@ fn event_path(f: &EventFilters, service_id: &str, at: i64, max_id: Option<i64>, 
             ("search", f.search.clone()),
             ("level", f.level.clone()),
             ("kind", f.kind.clone()),
-            ("since", if f.range > 0 { (at - f.range).to_string() } else { String::new() }),
+            (
+                "since",
+                if f.range > 0 {
+                    (at - f.range).to_string()
+                } else {
+                    String::new()
+                },
+            ),
             ("service_id", service_id.to_string()),
             ("max_id", max_id.map(|v| v.to_string()).unwrap_or_default()),
             ("limit", limit.to_string()),
@@ -399,13 +462,20 @@ async fn save_json<F>(dialog: rfd::AsyncFileDialog, name: String, build: F) -> R
 where
     F: Future<Output = Result<Value, String>>,
 {
-    let Some(handle) = dialog.set_file_name(name).add_filter("JSON", &["json"]).save_file().await else {
+    let Some(handle) = dialog
+        .set_file_name(name)
+        .add_filter("JSON", &["json"])
+        .save_file()
+        .await
+    else {
         return Ok(false);
     };
     let value = build.await?;
     let text = serde_json::to_string_pretty(&value).map_err(|e| e.to_string())?;
     let path = handle.path().to_path_buf();
-    smol::unblock(move || std::fs::write(path, text)).await.map_err(|e| e.to_string())?;
+    smol::unblock(move || std::fs::write(path, text))
+        .await
+        .map_err(|e| e.to_string())?;
     Ok(true)
 }
 
@@ -417,8 +487,16 @@ struct Opt {
     act: SelAct,
 }
 
-fn opt(label: impl Into<SharedString>, on: bool, act: impl Fn(&mut Workspace, &mut Window, &mut Context<Workspace>) + 'static) -> Opt {
-    Opt { label: label.into(), on, act: Rc::new(act) }
+fn opt(
+    label: impl Into<SharedString>,
+    on: bool,
+    act: impl Fn(&mut Workspace, &mut Window, &mut Context<Workspace>) + 'static,
+) -> Opt {
+    Opt {
+        label: label.into(),
+        on,
+        act: Rc::new(act),
+    }
 }
 
 /// Record-page colors copied out of the global palette so listeners can borrow `cx` freely.
@@ -487,16 +565,37 @@ fn pal(cx: &App) -> Pal {
         code_bg: u.code_bg,
         code_text: u.code_text,
         mono: cx.theme().mono_font_family.clone(),
-        v_plain: ButtonCustomVariant::new(cx).color(u.panel).foreground(u.text).hover(u.subtle).active(u.subtle),
-        v_danger: ButtonCustomVariant::new(cx).color(u.panel).foreground(u.danger).hover(u.subtle).active(u.subtle),
+        v_plain: ButtonCustomVariant::new(cx)
+            .color(u.panel)
+            .foreground(u.text)
+            .hover(u.subtle)
+            .active(u.subtle),
+        v_danger: ButtonCustomVariant::new(cx)
+            .color(u.panel)
+            .foreground(u.danger)
+            .hover(u.subtle)
+            .active(u.subtle),
         v_link: ButtonCustomVariant::new(cx).foreground(u.accent),
-        v_icon: ButtonCustomVariant::new(cx).foreground(u.muted).hover(u.chip).active(u.chip),
+        v_icon: ButtonCustomVariant::new(cx)
+            .foreground(u.muted)
+            .hover(u.chip)
+            .active(u.chip),
         v_tab_on: ButtonCustomVariant::new(cx).foreground(u.accent),
         v_tab_off: ButtonCustomVariant::new(cx).foreground(u.muted),
-        v_seg_on: ButtonCustomVariant::new(cx).color(u.panel).foreground(u.accent).hover(u.panel).active(u.panel),
+        v_seg_on: ButtonCustomVariant::new(cx)
+            .color(u.panel)
+            .foreground(u.accent)
+            .hover(u.panel)
+            .active(u.panel),
         v_seg_off: ButtonCustomVariant::new(cx).foreground(u.muted),
-        v_menu: ButtonCustomVariant::new(cx).foreground(u.text).hover(u.subtle).active(u.subtle),
-        v_menu_on: ButtonCustomVariant::new(cx).foreground(u.accent).hover(u.subtle).active(u.subtle),
+        v_menu: ButtonCustomVariant::new(cx)
+            .foreground(u.text)
+            .hover(u.subtle)
+            .active(u.subtle),
+        v_menu_on: ButtonCustomVariant::new(cx)
+            .foreground(u.accent)
+            .hover(u.subtle)
+            .active(u.subtle),
     }
 }
 
@@ -504,7 +603,12 @@ const W650: FontWeight = FontWeight(650.);
 
 /// `.card`
 fn card(p: &Pal) -> Div {
-    v_flex().min_w(px(0.)).rounded(px(10.)).border_1().border_color(p.border).bg(p.panel)
+    v_flex()
+        .min_w(px(0.))
+        .rounded(px(10.))
+        .border_1()
+        .border_color(p.border)
+        .bg(p.panel)
 }
 
 /// `.card.panel`
@@ -528,7 +632,11 @@ fn small_muted(p: &Pal, text: impl Into<SharedString>) -> Div {
 
 /// `.label`
 fn label(p: &Pal, text: impl Into<SharedString>) -> Div {
-    div().text_size(px(12.)).font_weight(FontWeight::SEMIBOLD).text_color(p.muted).child(text.into())
+    div()
+        .text_size(px(12.))
+        .font_weight(FontWeight::SEMIBOLD)
+        .text_color(p.muted)
+        .child(text.into())
 }
 
 /// `h2`
@@ -544,18 +652,41 @@ fn mono(p: &Pal, size: f32, text: impl Into<SharedString>) -> Div {
 /// `.empty` / `.empty.small`
 fn empty(p: &Pal, text: impl Into<SharedString>, small: bool) -> Div {
     let d = div().text_center().text_color(p.muted);
-    if small { d.px(px(8.)).py(px(18.)).text_size(px(13.)).child(text.into()) } else { d.px(px(16.)).py(px(40.)).child(text.into()) }
+    if small {
+        d.px(px(8.)).py(px(18.)).text_size(px(13.)).child(text.into())
+    } else {
+        d.px(px(16.)).py(px(40.)).child(text.into())
+    }
 }
 
 /// `.pill.ok` / `.pill.idle`
 fn pill(p: &Pal, ok: bool, text: impl Into<SharedString>) -> Div {
     let (bg, fg) = if ok { (p.accent_bg, p.accent) } else { (p.chip, p.muted) };
-    div().px(px(10.)).py(px(4.)).rounded(px(6.)).bg(bg).text_color(fg).text_size(px(12.)).font_weight(FontWeight::SEMIBOLD).whitespace_nowrap().child(text.into())
+    div()
+        .px(px(10.))
+        .py(px(4.))
+        .rounded(px(6.))
+        .bg(bg)
+        .text_color(fg)
+        .text_size(px(12.))
+        .font_weight(FontWeight::SEMIBOLD)
+        .whitespace_nowrap()
+        .child(text.into())
 }
 
 /// `.tag`
 fn tag(bg: Hsla, fg: Hsla, text: impl Into<SharedString>) -> Div {
-    div().flex_none().px(px(8.)).py(px(2.)).rounded(px(5.)).bg(bg).text_color(fg).text_size(px(12.)).font_weight(FontWeight::SEMIBOLD).whitespace_nowrap().child(text.into())
+    div()
+        .flex_none()
+        .px(px(8.))
+        .py(px(2.))
+        .rounded(px(5.))
+        .bg(bg)
+        .text_color(fg)
+        .text_size(px(12.))
+        .font_weight(FontWeight::SEMIBOLD)
+        .whitespace_nowrap()
+        .child(text.into())
 }
 
 fn outcome_tag(p: &Pal, outcome: &str, text: impl Into<SharedString>) -> Div {
@@ -580,8 +711,24 @@ fn level_tag(p: &Pal, level: &str) -> Div {
 
 /// `.banner.error` / `.banner.info`; callers add the text and any inline link as children.
 fn banner(p: &Pal, info: bool) -> Div {
-    let (bg, bc, fg) = if info { (p.info_bg, p.info_border, p.info_text) } else { (p.danger_bg, p.danger_border, p.danger_text) };
-    div().flex().flex_wrap().items_center().gap_x(px(6.)).px(px(14.)).py(px(10.)).rounded(px(8.)).border_1().border_color(bc).bg(bg).text_color(fg).text_size(px(13.))
+    let (bg, bc, fg) = if info {
+        (p.info_bg, p.info_border, p.info_text)
+    } else {
+        (p.danger_bg, p.danger_border, p.danger_text)
+    };
+    div()
+        .flex()
+        .flex_wrap()
+        .items_center()
+        .gap_x(px(6.))
+        .px(px(14.))
+        .py(px(10.))
+        .rounded(px(8.))
+        .border_1()
+        .border_color(bc)
+        .bg(bg)
+        .text_color(fg)
+        .text_size(px(13.))
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -591,7 +738,15 @@ enum Bk {
 }
 
 /// `.btn` (36px) / `.btn.small` (28px) / `.btn.danger`: native Button (focus, Enter/Space, a11y) with CSS geometry.
-fn btn(p: &Pal, id: impl Into<ElementId>, text: impl Into<SharedString>, small: bool, kind: Bk, enabled: bool, f: impl Fn(&ClickEvent, &mut Window, &mut App) + 'static) -> Button {
+fn btn(
+    p: &Pal,
+    id: impl Into<ElementId>,
+    text: impl Into<SharedString>,
+    small: bool,
+    kind: Bk,
+    enabled: bool,
+    f: impl Fn(&ClickEvent, &mut Window, &mut App) + 'static,
+) -> Button {
     let (h, pad, fs) = if small { (28., 10., 12.) } else { (36., 16., 13.) };
     let text: SharedString = text.into();
     let danger = kind == Bk::Danger;
@@ -606,11 +761,22 @@ fn btn(p: &Pal, id: impl Into<ElementId>, text: impl Into<SharedString>, small: 
         .rounded(px(7.))
         .disabled(!enabled)
         .on_click(f)
-        .child(div().text_size(px(fs)).font_weight(FontWeight::SEMIBOLD).whitespace_nowrap().child(text))
+        .child(
+            div()
+                .text_size(px(fs))
+                .font_weight(FontWeight::SEMIBOLD)
+                .whitespace_nowrap()
+                .child(text),
+        )
 }
 
 /// `.link`
-fn link(p: &Pal, id: impl Into<ElementId>, text: impl Into<SharedString>, f: impl Fn(&ClickEvent, &mut Window, &mut App) + 'static) -> Button {
+fn link(
+    p: &Pal,
+    id: impl Into<ElementId>,
+    text: impl Into<SharedString>,
+    f: impl Fn(&ClickEvent, &mut Window, &mut App) + 'static,
+) -> Button {
     let text: SharedString = text.into();
     Button::new(id)
         .custom(p.v_link)
@@ -634,7 +800,13 @@ fn icon_btn(p: &Pal, id: impl Into<ElementId>, f: impl Fn(&ClickEvent, &mut Wind
 }
 
 /// `.tabs button` (inspector underline tab)
-fn tab_btn(p: &Pal, id: impl Into<ElementId>, text: impl Into<SharedString>, on: bool, f: impl Fn(&ClickEvent, &mut Window, &mut App) + 'static) -> Button {
+fn tab_btn(
+    p: &Pal,
+    id: impl Into<ElementId>,
+    text: impl Into<SharedString>,
+    on: bool,
+    f: impl Fn(&ClickEvent, &mut Window, &mut App) + 'static,
+) -> Button {
     let text: SharedString = text.into();
     Button::new(id)
         .custom(if on { p.v_tab_on } else { p.v_tab_off })
@@ -653,11 +825,22 @@ fn tab_btn(p: &Pal, id: impl Into<ElementId>, text: impl Into<SharedString>, on:
 }
 
 fn tabs_bar(p: &Pal) -> Div {
-    h_flex().items_end().gap(px(2.)).border_b_1().border_color(p.border).flex_wrap()
+    h_flex()
+        .items_end()
+        .gap(px(2.))
+        .border_b_1()
+        .border_color(p.border)
+        .flex_wrap()
 }
 
 /// `.seg button`
-fn seg_btn(p: &Pal, id: impl Into<ElementId>, text: impl Into<SharedString>, on: bool, f: impl Fn(&ClickEvent, &mut Window, &mut App) + 'static) -> Button {
+fn seg_btn(
+    p: &Pal,
+    id: impl Into<ElementId>,
+    text: impl Into<SharedString>,
+    on: bool,
+    f: impl Fn(&ClickEvent, &mut Window, &mut App) + 'static,
+) -> Button {
     let text: SharedString = text.into();
     Button::new(id)
         .custom(if on { p.v_seg_on } else { p.v_seg_off })
@@ -688,7 +871,11 @@ fn kv(p: &Pal, key: impl Into<SharedString>, value: impl IntoElement) -> Div {
 
 /// `.json` (subtle background) / `.hex` (code background); both are `white-space: pre` with a 340px cap.
 fn code_block(p: &Pal, id: impl Into<ElementId>, lines: &[SharedString], hex: bool, shown: usize) -> Stateful<Div> {
-    let (bg, fg, bc) = if hex { (p.code_bg, p.code_text, p.code_bg) } else { (p.subtle, p.text, p.border) };
+    let (bg, fg, bc) = if hex {
+        (p.code_bg, p.code_text, p.code_bg)
+    } else {
+        (p.subtle, p.text, p.border)
+    };
     div()
         .id(id)
         .max_h(px(340.))
@@ -703,14 +890,24 @@ fn code_block(p: &Pal, id: impl Into<ElementId>, lines: &[SharedString], hex: bo
         .text_size(px(12.5))
         .line_height(relative(1.55))
         .child(v_flex().items_start().children(lines.iter().take(shown).map(|l| {
-            let text = if l.is_empty() { SharedString::from(" ") } else { l.clone() };
+            let text = if l.is_empty() {
+                SharedString::from(" ")
+            } else {
+                l.clone()
+            };
             div().flex_none().whitespace_nowrap().child(text)
         })))
 }
 
 /// Text field styled as `.input` (36px, field background).
 fn text_input(p: &Pal, state: &Entity<InputState>, bg: Hsla) -> Input {
-    Input::new(state).cleanable(true).bg(bg).border_color(p.border).rounded(px(7.)).min_h(px(36.)).text_size(px(14.))
+    Input::new(state)
+        .cleanable(true)
+        .bg(bg)
+        .border_color(p.border)
+        .rounded(px(7.))
+        .min_h(px(36.))
+        .text_size(px(14.))
 }
 
 impl Workspace {
@@ -719,7 +916,16 @@ impl Workspace {
     }
 
     /// "Show more / Show all" footer for a truncated list; every row stays reachable in the UI.
-    fn rec_more(&self, p: &Pal, key: String, shown: usize, total: usize, noun: &'static str, t: &dyn Fn(&'static str, &'static str) -> &'static str, cx: &mut Context<Self>) -> Option<AnyElement> {
+    fn rec_more(
+        &self,
+        p: &Pal,
+        key: String,
+        shown: usize,
+        total: usize,
+        noun: &'static str,
+        t: &dyn Fn(&'static str, &'static str) -> &'static str,
+        cx: &mut Context<Self>,
+    ) -> Option<AnyElement> {
         if total <= shown {
             return None;
         }
@@ -737,7 +943,10 @@ impl Workspace {
             h_flex()
                 .gap(px(8.))
                 .flex_wrap()
-                .child(small_muted(p, format!("… {} {}", format_int(remaining as u64), noun_text)))
+                .child(small_muted(
+                    p,
+                    format!("… {} {}", format_int(remaining as u64), noun_text),
+                ))
                 .child(btn(
                     p,
                     SharedString::from(format!("more-{key}")),
@@ -767,31 +976,61 @@ impl Workspace {
     }
 
     /// JSON (`hex = false`) or hex/text (`hex = true`) block with the "show more" footer.
-    fn rec_lines(&self, p: &Pal, key: &str, lines: &[SharedString], hex: bool, t: &dyn Fn(&'static str, &'static str) -> &'static str, cx: &mut Context<Self>) -> AnyElement {
+    fn rec_lines(
+        &self,
+        p: &Pal,
+        key: &str,
+        lines: &[SharedString],
+        hex: bool,
+        t: &dyn Fn(&'static str, &'static str) -> &'static str,
+        cx: &mut Context<Self>,
+    ) -> AnyElement {
         let shown = lines.len().min(self.rec_limit(key, MAX_LINES));
         let more = self.rec_more(p, key.to_string(), shown, lines.len(), "lines", t, cx);
-        v_flex().gap(px(6.)).child(code_block(p, SharedString::from(key.to_string()), lines, hex, shown)).when_some(more, |d, m| d.child(m)).into_any_element()
+        v_flex()
+            .gap(px(6.))
+            .child(code_block(p, SharedString::from(key.to_string()), lines, hex, shown))
+            .when_some(more, |d, m| d.child(m))
+            .into_any_element()
     }
 
     /// Opens/closes the `<select>` look-alike `key`; the transparent backdrop below closes it on any outside press.
     fn rec_toggle_select(&mut self, key: &'static str, cx: &mut Context<Self>) {
-        self.records.select_open = if self.records.select_open == Some(key) { None } else { Some(key) };
+        self.records.select_open = if self.records.select_open == Some(key) {
+            None
+        } else {
+            Some(key)
+        };
         cx.notify();
     }
 
     /// Backdrop + option list for the open dropdown `key` (empty when closed). Absolute below its relative parent.
-    fn rec_menu(&self, p: &Pal, key: &'static str, opts: Vec<Opt>, min_w: f32, cx: &mut Context<Self>) -> Vec<AnyElement> {
+    fn rec_menu(
+        &self,
+        p: &Pal,
+        key: &'static str,
+        opts: Vec<Opt>,
+        min_w: f32,
+        cx: &mut Context<Self>,
+    ) -> Vec<AnyElement> {
         if self.records.select_open != Some(key) {
             return Vec::new();
         }
         let backdrop = deferred(
-            div().absolute().top(px(-4000.)).left(px(-4000.)).w(px(8000.)).h(px(8000.)).occlude().on_mouse_down(
-                MouseButton::Left,
-                cx.listener(|this, _: &MouseDownEvent, _, cx| {
-                    this.records.select_open = None;
-                    cx.notify();
-                }),
-            ),
+            div()
+                .absolute()
+                .top(px(-4000.))
+                .left(px(-4000.))
+                .w(px(8000.))
+                .h(px(8000.))
+                .occlude()
+                .on_mouse_down(
+                    MouseButton::Left,
+                    cx.listener(|this, _: &MouseDownEvent, _, cx| {
+                        this.records.select_open = None;
+                        cx.notify();
+                    }),
+                ),
         )
         .with_priority(1);
         let menu = deferred(
@@ -824,7 +1063,13 @@ impl Workspace {
                             act(this, window, cx);
                             cx.notify();
                         }))
-                        .child(div().text_size(px(13.)).whitespace_nowrap().when(o.on, |d| d.font_weight(FontWeight::SEMIBOLD)).child(o.label))
+                        .child(
+                            div()
+                                .text_size(px(13.))
+                                .whitespace_nowrap()
+                                .when(o.on, |d| d.font_weight(FontWeight::SEMIBOLD))
+                                .child(o.label),
+                        )
                 })),
         )
         .with_priority(2);
@@ -836,21 +1081,36 @@ impl Workspace {
     fn rec_select(&self, p: &Pal, key: &'static str, opts: Vec<Opt>, cx: &mut Context<Self>) -> Div {
         let current = opts.iter().find(|o| o.on).map(|o| o.label.clone()).unwrap_or_default();
         let open = self.records.select_open == Some(key);
-        let sizer = v_flex().children(opts.iter().map(|o| div().whitespace_nowrap().when(!o.on, |d| d.h(px(0.)).overflow_hidden()).child(o.label.clone())));
+        let sizer = v_flex().children(opts.iter().map(|o| {
+            div()
+                .whitespace_nowrap()
+                .when(!o.on, |d| d.h(px(0.)).overflow_hidden())
+                .child(o.label.clone())
+        }));
         let menu = self.rec_menu(p, key, opts, 170., cx);
-        div().relative().flex_none().child(
-            Button::new(key)
-                .custom(p.v_plain)
-                .accessibility_label(current)
-                .min_h(px(36.))
-                .px(px(12.))
-                .border_1()
-                .border_color(if open { p.accent } else { p.border })
-                .rounded(px(7.))
-                .on_click(cx.listener(move |this, _, _, cx| this.rec_toggle_select(key, cx)))
-                .child(h_flex().gap(px(10.)).text_size(px(13.)).font_weight(FontWeight::SEMIBOLD).child(sizer).child(Icon::new(IconName::ChevronDown).size(px(14.)).text_color(p.text))),
-        )
-        .children(menu)
+        div()
+            .relative()
+            .flex_none()
+            .child(
+                Button::new(key)
+                    .custom(p.v_plain)
+                    .accessibility_label(current)
+                    .min_h(px(36.))
+                    .px(px(12.))
+                    .border_1()
+                    .border_color(if open { p.accent } else { p.border })
+                    .rounded(px(7.))
+                    .on_click(cx.listener(move |this, _, _, cx| this.rec_toggle_select(key, cx)))
+                    .child(
+                        h_flex()
+                            .gap(px(10.))
+                            .text_size(px(13.))
+                            .font_weight(FontWeight::SEMIBOLD)
+                            .child(sizer)
+                            .child(Icon::new(IconName::ChevronDown).size(px(14.)).text_color(p.text)),
+                    ),
+            )
+            .children(menu)
     }
 }
 
@@ -879,7 +1139,9 @@ impl Workspace {
     }
 
     fn rec_load(&mut self, tab: Tab, force: bool, cx: &mut Context<Self>) {
-        let Some(service_id) = self.selected_id.clone() else { return };
+        let Some(service_id) = self.selected_id.clone() else {
+            return;
+        };
         let has_data = match tab {
             Tab::Transfers => self.records.transfers_data.is_some(),
             Tab::Events => self.records.events_data.is_some(),
@@ -905,7 +1167,11 @@ impl Workspace {
             let meta = self.rec_meta(tab);
             meta.seq += 1;
             meta.last = Some(Instant::now());
-            (meta.snap.as_ref().map(|s| s.at).unwrap_or_else(now_ms), meta.snap.as_ref().map(|s| s.max_id), meta.offset)
+            (
+                meta.snap.as_ref().map(|s| s.at).unwrap_or_else(now_ms),
+                meta.snap.as_ref().map(|s| s.max_id),
+                meta.offset,
+            )
         };
         let seq = self.rec_meta(tab).seq;
         match tab {
@@ -914,7 +1180,10 @@ impl Workspace {
                 self.records.transfers.task = Some(cx.spawn(async move |this, cx| {
                     let result = api.request::<Page<Transfer>>("GET", &path, None).await;
                     let _ = this.update(cx, |this, cx| {
-                        if this.generation != generation || this.selected_id.as_deref() != Some(service_id.as_str()) || this.records.transfers.seq != seq {
+                        if this.generation != generation
+                            || this.selected_id.as_deref() != Some(service_id.as_str())
+                            || this.records.transfers.seq != seq
+                        {
                             return;
                         }
                         this.records.transfers.task = None;
@@ -924,7 +1193,12 @@ impl Workspace {
                             Ok(page) => {
                                 this.records.transfers.error = None;
                                 this.records.transfers.visible_at = at;
-                                if this.records.transfers_data.as_ref().is_none_or(|d| !same_transfers(d, &page)) {
+                                if this
+                                    .records
+                                    .transfers_data
+                                    .as_ref()
+                                    .is_none_or(|d| !same_transfers(d, &page))
+                                {
                                     this.records.transfers_data = Some(page);
                                 }
                             }
@@ -939,7 +1213,10 @@ impl Workspace {
                 self.records.events.task = Some(cx.spawn(async move |this, cx| {
                     let result = api.request::<Page<AppEvent>>("GET", &path, None).await;
                     let _ = this.update(cx, |this, cx| {
-                        if this.generation != generation || this.selected_id.as_deref() != Some(service_id.as_str()) || this.records.events.seq != seq {
+                        if this.generation != generation
+                            || this.selected_id.as_deref() != Some(service_id.as_str())
+                            || this.records.events.seq != seq
+                        {
                             return;
                         }
                         this.records.events.task = None;
@@ -985,8 +1262,20 @@ impl Workspace {
 
     fn rec_first_id(&self, tab: Tab) -> i64 {
         match tab {
-            Tab::Transfers => self.records.transfers_data.as_ref().and_then(|d| d.items.first()).map(|t| t.id).unwrap_or(0),
-            Tab::Events => self.records.events_data.as_ref().and_then(|d| d.items.first()).map(|e| e.id).unwrap_or(0),
+            Tab::Transfers => self
+                .records
+                .transfers_data
+                .as_ref()
+                .and_then(|d| d.items.first())
+                .map(|t| t.id)
+                .unwrap_or(0),
+            Tab::Events => self
+                .records
+                .events_data
+                .as_ref()
+                .and_then(|d| d.items.first())
+                .map(|e| e.id)
+                .unwrap_or(0),
         }
     }
 
@@ -1004,7 +1293,11 @@ impl Workspace {
         }
         let max_id = self.rec_first_id(tab);
         let meta = self.rec_meta(tab);
-        meta.snap = Some(Snapshot { max_id, at: meta.visible_at, auto });
+        meta.snap = Some(Snapshot {
+            max_id,
+            at: meta.visible_at,
+            auto,
+        });
         meta.offset = next_offset;
         self.rec_reload_fresh(tab, cx);
     }
@@ -1106,10 +1399,28 @@ impl Workspace {
         self.records.placeholder_zh = Some(zh);
         let t = |a: &'static str, b: &'static str| if zh { a } else { b };
         self.records.t_search.update(cx, |s, cx| {
-            s.set_placeholder(t("搜尋完整 CAS ID、KV key、來源或 method…", "Search full CAS ID, KV key, source, or method…"), window, cx)
+            s.set_placeholder(
+                t(
+                    "搜尋完整 CAS ID、KV key、來源或 method…",
+                    "Search full CAS ID, KV key, source, or method…",
+                ),
+                window,
+                cx,
+            )
         });
-        self.records.e_search.update(cx, |s, cx| s.set_placeholder(t("搜尋訊息、來源或欄位內容…", "Search messages, sources, or field contents…"), window, cx));
-        self.records.e_kind.update(cx, |s, cx| s.set_placeholder(t("類型（全部）", "Kind (all)"), window, cx));
+        self.records.e_search.update(cx, |s, cx| {
+            s.set_placeholder(
+                t(
+                    "搜尋訊息、來源或欄位內容…",
+                    "Search messages, sources, or field contents…",
+                ),
+                window,
+                cx,
+            )
+        });
+        self.records.e_kind.update(cx, |s, cx| {
+            s.set_placeholder(t("類型（全部）", "Kind (all)"), window, cx)
+        });
     }
 
     // -----------------------------------------------------------------------------------------
@@ -1125,11 +1436,21 @@ impl Workspace {
                 let down = key == "down";
                 match tab {
                     Tab::Transfers => {
-                        let Some(items) = self.records.transfers_data.as_ref().map(|d| d.items.iter().map(|t| t.id).collect::<Vec<_>>()) else { return };
+                        let Some(items) = self
+                            .records
+                            .transfers_data
+                            .as_ref()
+                            .map(|d| d.items.iter().map(|t| t.id).collect::<Vec<_>>())
+                        else {
+                            return;
+                        };
                         if items.is_empty() {
                             return;
                         }
-                        let cur = self.records.selected_transfer.and_then(|id| items.iter().position(|x| *x == id));
+                        let cur = self
+                            .records
+                            .selected_transfer
+                            .and_then(|id| items.iter().position(|x| *x == id));
                         let next = match (cur, down) {
                             (None, _) => 0,
                             (Some(i), true) => (i + 1).min(items.len() - 1),
@@ -1139,11 +1460,17 @@ impl Workspace {
                         self.select_transfer(items[next], cx);
                     }
                     Tab::Events => {
-                        let Some(items) = self.records.events_data.as_ref().map(|d| d.items.clone()) else { return };
+                        let Some(items) = self.records.events_data.as_ref().map(|d| d.items.clone()) else {
+                            return;
+                        };
                         if items.is_empty() {
                             return;
                         }
-                        let cur = self.records.selected_event.as_ref().and_then(|s| items.iter().position(|x| x.id == s.event.id));
+                        let cur = self
+                            .records
+                            .selected_event
+                            .as_ref()
+                            .and_then(|s| items.iter().position(|x| x.id == s.event.id));
                         let next = match (cur, down) {
                             (None, _) => 0,
                             (Some(i), true) => (i + 1).min(items.len() - 1),
@@ -1207,7 +1534,9 @@ impl Workspace {
         let api = self.api.clone();
         let valid_t = valid.clone();
         detail.tasks.push(cx.spawn(async move |this, cx| {
-            let result = api.request::<Transfer>("GET", &format!("/api/transfers/{id}"), None).await;
+            let result = api
+                .request::<Transfer>("GET", &format!("/api/transfers/{id}"), None)
+                .await;
             let _ = this.update(cx, |this, cx| {
                 if !valid_t(this) {
                     return;
@@ -1235,7 +1564,10 @@ impl Workspace {
             });
         }));
         let api = self.api.clone();
-        let path = query("/api/events", &[("transfer_id", id.to_string()), ("limit", "200".to_string())]);
+        let path = query(
+            "/api/events",
+            &[("transfer_id", id.to_string()), ("limit", "200".to_string())],
+        );
         detail.tasks.push(cx.spawn(async move |this, cx| {
             let result = api.request::<Page<AppEvent>>("GET", &path, None).await;
             let _ = this.update(cx, |this, cx| {
@@ -1259,8 +1591,14 @@ impl Workspace {
         self.records.link_seq += 1;
         self.records.expand.clear();
         self.records.link_error = None;
-        let lines = serde_json::to_value(&event).map(|v| pretty_lines(&v)).unwrap_or_default();
-        self.records.selected_event = Some(SelectedEvent { event, lines, export_task: None });
+        let lines = serde_json::to_value(&event)
+            .map(|v| pretty_lines(&v))
+            .unwrap_or_default();
+        self.records.selected_event = Some(SelectedEvent {
+            event,
+            lines,
+            export_task: None,
+        });
         cx.notify();
     }
 
@@ -1273,7 +1611,9 @@ impl Workspace {
 
     /// Cross-link: show an event (by id) in the Events tab.
     pub fn open_event(&mut self, event_id: i64, cx: &mut Context<Self>) {
-        let Some(service_id) = self.selected_id.clone() else { return };
+        let Some(service_id) = self.selected_id.clone() else {
+            return;
+        };
         self.active_page = PageKind::Events;
         self.records.link_error = None;
         self.rec_load(Tab::Events, false, cx);
@@ -1284,12 +1624,19 @@ impl Workspace {
         let zh = self.rec_zh();
         let path = query(
             "/api/events",
-            &[("service_id", service_id.clone()), ("max_id", event_id.to_string()), ("limit", "1".to_string())],
+            &[
+                ("service_id", service_id.clone()),
+                ("max_id", event_id.to_string()),
+                ("limit", "1".to_string()),
+            ],
         );
         self.records.link_task = Some(cx.spawn(async move |this, cx| {
             let result = api.request::<Page<AppEvent>>("GET", &path, None).await;
             let _ = this.update(cx, |this, cx| {
-                if this.records.link_seq != link_seq || this.generation != generation || this.selected_id.as_deref() != Some(service_id.as_str()) {
+                if this.records.link_seq != link_seq
+                    || this.generation != generation
+                    || this.selected_id.as_deref() != Some(service_id.as_str())
+                {
                     return;
                 }
                 this.records.link_task = None;
@@ -1318,7 +1665,9 @@ impl Workspace {
     fn load_payload_chunk(&mut self, cx: &mut Context<Self>) {
         let Some(d) = self.records.detail.as_mut() else { return };
         let Some(t) = d.transfer.as_ref() else { return };
-        let Some(p) = t.payloads.get(d.payload.index) else { return };
+        let Some(p) = t.payloads.get(d.payload.index) else {
+            return;
+        };
         let (id, offset) = (p.id.clone(), d.payload.offset);
         d.payload.seq += 1;
         d.payload.chunk = None;
@@ -1327,14 +1676,24 @@ impl Workspace {
         let generation = self.generation;
         let detail_seq = self.records.detail_seq;
         let api = self.api.clone();
-        let path = query(&format!("/api/payload/{}", urlencode(&id)), &[("offset", offset.to_string()), ("limit", CHUNK.to_string())]);
+        let path = query(
+            &format!("/api/payload/{}", urlencode(&id)),
+            &[("offset", offset.to_string()), ("limit", CHUNK.to_string())],
+        );
         let task = cx.spawn(async move |this, cx| {
             let result = api.request::<PayloadChunk>("GET", &path, None).await;
             let _ = this.update(cx, |this, cx| {
                 if this.generation != generation || this.records.detail_seq != detail_seq {
                     return;
                 }
-                let Some(d) = this.records.detail.as_mut().filter(|d| d.id == transfer_id && d.payload.seq == seq) else { return };
+                let Some(d) = this
+                    .records
+                    .detail
+                    .as_mut()
+                    .filter(|d| d.id == transfer_id && d.payload.seq == seq)
+                else {
+                    return;
+                };
                 d.payload.task = None;
                 match result.and_then(|c| {
                     let hex = hex_lines(&c.hex, c.offset)?;
@@ -1362,7 +1721,14 @@ impl Workspace {
         if d.payload.exporting {
             return;
         }
-        let Some(p) = d.transfer.as_ref().and_then(|t| t.payloads.get(d.payload.index)).cloned() else { return };
+        let Some(p) = d
+            .transfer
+            .as_ref()
+            .and_then(|t| t.payloads.get(d.payload.index))
+            .cloned()
+        else {
+            return;
+        };
         d.payload.exporting = true;
         d.payload.error = None;
         let (transfer_id, detail_seq, generation) = (d.id, self.records.detail_seq, self.generation);
@@ -1374,7 +1740,10 @@ impl Workspace {
                 let mut hex = String::new();
                 let mut off = 0u64;
                 while off < p.bytes {
-                    let path = query(&format!("/api/payload/{}", urlencode(&p.id)), &[("offset", off.to_string()), ("limit", EXPORT_CHUNK.to_string())]);
+                    let path = query(
+                        &format!("/api/payload/{}", urlencode(&p.id)),
+                        &[("offset", off.to_string()), ("limit", EXPORT_CHUNK.to_string())],
+                    );
                     let c = api.request::<PayloadChunk>("GET", &path, None).await?;
                     if c.hex.is_empty() {
                         break;
@@ -1389,11 +1758,20 @@ impl Workspace {
                 if this.generation != generation || this.records.detail_seq != detail_seq {
                     return;
                 }
-                let Some(d) = this.records.detail.as_mut().filter(|d| d.id == transfer_id) else { return };
+                let Some(d) = this.records.detail.as_mut().filter(|d| d.id == transfer_id) else {
+                    return;
+                };
                 d.payload.exporting = false;
                 d.payload.export_task = None;
                 match result {
-                    Ok(true) => this.notice(if zh { "已匯出 payload".into() } else { "Payload exported".into() }, cx),
+                    Ok(true) => this.notice(
+                        if zh {
+                            "已匯出 payload".into()
+                        } else {
+                            "Payload exported".into()
+                        },
+                        cx,
+                    ),
                     Ok(false) => {}
                     Err(e) => d.payload.error = Some(e),
                 }
@@ -1419,18 +1797,28 @@ impl Workspace {
         let dialog = rfd::AsyncFileDialog::new().set_parent(window);
         d.export_task = Some(cx.spawn(async move |this, cx| {
             let result = save_json(dialog, format!("swiftcache-transfer-{id}.json"), async {
-                api.request::<Value>("GET", &format!("/api/transfers/{id}/export"), None).await
+                api.request::<Value>("GET", &format!("/api/transfers/{id}/export"), None)
+                    .await
             })
             .await;
             let _ = this.update(cx, |this, cx| {
                 if this.generation != generation || this.records.detail_seq != detail_seq {
                     return;
                 }
-                let Some(d) = this.records.detail.as_mut().filter(|d| d.id == id) else { return };
+                let Some(d) = this.records.detail.as_mut().filter(|d| d.id == id) else {
+                    return;
+                };
                 d.exporting = false;
                 d.export_task = None;
                 match result {
-                    Ok(true) => this.notice(if zh { "已匯出傳輸詳細資料".into() } else { "Transfer exported".into() }, cx),
+                    Ok(true) => this.notice(
+                        if zh {
+                            "已匯出傳輸詳細資料".into()
+                        } else {
+                            "Transfer exported".into()
+                        },
+                        cx,
+                    ),
                     Ok(false) => {}
                     Err(e) => d.error = Some(e),
                 }
@@ -1442,7 +1830,9 @@ impl Workspace {
 
     fn export_event(&mut self, window: &Window, cx: &mut Context<Self>) {
         let zh = self.rec_zh();
-        let Some(sel) = self.records.selected_event.as_mut() else { return };
+        let Some(sel) = self.records.selected_event.as_mut() else {
+            return;
+        };
         if sel.export_task.is_some() {
             return;
         }
@@ -1451,7 +1841,10 @@ impl Workspace {
         let generation = self.generation;
         let dialog = rfd::AsyncFileDialog::new().set_parent(window);
         sel.export_task = Some(cx.spawn(async move |this, cx| {
-            let result = save_json(dialog, format!("swiftcache-event-{id}.json"), async { serde_json::to_value(&ev).map_err(|e| e.to_string()) }).await;
+            let result = save_json(dialog, format!("swiftcache-event-{id}.json"), async {
+                serde_json::to_value(&ev).map_err(|e| e.to_string())
+            })
+            .await;
             let _ = this.update(cx, |this, cx| {
                 if this.generation != generation {
                     return;
@@ -1460,7 +1853,14 @@ impl Workspace {
                     s.export_task = None;
                 }
                 match result {
-                    Ok(true) => this.notice(if zh { "已匯出事件".into() } else { "Event exported".into() }, cx),
+                    Ok(true) => this.notice(
+                        if zh {
+                            "已匯出事件".into()
+                        } else {
+                            "Event exported".into()
+                        },
+                        cx,
+                    ),
                     Ok(false) => {}
                     Err(e) => this.records.events.export_error = Some(e),
                 }
@@ -1472,7 +1872,9 @@ impl Workspace {
 
     /// Exports every record matching the filters, respecting the frozen boundary and clock.
     fn export_filtered(&mut self, tab: Tab, window: &Window, cx: &mut Context<Self>) {
-        let Some(service_id) = self.selected_id.clone() else { return };
+        let Some(service_id) = self.selected_id.clone() else {
+            return;
+        };
         let zh = self.rec_zh();
         let generation = self.generation;
         let api = self.api.clone();
@@ -1508,7 +1910,9 @@ impl Workspace {
                 let mut items: Vec<Value> = Vec::new();
                 let mut total = u64::MAX;
                 while (items.len() as u64) < total {
-                    let page = api.request::<Value>("GET", &build(max_id, EXPORT_PAGE, items.len()), None).await?;
+                    let page = api
+                        .request::<Value>("GET", &build(max_id, EXPORT_PAGE, items.len()), None)
+                        .await?;
                     total = page["total"].as_u64().unwrap_or(0);
                     let batch = page["items"].as_array().cloned().unwrap_or_default();
                     if batch.is_empty() {
@@ -1531,7 +1935,14 @@ impl Workspace {
                 meta.exporting = false;
                 meta.export_task = None;
                 match result {
-                    Ok(true) => this.notice(if zh { "已匯出篩選結果".into() } else { "Filtered results exported".into() }, cx),
+                    Ok(true) => this.notice(
+                        if zh {
+                            "已匯出篩選結果".into()
+                        } else {
+                            "Filtered results exported".into()
+                        },
+                        cx,
+                    ),
                     Ok(false) => {}
                     Err(e) => this.rec_meta(tab).export_error = Some(e),
                 }
@@ -1549,7 +1960,10 @@ impl Workspace {
         if self.busy || self.selected_id.is_none() {
             return;
         }
-        let name = self.selected_service().map(|s| crate::types::service_label(&s.config)).unwrap_or_default();
+        let name = self
+            .selected_service()
+            .map(|s| crate::types::service_label(&s.config))
+            .unwrap_or_default();
         let zh = self.rec_zh();
         let (title, body) = match (tab, zh) {
             (Tab::Transfers, true) => (
@@ -1612,7 +2026,13 @@ impl Workspace {
         self.perform(
             cx,
             async move {
-                api.request::<Value>("POST", "/api/history/clear", Some(json!({"service": sid, "scope": scope}))).await.map(|_| ())
+                api.request::<Value>(
+                    "POST",
+                    "/api/history/clear",
+                    Some(json!({"service": sid, "scope": scope})),
+                )
+                .await
+                .map(|_| ())
             },
             move |this: &mut Workspace, result: Result<(), String>, cx: &mut Context<Workspace>| {
                 if result.is_err() {
@@ -1671,15 +2091,41 @@ impl Workspace {
         let pages = (total as usize).div_ceil(PAGE).max(1);
         let page = offset / PAGE + 1;
         let shown = if zh {
-            format!("顯示 {}–{} / 共 {} 筆", format_int(from as u64), format_int(to as u64), format_int(total))
+            format!(
+                "顯示 {}–{} / 共 {} 筆",
+                format_int(from as u64),
+                format_int(to as u64),
+                format_int(total)
+            )
         } else {
-            format!("Showing {}–{} of {}", format_int(from as u64), format_int(to as u64), format_int(total))
+            format!(
+                "Showing {}–{} of {}",
+                format_int(from as u64),
+                format_int(to as u64),
+                format_int(total)
+            )
         };
-        let page_of = if zh { format!("第 {page} / {pages} 頁") } else { format!("Page {page} of {pages}") };
+        let page_of = if zh {
+            format!("第 {page} / {pages} 頁")
+        } else {
+            format!("Page {page} of {pages}")
+        };
         let go = |label: &'static str, id: &'static str, target: usize, enabled: bool, cx: &mut Context<Self>| {
-            btn(p, id, label, true, Bk::Normal, enabled && ready, cx.listener(move |this, _, _, cx| this.rec_go_page(tab, target, cx)))
+            btn(
+                p,
+                id,
+                label,
+                true,
+                Bk::Normal,
+                enabled && ready,
+                cx.listener(move |this, _, _, cx| this.rec_go_page(tab, target, cx)),
+            )
         };
-        let (first, prev, next) = if zh { ("第一頁", "上一頁", "下一頁") } else { ("First page", "Previous", "Next") };
+        let (first, prev, next) = if zh {
+            ("第一頁", "上一頁", "下一頁")
+        } else {
+            ("First page", "Previous", "Next")
+        };
         div()
             .flex()
             .flex_wrap()
@@ -1698,7 +2144,13 @@ impl Workspace {
             )
     }
 
-    fn rec_freeze_row(&self, tab: Tab, p: &Pal, t: &dyn Fn(&'static str, &'static str) -> &'static str, cx: &mut Context<Self>) -> (AnyElement, bool) {
+    fn rec_freeze_row(
+        &self,
+        tab: Tab,
+        p: &Pal,
+        t: &dyn Fn(&'static str, &'static str) -> &'static str,
+        cx: &mut Context<Self>,
+    ) -> (AnyElement, bool) {
         let snap = match tab {
             Tab::Transfers => self.records.transfers.snap.is_some(),
             Tab::Events => self.records.events.snap.is_some(),
@@ -1707,7 +2159,11 @@ impl Workspace {
         let b = btn(
             p,
             "freeze",
-            if snap { t("回到最新並繼續更新", "Back to latest & resume") } else { t("暫停並凍結清單", "Pause & freeze list") },
+            if snap {
+                t("回到最新並繼續更新", "Back to latest & resume")
+            } else {
+                t("暫停並凍結清單", "Pause & freeze list")
+            },
             false,
             Bk::Normal,
             snap || ready,
@@ -1729,16 +2185,27 @@ impl Workspace {
             banner(p, false)
                 .justify_between()
                 .child(div().flex_1().min_w(px(0.)).child(e.clone()))
-                .child(icon_btn(p, "link-dismiss", cx.listener(|this, _, _, cx| {
-                    this.records.link_error = None;
-                    cx.notify();
-                })))
+                .child(icon_btn(
+                    p,
+                    "link-dismiss",
+                    cx.listener(|this, _, _, cx| {
+                        this.records.link_error = None;
+                        cx.notify();
+                    }),
+                ))
                 .into_any_element(),
         )
     }
 
     /// The `<select aria-label="Time range">` of both filter rows.
-    fn rec_range_select(&self, p: &Pal, tab: Tab, current: i64, t: &dyn Fn(&'static str, &'static str) -> &'static str, cx: &mut Context<Self>) -> Div {
+    fn rec_range_select(
+        &self,
+        p: &Pal,
+        tab: Tab,
+        current: i64,
+        t: &dyn Fn(&'static str, &'static str) -> &'static str,
+        cx: &mut Context<Self>,
+    ) -> Div {
         let opts = RANGES
             .iter()
             .map(|ms| {
@@ -1756,7 +2223,16 @@ impl Workspace {
                 })
             })
             .collect();
-        self.rec_select(p, if tab == Tab::Transfers { "sel-t-range" } else { "sel-e-range" }, opts, cx)
+        self.rec_select(
+            p,
+            if tab == Tab::Transfers {
+                "sel-t-range"
+            } else {
+                "sel-e-range"
+            },
+            opts,
+            cx,
+        )
     }
 
     // -----------------------------------------------------------------------------------------
@@ -1778,16 +2254,36 @@ impl Workspace {
                 .w_full()
                 .items_start()
                 .gap(px(6.))
-                .child(div().text_size(px(12.)).font_weight(FontWeight::MEDIUM).text_color(p.muted).child(title))
+                .child(
+                    div()
+                        .text_size(px(12.))
+                        .font_weight(FontWeight::MEDIUM)
+                        .text_color(p.muted)
+                        .child(title),
+                )
                 .child(
                     h_flex()
                         .items_end()
-                        .child(div().text_size(px(29.)).font_weight(W650).text_color(color).child(value))
-                        .when(!unit.is_empty(), |d| d.child(div().ml(px(6.)).text_size(px(12.)).text_color(p.muted).child(unit))),
+                        .child(
+                            div()
+                                .text_size(px(29.))
+                                .font_weight(W650)
+                                .text_color(color)
+                                .child(value),
+                        )
+                        .when(!unit.is_empty(), |d| {
+                            d.child(div().ml(px(6.)).text_size(px(12.)).text_color(p.muted).child(unit))
+                        }),
                 )
                 .child(div().text_size(px(11.)).text_color(p.muted).child(note))
         };
-        let stat = |id: &'static str, title: &'static str, value: String, unit: String, note: String, color: Hsla| -> Stateful<Div> {
+        let stat = |id: &'static str,
+                    title: &'static str,
+                    value: String,
+                    unit: String,
+                    note: String,
+                    color: Hsla|
+         -> Stateful<Div> {
             div()
                 .id(id)
                 .flex()
@@ -1816,19 +2312,43 @@ impl Workspace {
             h_flex()
                 .items_stretch()
                 .gap(px(if vw < 1180. { 10. } else { 16. }))
-                .child(stat("stat-up", t("上傳資料", "Data uploaded"), up, up_u, t("Client → Server（累計傳輸）", "Client → Server (total transferred)").to_string(), p.purple))
-                .child(stat("stat-down", t("下載資料", "Data downloaded"), down, down_u, t("Server → Client（累計傳輸）", "Server → Client (total transferred)").to_string(), p.blue))
+                .child(stat(
+                    "stat-up",
+                    t("上傳資料", "Data uploaded"),
+                    up,
+                    up_u,
+                    t("Client → Server（累計傳輸）", "Client → Server (total transferred)").to_string(),
+                    p.purple,
+                ))
+                .child(stat(
+                    "stat-down",
+                    t("下載資料", "Data downloaded"),
+                    down,
+                    down_u,
+                    t("Server → Client（累計傳輸）", "Server → Client (total transferred)").to_string(),
+                    p.blue,
+                ))
                 .child(stat(
                     "stat-kv",
                     t("KV 查詢命中率", "KV lookup hit rate"),
-                    if kv_total > 0 { format!("{:.1}", s.kv_hit as f64 / kv_total as f64 * 100.0) } else { "—".to_string() },
+                    if kv_total > 0 {
+                        format!("{:.1}", s.kv_hit as f64 / kv_total as f64 * 100.0)
+                    } else {
+                        "—".to_string()
+                    },
                     if kv_total > 0 { "%".to_string() } else { String::new() },
                     format!("{} hit / {} miss", format_int(s.kv_hit), format_int(s.kv_miss)),
                     p.accent,
                 ))
                 .child(
                     Button::new("stat-err")
-                        .custom(ButtonCustomVariant::new(cx).color(p.panel).foreground(p.text).hover(p.subtle).active(p.subtle))
+                        .custom(
+                            ButtonCustomVariant::new(cx)
+                                .color(p.panel)
+                                .foreground(p.text)
+                                .hover(p.subtle)
+                                .active(p.subtle),
+                        )
                         .accessibility_label(t("篩選失敗請求", "Filter failed requests"))
                         .flex_1()
                         .min_w(px(0.))
@@ -1840,8 +2360,16 @@ impl Workspace {
                         .rounded(px(10.))
                         .border_1()
                         .border_color(p.border)
-                        .on_click(cx.listener(|this, _, _, cx| this.rec_set_tf(|f| f.outcome = "error".to_string(), cx)))
-                        .child(stat_body(t("錯誤", "Errors"), format_int(s.errors), t("筆", "").to_string(), t("點選篩選失敗請求", "Click to filter failed requests").to_string(), p.danger)),
+                        .on_click(
+                            cx.listener(|this, _, _, cx| this.rec_set_tf(|f| f.outcome = "error".to_string(), cx)),
+                        )
+                        .child(stat_body(
+                            t("錯誤", "Errors"),
+                            format_int(s.errors),
+                            t("筆", "").to_string(),
+                            t("點選篩選失敗請求", "Click to filter failed requests").to_string(),
+                            p.danger,
+                        )),
                 )
         });
 
@@ -1855,10 +2383,18 @@ impl Workspace {
         let dir_sel = self.rec_select(
             &p,
             "sel-t-dir",
-            [("", t("全部方向", "All directions")), ("up", t("↑ 上傳", "↑ Upload")), ("down", t("↓ 下載", "↓ Download"))]
-                .into_iter()
-                .map(|(v, l)| opt(l, tf.direction == v, move |this, _, cx| this.rec_set_tf(|f| f.direction = v.to_string(), cx)))
-                .collect(),
+            [
+                ("", t("全部方向", "All directions")),
+                ("up", t("↑ 上傳", "↑ Upload")),
+                ("down", t("↓ 下載", "↓ Download")),
+            ]
+            .into_iter()
+            .map(|(v, l)| {
+                opt(l, tf.direction == v, move |this, _, cx| {
+                    this.rec_set_tf(|f| f.direction = v.to_string(), cx)
+                })
+            })
+            .collect(),
             cx,
         );
         let svc_sel = self.rec_select(
@@ -1866,28 +2402,50 @@ impl Workspace {
             "sel-t-svc",
             [("", "CAS / KV"), ("CAS", "CAS"), ("KV", "KV")]
                 .into_iter()
-                .map(|(v, l)| opt(l, tf.service == v, move |this, _, cx| this.rec_set_tf(|f| f.service = v.to_string(), cx)))
+                .map(|(v, l)| {
+                    opt(l, tf.service == v, move |this, _, cx| {
+                        this.rec_set_tf(|f| f.service = v.to_string(), cx)
+                    })
+                })
                 .collect(),
             cx,
         );
         let out_sel = self.rec_select(
             &p,
             "sel-t-out",
-            [("", t("全部結果", "All results")), ("success", t("成功", "Success")), ("hit", t("命中", "Hit")), ("miss", t("未命中", "Miss")), ("error", t("失敗", "Failed"))]
-                .into_iter()
-                .map(|(v, l)| opt(l, tf.outcome == v, move |this, _, cx| this.rec_set_tf(|f| f.outcome = v.to_string(), cx)))
-                .collect(),
+            [
+                ("", t("全部結果", "All results")),
+                ("success", t("成功", "Success")),
+                ("hit", t("命中", "Hit")),
+                ("miss", t("未命中", "Miss")),
+                ("error", t("失敗", "Failed")),
+            ]
+            .into_iter()
+            .map(|(v, l)| {
+                opt(l, tf.outcome == v, move |this, _, cx| {
+                    this.rec_set_tf(|f| f.outcome = v.to_string(), cx)
+                })
+            })
+            .collect(),
             cx,
         );
         let range_sel = self.rec_range_select(&p, Tab::Transfers, tf.range, &t, cx);
 
         // Columns share spare width in proportion to their language-specific content widths.
         // Object ID is the only column that may shrink below its preferred width.
-        let widths: [f32; 6] = if zh { [169., 114., 126., 64., 72., 67.] } else { [169., 114., 126., 89., 72., 71.] };
+        let widths: [f32; 6] = if zh {
+            [169., 114., 126., 64., 72., 67.]
+        } else {
+            [169., 114., 126., 89., 72., 71.]
+        };
         let cell = |i: usize| {
             let w = widths[i];
             let c = div().px(px(12.)).flex_basis(px(w)).flex_grow(w);
-            if i == 2 { c.flex_shrink_1().min_w(px(0.)) } else { c.flex_shrink_0() }
+            if i == 2 {
+                c.flex_shrink_1().min_w(px(0.))
+            } else {
+                c.flex_shrink_0()
+            }
         };
 
         let count = data.map_or(0, |d| d.items.len());
@@ -1916,9 +2474,10 @@ impl Workspace {
                             }))
                             .child(
                                 cell(0).child(
-                                    v_flex()
-                                        .child(mono(&p, 12.5, clock(tr.started_at)))
-                                        .child(mono(&p, 12., format!("{} · {}", date(tr.started_at), pad_id(id))).text_color(p.muted)),
+                                    v_flex().child(mono(&p, 12.5, clock(tr.started_at))).child(
+                                        mono(&p, 12., format!("{} · {}", date(tr.started_at), pad_id(id)))
+                                            .text_color(p.muted),
+                                    ),
                                 ),
                             )
                             .child(
@@ -1927,18 +2486,37 @@ impl Workspace {
                                         .child(
                                             h_flex()
                                                 .gap(px(4.))
-                                                .child(div().font_weight(FontWeight::BOLD).text_color(if up { p.purple } else { p.blue }).child(if up { "↑" } else { "↓" }))
+                                                .child(
+                                                    div()
+                                                        .font_weight(FontWeight::BOLD)
+                                                        .text_color(if up { p.purple } else { p.blue })
+                                                        .child(if up { "↑" } else { "↓" }),
+                                                )
                                                 .child(method_label(&tr.method)),
                                         )
                                         .child(mono(&p, 12., tr.peer.clone()).text_color(p.muted).truncate()),
                                 ),
                             )
-                            .child(cell(2).child(match &tr.object_id {
-                                Some(o) => mono(&p, 13., format!("{}…", o.chars().take(12).collect::<String>())).truncate(),
-                                None => mono(&p, 13., t("未產生 ID", "No ID generated")).text_color(p.muted).truncate(),
+                            .child(
+                                cell(2).child(match &tr.object_id {
+                                    Some(o) => {
+                                        mono(&p, 13., format!("{}…", o.chars().take(12).collect::<String>())).truncate()
+                                    }
+                                    None => mono(&p, 13., t("未產生 ID", "No ID generated"))
+                                        .text_color(p.muted)
+                                        .truncate(),
+                                }),
+                            )
+                            .child(cell(3).child(h_flex().child(outcome_tag(
+                                &p,
+                                &tr.outcome,
+                                outcome_label(&t, &tr.outcome),
+                            ))))
+                            .child(cell(4).text_right().child(if tr.bytes > 0 {
+                                format_bytes(tr.bytes)
+                            } else {
+                                "—".to_string()
                             }))
-                            .child(cell(3).child(h_flex().child(outcome_tag(&p, &tr.outcome, outcome_label(&t, &tr.outcome)))))
-                            .child(cell(4).text_right().child(if tr.bytes > 0 { format_bytes(tr.bytes) } else { "—".to_string() }))
                             .child(cell(5).text_right().child(format_duration(tr.duration_us)))
                             .into_any_element()
                     })
@@ -1965,12 +2543,20 @@ impl Workspace {
 
         let total = data.map(|d| d.total).unwrap_or(0);
         let empty_msg = if data.is_none() {
-            if meta.error.is_some() { None } else { Some(t("載入傳輸明細…", "Loading transfers…").to_string()) }
+            if meta.error.is_some() {
+                None
+            } else {
+                Some(t("載入傳輸明細…", "Loading transfers…").to_string())
+            }
         } else if data.is_some_and(|d| d.items.is_empty()) {
             Some(if filtered {
                 t("沒有符合篩選條件的傳輸。", "No transfers match the filters.").to_string()
             } else {
-                t("尚無傳輸記錄。啟動服務後，client 的每一次 CAS / KV 請求都會出現在這裡。", "No transfers yet. Once the service starts, every CAS / KV request from a client appears here.").to_string()
+                t(
+                    "尚無傳輸記錄。啟動服務後，client 的每一次 CAS / KV 請求都會出現在這裡。",
+                    "No transfers yet. Once the service starts, every CAS / KV request from a client appears here.",
+                )
+                .to_string()
             })
         } else {
             None
@@ -2062,31 +2648,61 @@ impl Workspace {
             .when_some(meta.export_error.clone(), |d, e| d.child(fx(banner(&p, false).child(e))))
             .when(data.is_some(), |d| d.child(fx(self.rec_pager(Tab::Transfers, total, &p, cx))));
 
-        let inspector = self.records.detail.as_ref().map(|_| self.render_transfer_detail(&p, &t, narrow, vh, not_in_list, cx));
+        let inspector = self
+            .records
+            .detail
+            .as_ref()
+            .map(|_| self.render_transfer_detail(&p, &t, narrow, vh, not_in_list, cx));
 
-        let split = if narrow { v_flex().gap(px(18.)) } else { h_flex().gap(px(18.)).items_start() };
-        v_flex().w_full().gap(px(18.)).when_some(stats, |d, s| d.child(s)).child(split.child(list).when_some(inspector, |d, i| d.child(i))).into_any_element()
+        let split = if narrow {
+            v_flex().gap(px(18.))
+        } else {
+            h_flex().gap(px(18.)).items_start()
+        };
+        v_flex()
+            .w_full()
+            .gap(px(18.))
+            .when_some(stats, |d, s| d.child(s))
+            .child(split.child(list).when_some(inspector, |d, i| d.child(i)))
+            .into_any_element()
     }
 
-    fn render_transfer_detail(&self, p: &Pal, t: &dyn Fn(&'static str, &'static str) -> &'static str, narrow: bool, vh: f32, not_in_list: bool, cx: &mut Context<Self>) -> AnyElement {
+    fn render_transfer_detail(
+        &self,
+        p: &Pal,
+        t: &dyn Fn(&'static str, &'static str) -> &'static str,
+        narrow: bool,
+        vh: f32,
+        not_in_list: bool,
+        cx: &mut Context<Self>,
+    ) -> AnyElement {
         let d = self.records.detail.as_ref().expect("detail");
         let mut inner = v_flex().gap(px(14.)).px(px(20.)).py(px(18.)).min_w(px(0.)).child(
-            h_flex().justify_between().gap(px(12.)).child(heading(t("傳輸詳細資料", "Transfer details"))).child(icon_btn(p, "detail-close", cx.listener(|this, _, window, cx| {
-                this.rec_focus_list(window, cx);
-                this.close_transfer(cx);
-            }))),
+            h_flex()
+                .justify_between()
+                .gap(px(12.))
+                .child(heading(t("傳輸詳細資料", "Transfer details")))
+                .child(icon_btn(
+                    p,
+                    "detail-close",
+                    cx.listener(|this, _, window, cx| {
+                        this.rec_focus_list(window, cx);
+                        this.close_transfer(cx);
+                    }),
+                )),
         );
         if let Some(e) = &d.error {
-            inner = inner.child(
-                banner(p, false)
-                    .child(e.clone())
-                    .child(link(p, "detail-retry", t("重試", "Retry"), cx.listener(|this, _, _, cx| {
-                        if let Some(id) = this.records.selected_transfer {
-                            this.load_detail(id, cx);
-                            cx.notify();
-                        }
-                    }))),
-            );
+            inner = inner.child(banner(p, false).child(e.clone()).child(link(
+                p,
+                "detail-retry",
+                t("重試", "Retry"),
+                cx.listener(|this, _, _, cx| {
+                    if let Some(id) = this.records.selected_transfer {
+                        this.load_detail(id, cx);
+                        cx.notify();
+                    }
+                }),
+            )));
         }
         if not_in_list {
             inner = inner.child(banner(p, true).child(t("此傳輸不在目前清單頁中（可能被篩選條件排除、位於其他頁，或比凍結快照更新）。", "This transfer isn’t on the current list page (it may be filtered out, on another page, or newer than the frozen snapshot).")));
@@ -2103,7 +2719,16 @@ impl Workspace {
                 .gap(px(8.))
                 .flex_wrap()
                 .child(mono(p, 12.5, pad_id(tr.id)).font_weight(FontWeight::BOLD))
-                .child(div().font_weight(FontWeight::BOLD).text_color(if up { p.purple } else { p.blue }).child(if up { t("↑ 上傳", "↑ Upload") } else { t("↓ 下載", "↓ Download") }))
+                .child(
+                    div()
+                        .font_weight(FontWeight::BOLD)
+                        .text_color(if up { p.purple } else { p.blue })
+                        .child(if up {
+                            t("↑ 上傳", "↑ Upload")
+                        } else {
+                            t("↓ 下載", "↓ Download")
+                        }),
+                )
                 .child(div().child(method_label(&tr.method)))
                 .child(outcome_tag(p, &tr.outcome, outcome_label(t, &tr.outcome))),
         );
@@ -2111,25 +2736,52 @@ impl Workspace {
             (DetailTab::Overview, t("概覽", "Overview").to_string()),
             (DetailTab::Json, t("請求 / 回應", "Request / Response").to_string()),
             (DetailTab::Payload, format!("Payload {}", tr.payloads.len())),
-            (DetailTab::Events, if self.rec_zh() { format!("關聯事件 {}", d.events.len()) } else { format!("Related events {}", d.events.len()) }),
+            (
+                DetailTab::Events,
+                if self.rec_zh() {
+                    format!("關聯事件 {}", d.events.len())
+                } else {
+                    format!("Related events {}", d.events.len())
+                },
+            ),
         ];
-        inner = inner.child(tabs_bar(p).children(tabs.into_iter().enumerate().map(|(i, (tab, text))| {
-            tab_btn(p, ("detail-tab", i), text, d.tab == tab, cx.listener(move |this, _, _, cx| {
-                if let Some(d) = this.records.detail.as_mut() {
-                    d.tab = tab;
-                }
-                cx.notify();
-            }))
-        })));
+        inner = inner.child(
+            tabs_bar(p).children(tabs.into_iter().enumerate().map(|(i, (tab, text))| {
+                tab_btn(
+                    p,
+                    ("detail-tab", i),
+                    text,
+                    d.tab == tab,
+                    cx.listener(move |this, _, _, cx| {
+                        if let Some(d) = this.records.detail.as_mut() {
+                            d.tab = tab;
+                        }
+                        cx.notify();
+                    }),
+                )
+            })),
+        );
 
         let body: AnyElement = match d.tab {
             DetailTab::Overview => {
                 let mut dl = v_flex()
                     .gap(px(9.))
-                    .child(kv(p, t("開始時間", "Started"), mono(p, 12.5, format_time(tr.started_at))))
-                    .child(kv(p, t("耗時", "Duration"), mono(p, 12.5, format_duration(tr.duration_us))))
+                    .child(kv(
+                        p,
+                        t("開始時間", "Started"),
+                        mono(p, 12.5, format_time(tr.started_at)),
+                    ))
+                    .child(kv(
+                        p,
+                        t("耗時", "Duration"),
+                        mono(p, 12.5, format_duration(tr.duration_us)),
+                    ))
                     .child(kv(p, t("來源", "Source"), mono(p, 12.5, tr.peer.clone())))
-                    .child(kv(p, t("gRPC 狀態", "gRPC status"), mono(p, 12.5, tr.grpc_status.clone())))
+                    .child(kv(
+                        p,
+                        t("gRPC 狀態", "gRPC status"),
+                        mono(p, 12.5, tr.grpc_status.clone()),
+                    ))
                     .child(kv(p, t("內容大小", "Size"), mono(p, 12.5, exact_bytes(tr.bytes))));
                 if let Some(e) = &tr.error {
                     dl = dl.child(kv(p, t("錯誤", "Error"), div().text_color(p.danger).child(e.clone())));
@@ -2141,26 +2793,61 @@ impl Workspace {
                         v.child(
                             v_flex()
                                 .gap(px(6.))
-                                .child(h_flex().justify_between().gap(px(12.)).child(label(p, t("完整 ID", "Full ID"))).child(btn(
-                                    p,
-                                    "copy-id",
-                                    t("複製 ID", "Copy ID"),
-                                    true,
-                                    Bk::Normal,
-                                    true,
-                                    cx.listener(move |this, _, _, cx| {
-                                        cx.write_to_clipboard(ClipboardItem::new_string(copy.clone()));
-                                        this.notice(if this.rec_zh() { "已複製 ID".to_string() } else { "ID copied".to_string() }, cx);
-                                    }),
-                                )))
-                                .child(div().px(px(12.)).py(px(10.)).border_1().border_color(p.border).rounded(px(7.)).bg(p.field).font_family(p.mono.clone()).text_size(px(12.5)).child(o.clone())),
+                                .child(
+                                    h_flex()
+                                        .justify_between()
+                                        .gap(px(12.))
+                                        .child(label(p, t("完整 ID", "Full ID")))
+                                        .child(btn(
+                                            p,
+                                            "copy-id",
+                                            t("複製 ID", "Copy ID"),
+                                            true,
+                                            Bk::Normal,
+                                            true,
+                                            cx.listener(move |this, _, _, cx| {
+                                                cx.write_to_clipboard(ClipboardItem::new_string(copy.clone()));
+                                                this.notice(
+                                                    if this.rec_zh() {
+                                                        "已複製 ID".to_string()
+                                                    } else {
+                                                        "ID copied".to_string()
+                                                    },
+                                                    cx,
+                                                );
+                                            }),
+                                        )),
+                                )
+                                .child(
+                                    div()
+                                        .px(px(12.))
+                                        .py(px(10.))
+                                        .border_1()
+                                        .border_color(p.border)
+                                        .rounded(px(7.))
+                                        .bg(p.field)
+                                        .font_family(p.mono.clone())
+                                        .text_size(px(12.5))
+                                        .child(o.clone()),
+                                ),
                         )
                     }
-                    None => v.child(small_muted(p, t("此請求未產生物件 ID。", "This request produced no object ID."))),
+                    None => v.child(small_muted(
+                        p,
+                        t("此請求未產生物件 ID。", "This request produced no object ID."),
+                    )),
                 };
-                for (si, (side, value)) in [(t("請求", "Request"), &tr.request), (t("回應", "Response"), &tr.response)].into_iter().enumerate() {
+                for (si, (side, value)) in [
+                    (t("請求", "Request"), &tr.request),
+                    (t("回應", "Response"), &tr.response),
+                ]
+                .into_iter()
+                .enumerate()
+                {
                     for key in ["references", "refs", "entries"] {
-                        let Some(items) = value.get(key).and_then(|v| v.as_array()) else { continue };
+                        let Some(items) = value.get(key).and_then(|v| v.as_array()) else {
+                            continue;
+                        };
                         let ref_key = format!("refs-{si}-{key}");
                         let shown = items.len().min(self.rec_limit(&ref_key, MAX_REFS));
                         let more = self.rec_more(p, ref_key.clone(), shown, items.len(), "rows", t, cx);
@@ -2172,20 +2859,36 @@ impl Workspace {
                                         .justify_between()
                                         .gap(px(12.))
                                         .child(label(p, format!("{side} {key}")))
-                                        .child(small_muted(p, if self.rec_zh() { format!("{} 項", items.len()) } else { format!("{} items", items.len()) })),
+                                        .child(small_muted(
+                                            p,
+                                            if self.rec_zh() {
+                                                format!("{} 項", items.len())
+                                            } else {
+                                                format!("{} items", items.len())
+                                            },
+                                        )),
                                 )
                                 .child(
-                                    v_flex().gap(px(4.)).font_family(p.mono.clone()).text_size(px(12.5)).children(items.iter().take(shown).enumerate().map(|(i, it)| {
-                                        let text = match it {
-                                            Value::String(s) => s.clone(),
-                                            other => other.to_string(),
-                                        };
-                                        h_flex()
-                                            .gap(px(6.))
-                                            .items_start()
-                                            .child(div().flex_none().text_color(p.muted).child(format!("{:02}", i + 1)))
-                                            .child(div().flex_1().min_w(px(0.)).child(text))
-                                    })),
+                                    v_flex()
+                                        .gap(px(4.))
+                                        .font_family(p.mono.clone())
+                                        .text_size(px(12.5))
+                                        .children(items.iter().take(shown).enumerate().map(|(i, it)| {
+                                            let text = match it {
+                                                Value::String(s) => s.clone(),
+                                                other => other.to_string(),
+                                            };
+                                            h_flex()
+                                                .gap(px(6.))
+                                                .items_start()
+                                                .child(
+                                                    div()
+                                                        .flex_none()
+                                                        .text_color(p.muted)
+                                                        .child(format!("{:02}", i + 1)),
+                                                )
+                                                .child(div().flex_1().min_w(px(0.)).child(text))
+                                        })),
                                 )
                                 .when_some(more, |x, m| x.child(m)),
                         );
@@ -2195,25 +2898,57 @@ impl Workspace {
             }
             DetailTab::Json => {
                 let copy = |text: &'static str, id: &'static str, lines: Vec<SharedString>, cx: &mut Context<Self>| {
-                    btn(p, id, text, true, Bk::Normal, true, cx.listener(move |this, _, _, cx| {
-                        let text = lines.iter().map(|l| l.to_string()).collect::<Vec<_>>().join("\n");
-                        cx.write_to_clipboard(ClipboardItem::new_string(text));
-                        this.notice(if this.rec_zh() { "已複製 JSON".to_string() } else { "JSON copied".to_string() }, cx);
-                    }))
+                    btn(
+                        p,
+                        id,
+                        text,
+                        true,
+                        Bk::Normal,
+                        true,
+                        cx.listener(move |this, _, _, cx| {
+                            let text = lines.iter().map(|l| l.to_string()).collect::<Vec<_>>().join("\n");
+                            cx.write_to_clipboard(ClipboardItem::new_string(text));
+                            this.notice(
+                                if this.rec_zh() {
+                                    "已複製 JSON".to_string()
+                                } else {
+                                    "JSON copied".to_string()
+                                },
+                                cx,
+                            );
+                        }),
+                    )
                 };
                 v_flex()
                     .gap(px(12.))
                     .min_w(px(0.))
-                    .child(h_flex().justify_between().gap(px(12.)).child(label(p, "Request")).child(copy(t("複製 JSON", "Copy JSON"), "copy-req", d.req_lines.clone(), cx)))
+                    .child(
+                        h_flex()
+                            .justify_between()
+                            .gap(px(12.))
+                            .child(label(p, "Request"))
+                            .child(copy(t("複製 JSON", "Copy JSON"), "copy-req", d.req_lines.clone(), cx)),
+                    )
                     .child(self.rec_lines(p, "json-req", &d.req_lines, false, t, cx))
-                    .child(h_flex().justify_between().gap(px(12.)).child(label(p, "Response")).child(copy(t("複製 JSON", "Copy JSON"), "copy-resp", d.resp_lines.clone(), cx)))
+                    .child(
+                        h_flex()
+                            .justify_between()
+                            .gap(px(12.))
+                            .child(label(p, "Response"))
+                            .child(copy(t("複製 JSON", "Copy JSON"), "copy-resp", d.resp_lines.clone(), cx)),
+                    )
                     .child(self.rec_lines(p, "json-resp", &d.resp_lines, false, t, cx))
                     .into_any_element()
             }
             DetailTab::Payload => self.render_payload(p, t, tr, d, cx),
             DetailTab::Events => {
                 if d.events.is_empty() {
-                    empty(p, t("沒有與此傳輸關聯的事件。", "No events are linked to this transfer."), true).into_any_element()
+                    empty(
+                        p,
+                        t("沒有與此傳輸關聯的事件。", "No events are linked to this transfer."),
+                        true,
+                    )
+                    .into_any_element()
                 } else {
                     v_flex()
                         .gap(px(6.))
@@ -2237,7 +2972,13 @@ impl Workspace {
                                         .gap(px(10.))
                                         .text_size(px(12.5))
                                         .child(level_tag(p, &ev.level))
-                                        .child(div().flex_none().font_family(p.mono.clone()).text_color(p.muted).child(clock(ev.time)))
+                                        .child(
+                                            div()
+                                                .flex_none()
+                                                .font_family(p.mono.clone())
+                                                .text_color(p.muted)
+                                                .child(clock(ev.time)),
+                                        )
                                         .child(div().flex_1().min_w(px(0.)).truncate().child(ev.message.clone())),
                                 )
                         }))
@@ -2248,7 +2989,11 @@ impl Workspace {
         inner = inner.child(body).child(h_flex().justify_end().child(btn(
             p,
             "export-transfer",
-            if d.exporting { t("匯出中…", "Exporting…") } else { t("匯出此筆詳細資料", "Export this transfer") },
+            if d.exporting {
+                t("匯出中…", "Exporting…")
+            } else {
+                t("匯出此筆詳細資料", "Export this transfer")
+            },
             false,
             Bk::Normal,
             !d.exporting,
@@ -2257,9 +3002,24 @@ impl Workspace {
         inspector_shell(p, "transfer-inspector", narrow, vh, inner)
     }
 
-    fn render_payload(&self, p: &Pal, t: &dyn Fn(&'static str, &'static str) -> &'static str, tr: &Transfer, d: &Detail, cx: &mut Context<Self>) -> AnyElement {
+    fn render_payload(
+        &self,
+        p: &Pal,
+        t: &dyn Fn(&'static str, &'static str) -> &'static str,
+        tr: &Transfer,
+        d: &Detail,
+        cx: &mut Context<Self>,
+    ) -> AnyElement {
         if tr.payloads.is_empty() {
-            return empty(p, t("這筆傳輸沒有 payload（未命中、錯誤或僅有 metadata）。", "This transfer has no payload (miss, error, or metadata only)."), true).into_any_element();
+            return empty(
+                p,
+                t(
+                    "這筆傳輸沒有 payload（未命中、錯誤或僅有 metadata）。",
+                    "This transfer has no payload (miss, error, or metadata only).",
+                ),
+                true,
+            )
+            .into_any_element();
         }
         let pv = &d.payload;
         let cur = &tr.payloads[pv.index.min(tr.payloads.len() - 1)];
@@ -2268,82 +3028,162 @@ impl Workspace {
         let start = pv.chunk.as_ref().map(|c| c.offset).unwrap_or(pv.offset);
         let zh = self.rec_zh();
         let mut v = v_flex().gap(px(12.)).min_w(px(0.));
-        v = v.child(v_flex().id("payload-list").gap(px(4.)).max_h(px(150.)).overflow_y_scroll().children(tr.payloads.iter().enumerate().map(|(i, pl)| {
-            let active = i == pv.index;
-            Button::new(("payload-item", i))
-                .custom(if active { ButtonCustomVariant::new(cx).color(p.accent_bg).foreground(p.text).hover(p.accent_bg).active(p.accent_bg) } else { p.v_plain })
-                .selected(active)
-                .accessibility_label(pl.label.clone())
-                .flex_none()
-                .w_full()
-                .h_auto()
-                .px(px(10.))
-                .py(px(7.))
-                .border_1()
-                .border_color(if active { p.accent } else { p.border })
-                .rounded(px(7.))
-                .when(active, |b| b.bg(p.accent_bg))
-                .on_click(cx.listener(move |this, _, _, cx| {
-                    if let Some(d) = this.records.detail.as_mut() {
-                        d.payload.index = i;
-                        d.payload.offset = 0;
-                    }
-                    this.load_payload_chunk(cx);
-                }))
-                .child(
-                    h_flex()
+        v = v.child(
+            v_flex()
+                .id("payload-list")
+                .gap(px(4.))
+                .max_h(px(150.))
+                .overflow_y_scroll()
+                .children(tr.payloads.iter().enumerate().map(|(i, pl)| {
+                    let active = i == pv.index;
+                    Button::new(("payload-item", i))
+                        .custom(if active {
+                            ButtonCustomVariant::new(cx)
+                                .color(p.accent_bg)
+                                .foreground(p.text)
+                                .hover(p.accent_bg)
+                                .active(p.accent_bg)
+                        } else {
+                            p.v_plain
+                        })
+                        .selected(active)
+                        .accessibility_label(pl.label.clone())
+                        .flex_none()
                         .w_full()
-                        .justify_between()
-                        .gap(px(10.))
-                        .child(div().flex_1().min_w(px(0.)).font_family(p.mono.clone()).text_size(px(12.5)).truncate().child(pl.label.clone()))
-                        .child(div().flex_none().text_color(p.muted).child(format_bytes(pl.bytes))),
-                )
-        })));
+                        .h_auto()
+                        .px(px(10.))
+                        .py(px(7.))
+                        .border_1()
+                        .border_color(if active { p.accent } else { p.border })
+                        .rounded(px(7.))
+                        .when(active, |b| b.bg(p.accent_bg))
+                        .on_click(cx.listener(move |this, _, _, cx| {
+                            if let Some(d) = this.records.detail.as_mut() {
+                                d.payload.index = i;
+                                d.payload.offset = 0;
+                            }
+                            this.load_payload_chunk(cx);
+                        }))
+                        .child(
+                            h_flex()
+                                .w_full()
+                                .justify_between()
+                                .gap(px(10.))
+                                .child(
+                                    div()
+                                        .flex_1()
+                                        .min_w(px(0.))
+                                        .font_family(p.mono.clone())
+                                        .text_size(px(12.5))
+                                        .truncate()
+                                        .child(pl.label.clone()),
+                                )
+                                .child(div().flex_none().text_color(p.muted).child(format_bytes(pl.bytes))),
+                        )
+                })),
+        );
         v = v.child(
             h_flex()
                 .justify_between()
                 .gap(px(12.))
                 .child(
                     seg(p)
-                        .child(seg_btn(p, "pm-hex", if zh { "十六進位" } else { "Hex" }, pv.mode == PayloadMode::Hex, cx.listener(|this, _, _, cx| {
-                            if let Some(d) = this.records.detail.as_mut() {
-                                d.payload.mode = PayloadMode::Hex;
-                            }
-                            cx.notify();
-                        })))
-                        .child(seg_btn(p, "pm-text", t("文字", "Text"), pv.mode == PayloadMode::Text, cx.listener(|this, _, _, cx| {
-                            if let Some(d) = this.records.detail.as_mut() {
-                                d.payload.mode = PayloadMode::Text;
-                            }
-                            cx.notify();
-                        }))),
+                        .child(seg_btn(
+                            p,
+                            "pm-hex",
+                            if zh { "十六進位" } else { "Hex" },
+                            pv.mode == PayloadMode::Hex,
+                            cx.listener(|this, _, _, cx| {
+                                if let Some(d) = this.records.detail.as_mut() {
+                                    d.payload.mode = PayloadMode::Hex;
+                                }
+                                cx.notify();
+                            }),
+                        ))
+                        .child(seg_btn(
+                            p,
+                            "pm-text",
+                            t("文字", "Text"),
+                            pv.mode == PayloadMode::Text,
+                            cx.listener(|this, _, _, cx| {
+                                if let Some(d) = this.records.detail.as_mut() {
+                                    d.payload.mode = PayloadMode::Text;
+                                }
+                                cx.notify();
+                            }),
+                        )),
                 )
                 .child(btn(
                     p,
                     "export-payload",
-                    if pv.exporting { t("匯出中…", "Exporting…") } else { t("匯出此 payload", "Export this payload") },
+                    if pv.exporting {
+                        t("匯出中…", "Exporting…")
+                    } else {
+                        t("匯出此 payload", "Export this payload")
+                    },
                     true,
                     Bk::Normal,
                     !pv.exporting,
                     cx.listener(|this, _, window, cx| this.export_payload(window, cx)),
                 )),
         );
-        v = v.child(mono(p, 12., if zh { format!("摘要 {}", cur.id) } else { format!("digest {}", cur.id) }).text_color(p.muted).truncate());
+        v = v.child(
+            mono(
+                p,
+                12.,
+                if zh {
+                    format!("摘要 {}", cur.id)
+                } else {
+                    format!("digest {}", cur.id)
+                },
+            )
+            .text_color(p.muted)
+            .truncate(),
+        );
         if let Some(e) = &pv.error {
-            v = v.child(banner(p, false).child(e.clone()).child(link(p, "payload-retry", t("重試", "Retry"), cx.listener(|this, _, _, cx| this.load_payload_chunk(cx)))));
+            v = v.child(banner(p, false).child(e.clone()).child(link(
+                p,
+                "payload-retry",
+                t("重試", "Retry"),
+                cx.listener(|this, _, _, cx| this.load_payload_chunk(cx)),
+            )));
         } else if pv.chunk.is_none() {
             v = v.child(empty(p, t("載入 payload…", "Loading payload…"), true));
         }
         if pv.chunk.is_some() {
             v = match pv.mode {
-                PayloadMode::Hex => v.child(self.rec_lines(p, &format!("payload-hex-{}-{}", pv.index, pv.offset), &pv.hex_lines, true, t, cx)),
-                PayloadMode::Text => v.child(self.rec_lines(p, &format!("payload-text-{}-{}", pv.index, pv.offset), &pv.text_lines, true, t, cx)),
+                PayloadMode::Hex => v.child(self.rec_lines(
+                    p,
+                    &format!("payload-hex-{}-{}", pv.index, pv.offset),
+                    &pv.hex_lines,
+                    true,
+                    t,
+                    cx,
+                )),
+                PayloadMode::Text => v.child(self.rec_lines(
+                    p,
+                    &format!("payload-text-{}-{}", pv.index, pv.offset),
+                    &pv.text_lines,
+                    true,
+                    t,
+                    cx,
+                )),
             };
         }
         let range = if zh {
-            format!("{}–{} B / 完整 {} B", format_int(start), format_int(start + shown), format_int(total))
+            format!(
+                "{}–{} B / 完整 {} B",
+                format_int(start),
+                format_int(start + shown),
+                format_int(total)
+            )
         } else {
-            format!("{}–{} B of {} B", format_int(start), format_int(start + shown), format_int(total))
+            format!(
+                "{}–{} B of {} B",
+                format_int(start),
+                format_int(start + shown),
+                format_int(total)
+            )
         };
         let prev_disabled = pv.offset == 0;
         let next_disabled = pv.offset + CHUNK >= total;
@@ -2355,18 +3195,34 @@ impl Workspace {
                 .child(
                     h_flex()
                         .gap(px(8.))
-                        .child(btn(p, "payload-prev", t("上一段", "Previous chunk"), true, Bk::Normal, !prev_disabled, cx.listener(|this, _, _, cx| {
-                            if let Some(d) = this.records.detail.as_mut() {
-                                d.payload.offset = d.payload.offset.saturating_sub(CHUNK);
-                            }
-                            this.load_payload_chunk(cx);
-                        })))
-                        .child(btn(p, "payload-next", t("下一段", "Next chunk"), true, Bk::Normal, !next_disabled, cx.listener(|this, _, _, cx| {
-                            if let Some(d) = this.records.detail.as_mut() {
-                                d.payload.offset += CHUNK;
-                            }
-                            this.load_payload_chunk(cx);
-                        }))),
+                        .child(btn(
+                            p,
+                            "payload-prev",
+                            t("上一段", "Previous chunk"),
+                            true,
+                            Bk::Normal,
+                            !prev_disabled,
+                            cx.listener(|this, _, _, cx| {
+                                if let Some(d) = this.records.detail.as_mut() {
+                                    d.payload.offset = d.payload.offset.saturating_sub(CHUNK);
+                                }
+                                this.load_payload_chunk(cx);
+                            }),
+                        ))
+                        .child(btn(
+                            p,
+                            "payload-next",
+                            t("下一段", "Next chunk"),
+                            true,
+                            Bk::Normal,
+                            !next_disabled,
+                            cx.listener(|this, _, _, cx| {
+                                if let Some(d) = this.records.detail.as_mut() {
+                                    d.payload.offset += CHUNK;
+                                }
+                                this.load_payload_chunk(cx);
+                            }),
+                        )),
                 ),
         )
         .into_any_element()
@@ -2395,7 +3251,11 @@ impl Workspace {
             "sel-e-level",
             std::iter::once(("", t("全部層級", "All levels")))
                 .chain(LEVELS.iter().map(|l| (*l, *l)))
-                .map(|(v, l)| opt(l, ef.level == v, move |this, _, cx| this.rec_set_ef(|f| f.level = v.to_string(), cx)))
+                .map(|(v, l)| {
+                    opt(l, ef.level == v, move |this, _, cx| {
+                        this.rec_set_ef(|f| f.level = v.to_string(), cx)
+                    })
+                })
                 .collect(),
             cx,
         );
@@ -2414,15 +3274,26 @@ impl Workspace {
             .relative()
             .flex_none()
             .w(px(150.))
-            .child(text_input(&p, &self.records.e_kind, p.panel).suffix(
-                Button::new("kind-caret").custom(p.v_icon).accessibility_label(t("事件類型", "Event kinds")).px(px(4.)).on_click(cx.listener(|this, _, _, cx| this.rec_toggle_select("sel-e-kind", cx))).child(Icon::new(IconName::ChevronDown).size(px(14.)).text_color(p.text)),
-            ))
+            .child(
+                text_input(&p, &self.records.e_kind, p.panel).suffix(
+                    Button::new("kind-caret")
+                        .custom(p.v_icon)
+                        .accessibility_label(t("事件類型", "Event kinds"))
+                        .px(px(4.))
+                        .on_click(cx.listener(|this, _, _, cx| this.rec_toggle_select("sel-e-kind", cx)))
+                        .child(Icon::new(IconName::ChevronDown).size(px(14.)).text_color(p.text)),
+                ),
+            )
             .children(kind_menu);
         let range_sel = self.rec_range_select(&p, Tab::Events, ef.range, &t, cx);
 
         // Language-specific preferred widths for fixed columns. Message takes the rest;
         // the other columns never wrap.
-        let widths: [f32; 6] = if zh { [124., 75., 74., 0., 86., 102.] } else { [120., 73., 72., 0., 118., 99.] };
+        let widths: [f32; 6] = if zh {
+            [124., 75., 74., 0., 86., 102.]
+        } else {
+            [120., 73., 72., 0., 118., 99.]
+        };
         let cell = |i: usize| match i {
             3 => div().px(px(12.)).flex_1().min_w(px(220.)),
             _ => div().px(px(12.)).w(px(widths[i])).flex_none().whitespace_nowrap(),
@@ -2452,7 +3323,13 @@ impl Workspace {
                                 this.rec_focus_list(window, cx);
                                 this.select_event(event.clone(), cx);
                             }))
-                            .child(cell(0).child(v_flex().child(mono(&p, 12.5, clock(ev.time))).child(mono(&p, 12., date(ev.time)).text_color(p.muted))))
+                            .child(
+                                cell(0).child(
+                                    v_flex()
+                                        .child(mono(&p, 12.5, clock(ev.time)))
+                                        .child(mono(&p, 12., date(ev.time)).text_color(p.muted)),
+                                ),
+                            )
                             .child(cell(1).child(h_flex().child(level_tag(&p, &ev.level))))
                             .child(cell(2).child(ev.kind.clone()))
                             .child(cell(3).child(ev.message.clone()))
@@ -2489,9 +3366,17 @@ impl Workspace {
 
         let total = data.map(|d| d.total).unwrap_or(0);
         let empty_msg = if data.is_none() {
-            if meta.error.is_some() { None } else { Some(t("載入事件…", "Loading events…").to_string()) }
+            if meta.error.is_some() {
+                None
+            } else {
+                Some(t("載入事件…", "Loading events…").to_string())
+            }
         } else if data.is_some_and(|d| d.items.is_empty()) {
-            Some(if filtered { t("沒有符合篩選條件的事件。", "No events match the filters.").to_string() } else { t("尚無事件。", "No events yet.").to_string() })
+            Some(if filtered {
+                t("沒有符合篩選條件的事件。", "No events match the filters.").to_string()
+            } else {
+                t("尚無事件。", "No events yet.").to_string()
+            })
         } else {
             None
         };
@@ -2634,8 +3519,15 @@ impl Workspace {
             inspector_shell(&p, "event-inspector", narrow, vh, inner)
         });
 
-        let split = if narrow { v_flex().gap(px(18.)) } else { h_flex().gap(px(18.)).items_start() };
-        v_flex().w_full().child(split.child(list).when_some(inspector, |d, i| d.child(i))).into_any_element()
+        let split = if narrow {
+            v_flex().gap(px(18.))
+        } else {
+            h_flex().gap(px(18.)).items_start()
+        };
+        v_flex()
+            .w_full()
+            .child(split.child(list).when_some(inspector, |d, i| d.child(i)))
+            .into_any_element()
     }
 }
 
@@ -2648,7 +3540,12 @@ fn inspector_shell(p: &Pal, id: &'static str, narrow: bool, vh: f32, inner: Div)
         .border_1()
         .border_color(p.border)
         .bg(p.panel)
-        .when(!narrow, |d| d.w(px(420.)).flex_none().max_h(px((vh - 56.).max(0.))).overflow_y_scroll())
+        .when(!narrow, |d| {
+            d.w(px(420.))
+                .flex_none()
+                .max_h(px((vh - 56.).max(0.)))
+                .overflow_y_scroll()
+        })
         .child(inner)
         .into_any_element()
 }

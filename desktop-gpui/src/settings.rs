@@ -8,7 +8,7 @@ use std::fs;
 
 use gpui_kit::component::radio::{Radio, RadioGroup};
 use gpui_kit::component::switch::Switch;
-use gpui_kit::component::{h_flex, v_flex, ActiveTheme, Theme, ThemeMode, WindowExt};
+use gpui_kit::component::{ActiveTheme, Theme, ThemeMode, WindowExt, h_flex, v_flex};
 use gpui_kit::*;
 use serde::{Deserialize, Serialize};
 
@@ -85,7 +85,12 @@ pub struct Prefs {
 
 impl Default for Prefs {
     fn default() -> Self {
-        Prefs { theme: ThemePref::System, language: Language::System, locale: system_locale(), menu_bar_title: true }
+        Prefs {
+            theme: ThemePref::System,
+            language: Language::System,
+            locale: system_locale(),
+            menu_bar_title: true,
+        }
     }
 }
 
@@ -131,7 +136,10 @@ pub struct SettingsState {
 
 impl SettingsState {
     pub fn new() -> Self {
-        SettingsState { prefs: load_prefs(), save_error: None }
+        SettingsState {
+            prefs: load_prefs(),
+            save_error: None,
+        }
     }
 
     /// Applies the preferences to the process: Kit theme, component locale, native app menu.
@@ -259,7 +267,14 @@ impl Render for PreferencesView {
             h_flex()
                 .gap_4()
                 .items_start()
-                .child(div().w(px(80.)).pt_1().text_sm().font_weight(FontWeight::MEDIUM).child(label))
+                .child(
+                    div()
+                        .w(px(80.))
+                        .pt_1()
+                        .text_sm()
+                        .font_weight(FontWeight::MEDIUM)
+                        .child(label),
+                )
                 .child(
                     v_flex()
                         .gap_1()

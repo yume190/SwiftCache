@@ -46,9 +46,7 @@ impl BlobDir {
         fs::create_dir_all(dir)
             .await
             .with_context(|| format!("creating blob dir {}", dir.display()))?;
-        Ok(BlobDir {
-            dir: dir.to_path_buf(),
-        })
+        Ok(BlobDir { dir: dir.to_path_buf() })
     }
 
     /// Writes `data` to a fresh file in one blocking job (tokio's async file
@@ -84,11 +82,7 @@ impl BlobDir {
 /// `write_to_disk` is a hint, not a requirement: the proto explicitly allows
 /// returning inline bytes anyway, which is what we do when no blob directory
 /// is configured.
-pub async fn respond(
-    data: Vec<u8>,
-    write_to_disk: bool,
-    blob_dir: Option<&BlobDir>,
-) -> Result<CasBytes> {
+pub async fn respond(data: Vec<u8>, write_to_disk: bool, blob_dir: Option<&BlobDir>) -> Result<CasBytes> {
     if write_to_disk {
         if let Some(bd) = blob_dir {
             let path = bd.materialise(data).await?;

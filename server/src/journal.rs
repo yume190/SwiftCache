@@ -287,7 +287,10 @@ enum Pending {
     /// Acknowledged once everything queued before it is committed.
     Flush,
     /// Deletes one service's history; applied in queue order with the rows around it.
-    Clear { service: String, scope: HistoryScope },
+    Clear {
+        service: String,
+        scope: HistoryScope,
+    },
 }
 
 struct Job {
@@ -298,9 +301,7 @@ struct Job {
 /// Runs blocking disk work without stalling the async worker it is called on.
 fn blocking<R>(f: impl FnOnce() -> R) -> R {
     match tokio::runtime::Handle::try_current() {
-        Ok(h) if h.runtime_flavor() == tokio::runtime::RuntimeFlavor::MultiThread => {
-            tokio::task::block_in_place(f)
-        }
+        Ok(h) if h.runtime_flavor() == tokio::runtime::RuntimeFlavor::MultiThread => tokio::task::block_in_place(f),
         _ => f(),
     }
 }
@@ -345,16 +346,14 @@ impl Filter {
     fn eq(&mut self, column: &str, value: Option<&str>, lower: bool) {
         if let Some(v) = value {
             self.clauses.push(format!("{column} = ?"));
-            self.args.push(SqlValue::Text(if lower { v.to_lowercase() } else { v.to_owned() }));
+            self.args
+                .push(SqlValue::Text(if lower { v.to_lowercase() } else { v.to_owned() }));
         }
     }
 
     fn search(&mut self, columns: &[&str], value: Option<&str>) {
         if let Some(v) = value {
-            let or: Vec<String> = columns
-                .iter()
-                .map(|c| format!("{c} LIKE ? ESCAPE '\\'"))
-                .collect();
+            let or: Vec<String> = columns.iter().map(|c| format!("{c} LIKE ? ESCAPE '\\'")).collect();
             self.clauses.push(format!("({})", or.join(" OR ")));
             for _ in columns {
                 self.args.push(SqlValue::Text(like(v)));
@@ -465,7 +464,11 @@ fn attach_payloads(conn: &Connection, items: &mut [Transfer]) -> rusqlite::Resul
     let rows = stmt.query_map(params_from_iter(items.iter().map(|t| t.id)), |r| {
         Ok((
             r.get::<_, i64>(0)?,
-            PayloadRef { id: r.get(1)?, label: r.get(2)?, bytes: r.get::<_, i64>(3)? as u64 },
+            PayloadRef {
+                id: r.get(1)?,
+                label: r.get(2)?,
+                bytes: r.get::<_, i64>(3)? as u64,
+            },
         ))
     })?;
     for row in rows {
@@ -483,7 +486,16 @@ fn insert_event(conn: &Connection, e: &EventRow, transfer_id: Option<i64>) -> ru
         "INSERT INTO events (time, level, kind, message, peer, transfer_id, fields, service_id) \
          VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
     )?
-    .execute(params![e.time, e.level, e.kind, e.message, e.peer, transfer_id, e.fields, e.service.as_deref()])?;
+    .execute(params![
+        e.time,
+        e.level,
+        e.kind,
+        e.message,
+        e.peer,
+        transfer_id,
+        e.fields,
+        e.service.as_deref()
+    ])?;
     Ok(conn.last_insert_rowid())
 }
 
@@ -546,7 +558,11 @@ fn insert_transfer(tx: &Connection, t: &TransferRow) -> rusqlite::Result<()> {
         service: t.service.clone(),
     };
     insert_event(tx, &event, Some(id))?;
-    let (up, down) = if t.direction == "up" { (t.bytes as i64, 0) } else { (0, t.bytes as i64) };
+    let (up, down) = if t.direction == "up" {
+        (t.bytes as i64, 0)
+    } else {
+        (0, t.bytes as i64)
+    };
     let error = (t.outcome == "error") as i64;
     let hit = (t.method == "KV.GetValue" && t.outcome == "hit") as i64;
     let miss = (t.method == "KV.GetValue" && t.outcome == "miss") as i64;
@@ -683,7 +699,9 @@ fn enable_wal(conn: &Connection) -> Result<()> {
     let deadline = Instant::now() + BUSY_TIMEOUT;
     loop {
         match conn.pragma_update(None, "journal_mode", "WAL") {
-            Err(rusqlite::Error::SqliteFailure(e, _)) if e.code == rusqlite::ErrorCode::DatabaseBusy && Instant::now() < deadline => {
+            Err(rusqlite::Error::SqliteFailure(e, _))
+                if e.code == rusqlite::ErrorCode::DatabaseBusy && Instant::now() < deadline =>
+            {
                 std::thread::sleep(Duration::from_millis(10));
             }
             result => return result.context("switching journal to WAL"),
@@ -694,15 +712,16 @@ fn enable_wal(conn: &Connection) -> Result<()> {
 impl Journal {
     pub fn open(root: &Path) -> Result<Journal> {
         let payload_dir = root.join("payloads");
-        fs::create_dir_all(&payload_dir)
-            .with_context(|| format!("creating journal dir {}", payload_dir.display()))?;
+        fs::create_dir_all(&payload_dir).with_context(|| format!("creating journal dir {}", payload_dir.display()))?;
         let db_path = root.join("journal.sqlite3");
         let mut conn = open_connection(&db_path)?;
         enable_wal(&conn)?;
         // Several processes may open the same journal at once (CLI runs share
         // the default records directory); IMMEDIATE takes the write lock
         // before the schema is inspected, so they cannot both decide to ALTER.
-        let tx = conn.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate).context("locking journal schema")?;
+        let tx = conn
+            .transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)
+            .context("locking journal schema")?;
         tx.execute_batch(SCHEMA).context("creating journal schema")?;
         for (table, index) in SERVICE_COLUMNS {
             let present: bool = tx.query_row(
@@ -759,7 +778,10 @@ impl Journal {
 
     /// Records RPCs on behalf of one service (`None`: CLI runs, unattributed).
     pub fn recorder(self: &Arc<Self>, service: Option<&str>) -> Recorder {
-        Recorder { journal: self.clone(), service: service.map(Arc::from) }
+        Recorder {
+            journal: self.clone(),
+            service: service.map(Arc::from),
+        }
     }
 
     fn submit(&self, row: Pending, ack: Ack) {
@@ -779,7 +801,14 @@ impl Journal {
 
     /// Records a management/lifecycle event, attributed to `service` if given.
     /// Returns once it is committed, so a following history read sees it.
-    pub fn event(&self, service: Option<&str>, level: &str, kind: &'static str, message: &str, fields: Value) -> Result<()> {
+    pub fn event(
+        &self,
+        service: Option<&str>,
+        level: &str,
+        kind: &'static str,
+        message: &str,
+        fields: Value,
+    ) -> Result<()> {
         self.submit_sync(Pending::Event(EventRow {
             time: now_ms(),
             level: level.to_uppercase(),
@@ -801,7 +830,10 @@ impl Journal {
     /// before this call are committed first (and cleared); rows queued after
     /// it are kept.
     pub fn clear_history(&self, service: &str, scope: HistoryScope) -> Result<()> {
-        self.submit_sync(Pending::Clear { service: service.to_owned(), scope })
+        self.submit_sync(Pending::Clear {
+            service: service.to_owned(),
+            scope,
+        })
     }
 
     pub fn transfers(&self, query: &RecordQuery) -> Result<Page<Transfer>> {
@@ -838,7 +870,11 @@ impl Journal {
         let conn = self.reader.lock();
         let tx = conn.unchecked_transaction()?;
         let mut found: Vec<Transfer> = tx
-            .query_row(&format!("SELECT {TRANSFER_COLS} FROM transfers WHERE id = ?"), [id], transfer_row)
+            .query_row(
+                &format!("SELECT {TRANSFER_COLS} FROM transfers WHERE id = ?"),
+                [id],
+                transfer_row,
+            )
             .optional()?
             .into_iter()
             .collect();
@@ -934,7 +970,11 @@ impl Journal {
         let (start, total, buf) = match self.inline_payload(id)? {
             Some(data) => {
                 let (start, want) = span(data.len() as u64);
-                (start, data.len() as u64, data[start as usize..start as usize + want].to_vec())
+                (
+                    start,
+                    data.len() as u64,
+                    data[start as usize..start as usize + want].to_vec(),
+                )
             }
             None => {
                 let mut file = fs::File::open(&path).with_context(|| format!("opening payload {id}"))?;
@@ -957,9 +997,7 @@ impl Journal {
 
     /// Full record plus complete payload bytes (hex). Expensive by design.
     pub fn export(&self, id: i64) -> Result<Value> {
-        let t = self
-            .transfer(id)?
-            .ok_or_else(|| anyhow!("transfer {id} not found"))?;
+        let t = self.transfer(id)?.ok_or_else(|| anyhow!("transfer {id} not found"))?;
         let mut data = Vec::with_capacity(t.payloads.len());
         for p in &t.payloads {
             let bytes = match self.inline_payload(&p.id)? {
@@ -988,9 +1026,7 @@ impl Journal {
         let dir = path.parent().expect("payload path has a parent");
         fs::create_dir_all(dir)?;
         let n = self.tmp_counter.fetch_add(1, Ordering::Relaxed);
-        let tmp = self
-            .payload_dir
-            .join(format!("tmp-{}-{n}", std::process::id()));
+        let tmp = self.payload_dir.join(format!("tmp-{}-{n}", std::process::id()));
         let write = || -> std::io::Result<()> {
             let mut f = fs::File::create(&tmp)?;
             f.write_all(data)?;
@@ -1095,7 +1131,11 @@ impl Rec {
 
     fn push_payload(&mut self, label: &str, digest: &str, len: u64) {
         self.bytes += len;
-        self.payloads.push(PayloadRef { id: digest.to_owned(), label: label.to_owned(), bytes: len });
+        self.payloads.push(PayloadRef {
+            id: digest.to_owned(),
+            label: label.to_owned(),
+            bytes: len,
+        });
     }
 
     /// Stores `data` as a deduplicated payload and returns its digest.
@@ -1328,7 +1368,8 @@ impl Visit for FieldVisitor {
         if field.name() == "message" {
             self.message = value.to_owned();
         } else {
-            self.fields.insert(field.name().to_owned(), Value::String(value.to_owned()));
+            self.fields
+                .insert(field.name().to_owned(), Value::String(value.to_owned()));
         }
     }
 
@@ -1366,14 +1407,12 @@ impl<S: Subscriber + for<'a> LookupSpan<'a>> Layer<S> for JournalLayer {
         event.record(&mut v);
         v.fields
             .insert("target".to_owned(), Value::String(meta.target().to_owned()));
-        let peer = v
-            .fields
-            .get("peer")
-            .and_then(Value::as_str)
-            .map(str::to_owned);
-        let service = ctx
-            .event_scope(event)
-            .and_then(|scope| scope.into_iter().find_map(|span| span.extensions().get::<SpanService>().map(|s| s.0.clone())));
+        let peer = v.fields.get("peer").and_then(Value::as_str).map(str::to_owned);
+        let service = ctx.event_scope(event).and_then(|scope| {
+            scope
+                .into_iter()
+                .find_map(|span| span.extensions().get::<SpanService>().map(|s| s.0.clone()))
+        });
         let row = EventRow {
             time: now_ms(),
             level: meta.level().as_str().to_owned(),
@@ -1422,7 +1461,11 @@ mod tests {
             t.await.unwrap();
         }
         let page = journal
-            .transfers(&RecordQuery { service_id: Some("svc-a".into()), limit: Some(200), ..Default::default() })
+            .transfers(&RecordQuery {
+                service_id: Some("svc-a".into()),
+                limit: Some(200),
+                ..Default::default()
+            })
             .unwrap();
         assert_eq!(page.total, 200);
         assert_eq!(journal.summary().unwrap().transfers, 200);
@@ -1436,7 +1479,11 @@ mod tests {
             assert_eq!(journal.payload(&large.id, 0, 1).unwrap().total, large.bytes);
         }
         let rpc_events = journal
-            .events(&RecordQuery { kind: Some("rpc".into()), service_id: Some("svc-a".into()), ..Default::default() })
+            .events(&RecordQuery {
+                kind: Some("rpc".into()),
+                service_id: Some("svc-a".into()),
+                ..Default::default()
+            })
             .unwrap();
         assert_eq!(rpc_events.total, 200);
     }
@@ -1450,7 +1497,9 @@ mod tests {
         let file = root.join("response.blob");
         fs::write(&file, b"partial").unwrap();
         let mut rec = journal.recorder(None).begin("CAS.Load", "down", Peer::Unknown);
-        rec.track(&CasBytes { contents: Some(cas_bytes::Contents::FilePath(file.to_string_lossy().into_owned())) });
+        rec.track(&CasBytes {
+            contents: Some(cas_bytes::Contents::FilePath(file.to_string_lossy().into_owned())),
+        });
         drop(rec);
         journal.flush().unwrap();
         assert!(!file.exists());
@@ -1467,7 +1516,9 @@ mod tests {
         let file = root.join("response.blob");
         fs::write(&file, b"data").unwrap();
         let mut rec = journal.recorder(None).begin("CAS.Load", "down", Peer::Unknown);
-        rec.track(&CasBytes { contents: Some(cas_bytes::Contents::FilePath(file.to_string_lossy().into_owned())) });
+        rec.track(&CasBytes {
+            contents: Some(cas_bytes::Contents::FilePath(file.to_string_lossy().into_owned())),
+        });
         rec.done(Ok::<_, Status>(())).await.unwrap();
         assert!(file.exists());
     }
@@ -1490,17 +1541,32 @@ mod tests {
         )
         .unwrap();
         drop(conn);
-        let opens: Vec<_> = (0..4).map(|_| { let root = root.clone(); std::thread::spawn(move || Journal::open(&root).map(drop)) }).collect();
+        let opens: Vec<_> = (0..4)
+            .map(|_| {
+                let root = root.clone();
+                std::thread::spawn(move || Journal::open(&root).map(drop))
+            })
+            .collect();
         for open in opens {
             open.join().unwrap().unwrap();
         }
         let journal = Journal::open(&root).unwrap();
         let summary = journal.summary().unwrap();
         assert_eq!((summary.transfers, summary.kv_hit, summary.down_bytes), (1, 1, 7));
-        assert_eq!(journal.transfers(&RecordQuery::default()).unwrap().items[0].service_id, None);
+        assert_eq!(
+            journal.transfers(&RecordQuery::default()).unwrap().items[0].service_id,
+            None
+        );
     }
 
-    async fn record(journal: &Arc<Journal>, service: Option<&str>, method: &'static str, direction: &'static str, outcome: &'static str, data: &[u8]) {
+    async fn record(
+        journal: &Arc<Journal>,
+        service: Option<&str>,
+        method: &'static str,
+        direction: &'static str,
+        outcome: &'static str,
+        data: &[u8],
+    ) {
         let mut rec = journal.recorder(service).begin(method, direction, Peer::Unknown);
         rec.outcome(outcome);
         rec.payload("body", data);
@@ -1515,19 +1581,32 @@ mod tests {
         record(&journal, Some("a"), "CAS.Load", "down", "error", b"x").await;
         record(&journal, Some("b"), "CAS.Save", "up", "success", b"bbbbbb").await;
         record(&journal, None, "KV.GetValue", "down", "hit", b"cli").await;
-        journal.event(Some("a"), "INFO", "service", "a started", json!({})).unwrap();
-        journal.event(Some("b"), "INFO", "service", "b started", json!({})).unwrap();
+        journal
+            .event(Some("a"), "INFO", "service", "a started", json!({}))
+            .unwrap();
+        journal
+            .event(Some("b"), "INFO", "service", "b started", json!({}))
+            .unwrap();
         journal
     }
 
     fn by_service(journal: &Journal, kind: Option<&str>, service: &str) -> Page<Event> {
         journal
-            .events(&RecordQuery { kind: kind.map(Into::into), service_id: Some(service.into()), ..Default::default() })
+            .events(&RecordQuery {
+                kind: kind.map(Into::into),
+                service_id: Some(service.into()),
+                ..Default::default()
+            })
             .unwrap()
     }
 
     fn transfers_of(journal: &Journal, service: &str) -> Page<Transfer> {
-        journal.transfers(&RecordQuery { service_id: Some(service.into()), ..Default::default() }).unwrap()
+        journal
+            .transfers(&RecordQuery {
+                service_id: Some(service.into()),
+                ..Default::default()
+            })
+            .unwrap()
     }
 
     /// Clearing transfers resets only that service's statistics and records;
@@ -1549,7 +1628,10 @@ mod tests {
         assert_eq!(journal.service_summaries().unwrap()["b"].up_bytes, 6);
         let after = journal.summary().unwrap();
         assert_eq!(after.transfers, before.transfers - a.transfers);
-        assert_eq!((after.up_bytes, after.down_bytes), (before.up_bytes - a.up_bytes, before.down_bytes - a.down_bytes));
+        assert_eq!(
+            (after.up_bytes, after.down_bytes),
+            (before.up_bytes - a.up_bytes, before.down_bytes - a.down_bytes)
+        );
         assert_eq!((after.errors, after.kv_hit, after.kv_miss), (0, 1, 0));
         // Unattributed (CLI) and other-service records stay.
         assert_eq!(journal.transfers(&RecordQuery::default()).unwrap().total, 2);
@@ -1558,7 +1640,10 @@ mod tests {
         assert_eq!(rpc.total, 4);
         assert!(rpc.items.iter().all(|e| e.transfer_id.is_none()));
         assert_eq!(by_service(&journal, Some("service"), "a").total, 1);
-        assert!(by_service(&journal, Some("rpc"), "b").items.iter().all(|e| e.transfer_id.is_some()));
+        assert!(by_service(&journal, Some("rpc"), "b")
+            .items
+            .iter()
+            .all(|e| e.transfer_id.is_some()));
         // Payload storage is deliberately retained.
         assert_eq!(bytes_of(&journal, &payload_of_a), b"x");
 

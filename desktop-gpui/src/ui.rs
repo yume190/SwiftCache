@@ -1,5 +1,5 @@
-use gpui_kit::{App, Global, Hsla, px, rgb};
 use gpui_kit::component::{Theme, ThemeMode};
+use gpui_kit::{App, Global, Hsla, px, rgb};
 
 /// Shared colors for the native desktop interface.
 pub struct Palette {
@@ -91,7 +91,10 @@ pub fn palette(cx: &App) -> &Palette {
 
 pub fn apply(cx: &mut App) {
     let mode = Theme::global(cx).mode;
-    if cx.try_global::<Palette>().is_some_and(|p| p.dark == mode.is_dark() && Theme::global(cx).colors.primary == p.accent) {
+    if cx
+        .try_global::<Palette>()
+        .is_some_and(|p| p.dark == mode.is_dark() && Theme::global(cx).colors.primary == p.accent)
+    {
         return;
     }
     let p = Palette::new(mode);
