@@ -1,0 +1,96 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  server:
+    name: server (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        # Pinned instead of *-latest: the labels move to new images on GitHub's schedule.
+        os: [ubuntu-26.04, macos-26]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: dtolnay/rust-toolchain@stable
+      # arduino/setup-protoc@v3 (latest) still targets the deprecated Node 20 runtime.
+      - name: Install protoc
+        run: |
+          if [ "$RUNNER_OS" = macOS ]; then brew install protobuf; else sudo apt-get update -q && sudo apt-get install -y -q protobuf-compiler; fi
+          protoc --version
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: server
+      - name: Test
+        run: cargo test --locked --manifest-path server/Cargo.toml
+
+  desktop:
+    name: desktop-gpui (macOS)
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v5
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Install protoc
+        run: brew install protobuf && protoc --version
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: |
+            server
+            desktop-gpui
+      - name: Test
+        run: cargo test --locked --manifest-path desktop-gpui/Cargo.toml
+      - name: Build
+        run: |
+          cargo build --locked --release --manifest-path server/Cargo.toml
+          cargo build --locked --manifest-path desktop-gpui/Cargo.toml
+      - name: Bundle SwiftCache.app
+        run: |
+          app="$(bash desktop-gpui/bundle-macos.sh debug)"
+          codesign --verify --deep --strict "$app"
+          test "$(/usr/libexec/PlistBuddy -c 'Print CFBundleDisplayName' "$app/Contents/Info.plist")" = SwiftCache
+          test -x "$app/Contents/MacOS/swiftcache"
+          test -f "$app/Contents/Resources/AppIcon.icns"
+
+  e2e:
+    name: end-to-end (Xcode, SwiftPM, proxy)
+    needs: server
+    # SwiftPM replays from the remote cache only with Swift 6.4+ (Xcode 27; docs/04-SwiftPM-設定.md).
+    # macos-latest ships Xcode 26 / Swift 6.3, where build 2 misses every job. `xcode-27` is a preview label.
+    runs-on: xcode-27
+    steps:
+      - uses: actions/checkout@v5
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Install protoc
+        run: brew install protobuf && protoc --version
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: server
+      - name: Toolchain
+        run: xcodebuild -version && swift --version
+      - name: scripts/demo.sh
+        env:
+          CARGO: cargo
+          SWIFTCACHE_DEMO_DIR: ${{ runner.temp }}/swiftcache-demo
+        run: bash scripts/demo.sh
+      - name: Upload logs
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: e2e-logs
+          path: ${{ runner.temp }}/swiftcache-demo/*.log
+          if-no-files-found: ignore

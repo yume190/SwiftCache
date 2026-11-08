@@ -20,7 +20,8 @@ fail() { printf '\033[31mFAIL: %s\033[0m\n' "$1" >&2; exit 1; }
 [ -f "$PLUGIN" ] || fail "CAS plugin not found at $PLUGIN"
 
 say "building swiftcache"
-"$ROOT/scripts/bin/cargo" build --release --manifest-path server/Cargo.toml
+# CI uses its own toolchain cargo; locally this defaults to the project's pinned launcher.
+"${CARGO:-$ROOT/scripts/bin/cargo}" build --release --manifest-path server/Cargo.toml
 
 rm -rf "$WORK"
 mkdir -p "$WORK"

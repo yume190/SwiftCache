@@ -231,6 +231,19 @@ History goes to the app data directory (`~/Library/Application Support/dev.yume.
 on macOS); `swiftcache serve --records <dir>` records CLI runs the same way. On Windows only
 TCP `serve` is available, because unix sockets and `proxy` are Unix-only.
 
+## Tests and CI
+
+```bash
+./scripts/bin/cargo test --manifest-path server/Cargo.toml        # store, proxy, journal, management
+./scripts/bin/cargo test --manifest-path desktop-gpui/Cargo.toml  # API routes, connection editor, defaults
+scripts/demo.sh                                                   # end-to-end: probe, Xcode, SwiftPM, proxy
+```
+
+GitHub Actions (`.github/workflows/ci.yml`) runs on every pull request and on pushes to
+`main`: server tests on Linux and macOS, desktop-gpui tests plus a `SwiftCache.app` bundle
+check on macOS, and `scripts/demo.sh` on the `xcode-27` runner (SwiftPM caching needs
+Swift 6.4+). CI uses the runner's stock Cargo; `scripts/demo.sh` honours `CARGO` for that.
+
 ## Verified on
 
 macOS 27.0 / Xcode 27.0 (Swift 6.4), plus a Swift 6.5-dev snapshot:
