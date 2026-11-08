@@ -18,7 +18,7 @@ use std::io::{Read, Seek, SeekFrom, Write};
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{mpsc, Arc};
-use std::time::{Instant, SystemTime, UNIX_EPOCH};
+use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 use anyhow::{anyhow, bail, Context as _, Result};
 use parking_lot::Mutex;
@@ -667,11 +667,28 @@ fn writer_loop(mut conn: Connection, rx: mpsc::Receiver<Job>) {
     }
 }
 
+const BUSY_TIMEOUT: Duration = Duration::from_secs(5);
+
 fn open_connection(path: &Path) -> Result<Connection> {
     let conn = Connection::open(path).with_context(|| format!("opening journal {}", path.display()))?;
-    conn.busy_timeout(std::time::Duration::from_secs(5))?;
+    conn.busy_timeout(BUSY_TIMEOUT)?;
     conn.pragma_update(None, "synchronous", "NORMAL")?;
     Ok(conn)
+}
+
+/// Converting a rollback-journal database to WAL needs an exclusive lock, and while other
+/// processes are opening the same file SQLite reports `SQLITE_BUSY` for it straight away,
+/// regardless of `busy_timeout`. Retry for as long as the busy timeout would have waited.
+fn enable_wal(conn: &Connection) -> Result<()> {
+    let deadline = Instant::now() + BUSY_TIMEOUT;
+    loop {
+        match conn.pragma_update(None, "journal_mode", "WAL") {
+            Err(rusqlite::Error::SqliteFailure(e, _)) if e.code == rusqlite::ErrorCode::DatabaseBusy && Instant::now() < deadline => {
+                std::thread::sleep(Duration::from_millis(10));
+            }
+            result => return result.context("switching journal to WAL"),
+        }
+    }
 }
 
 impl Journal {
@@ -681,11 +698,11 @@ impl Journal {
             .with_context(|| format!("creating journal dir {}", payload_dir.display()))?;
         let db_path = root.join("journal.sqlite3");
         let mut conn = open_connection(&db_path)?;
-        conn.pragma_update(None, "journal_mode", "WAL")?;
+        enable_wal(&conn)?;
         // Several processes may open the same journal at once (CLI runs share
         // the default records directory); IMMEDIATE takes the write lock
         // before the schema is inspected, so they cannot both decide to ALTER.
-        let tx = conn.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
+        let tx = conn.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate).context("locking journal schema")?;
         tx.execute_batch(SCHEMA).context("creating journal schema")?;
         for (table, index) in SERVICE_COLUMNS {
             let present: bool = tx.query_row(
