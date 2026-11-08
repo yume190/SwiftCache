@@ -27,9 +27,11 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - uses: dtolnay/rust-toolchain@stable
-      - uses: arduino/setup-protoc@v3
-        with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
+      # arduino/setup-protoc@v3 (latest) still targets the deprecated Node 20 runtime.
+      - name: Install protoc
+        run: |
+          if [ "$RUNNER_OS" = macOS ]; then brew install protobuf; else sudo apt-get update -q && sudo apt-get install -y -q protobuf-compiler; fi
+          protoc --version
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: server
@@ -42,9 +44,8 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - uses: dtolnay/rust-toolchain@stable
-      - uses: arduino/setup-protoc@v3
-        with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Install protoc
+        run: brew install protobuf && protoc --version
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: |
@@ -73,9 +74,8 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - uses: dtolnay/rust-toolchain@stable
-      - uses: arduino/setup-protoc@v3
-        with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Install protoc
+        run: brew install protobuf && protoc --version
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: server
@@ -88,7 +88,7 @@ jobs:
         run: bash scripts/demo.sh
       - name: Upload logs
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: e2e-logs
           path: ${{ runner.temp }}/swiftcache-demo/*.log
