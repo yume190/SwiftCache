@@ -205,13 +205,19 @@ GPUI 新連線預設名稱為 `Server-<UUID8>` 或 `Proxy-<UUID8>`，`UUID8` 是
 ```bash
 ./scripts/bin/cargo test --manifest-path server/Cargo.toml        # store、proxy、journal、management
 ./scripts/bin/cargo test --manifest-path desktop-gpui/Cargo.toml  # API 路由、連線編輯器、預設值
+./scripts/bin/cargo clippy --all-targets --manifest-path server/Cargo.toml -- -D warnings  # desktop-gpui 同理
+./scripts/bin/cargo fmt --manifest-path server/Cargo.toml       # rustfmt.toml：max_width = 120
 scripts/demo.sh                                                   # 端到端：probe、Xcode、SwiftPM、proxy
 ```
 
-GitHub Actions（`.github/workflows/ci.yml`）會在每個 PR 及推送到 `main` 時執行：在 Linux
-與 macOS 跑 server 測試；在 macOS 跑 desktop-gpui 測試並檢查 `SwiftCache.app` 打包；另用
-`xcode-27` runner 執行 `scripts/demo.sh`（SwiftPM 快取需要 Swift 6.4 以上）。CI 使用 runner 的
-標準 Cargo，`scripts/demo.sh` 可透過 `CARGO` 指定。
+GitHub Actions（`.github/workflows/ci.yml`）會在每個 PR 及推送到 `main` 時執行：`cargo fmt --check`；
+在 Linux 與 macOS 跑 server 測試與 clippy；在 macOS 跑 desktop-gpui 測試、clippy 並檢查
+`SwiftCache.app` 打包；另用 `xcode-27` runner 執行 `scripts/demo.sh`（SwiftPM 快取需要 Swift 6.4
+以上）。clippy 有任何警告即失敗。CI 使用 runner 的標準 Cargo，`scripts/demo.sh` 可透過 `CARGO`
+指定。Dependabot（`.github/dependabot.yml`）每週提出 Actions 與 Cargo 依賴更新。
+
+程式碼曾用 rustfmt 統一格式化一次；`.git-blame-ignore-revs` 記錄該 commit，GitHub 的 blame 會略過它
+（本機可執行 `git config blame.ignoreRevsFile .git-blame-ignore-revs`）。
 
 ## 驗證狀態
 
