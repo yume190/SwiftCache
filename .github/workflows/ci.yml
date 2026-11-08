@@ -22,7 +22,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        # Pinned instead of *-latest: the labels move to new images on GitHub's schedule.
+        os: [ubuntu-26.04, macos-26]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v5
@@ -40,7 +41,7 @@ jobs:
 
   desktop:
     name: desktop-gpui (macOS)
-    runs-on: macos-latest
+    runs-on: macos-26
     steps:
       - uses: actions/checkout@v5
       - uses: dtolnay/rust-toolchain@stable
