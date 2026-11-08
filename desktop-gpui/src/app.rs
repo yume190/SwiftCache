@@ -324,10 +324,10 @@ impl Workspace {
                 }
                 view.tray_total = bytes;
                 view.last_usage_total = Instant::now();
-                if view.connected {
-                    if let Some(status) = &view.status {
-                        view.platform.refresh(status, view.tray_total, &view.settings.prefs);
-                    }
+                if view.connected
+                    && let Some(status) = &view.status
+                {
+                    view.platform.refresh(status, view.tray_total, &view.settings.prefs);
                 }
                 cx.notify();
             });
@@ -436,10 +436,10 @@ impl Workspace {
             .map(|s| s.config.clone())
             .unwrap_or_else(|| self.new_service_config());
         self.load_service(config, self.selected_id.is_none(), window, cx);
-        if let Ok(dir) = crate::api::data_dir() {
-            if let Ok(data) = serde_json::to_vec(&self.selected_id) {
-                let _ = std::fs::write(dir.join("gpui-selected.json"), data);
-            }
+        if let Ok(dir) = crate::api::data_dir()
+            && let Ok(data) = serde_json::to_vec(&self.selected_id)
+        {
+            let _ = std::fs::write(dir.join("gpui-selected.json"), data);
         }
         self.load_usage(cx);
         cx.notify();

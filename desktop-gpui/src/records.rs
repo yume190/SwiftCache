@@ -344,10 +344,12 @@ fn pretty_lines(v: &Value) -> Vec<SharedString> {
 
 fn decode_hex(hex: &str) -> Result<Vec<u8>, String> {
     let raw = hex.as_bytes();
-    if raw.len() % 2 != 0 {
+    if !raw.len().is_multiple_of(2) {
         return Err("payload hex length is odd".to_string());
     }
-    raw.chunks_exact(2)
+    raw.as_chunks::<2>()
+        .0
+        .iter()
         .map(|pair| {
             std::str::from_utf8(pair)
                 .ok()
@@ -923,7 +925,6 @@ impl Workspace {
         shown: usize,
         total: usize,
         noun: &'static str,
-        t: &dyn Fn(&'static str, &'static str) -> &'static str,
         cx: &mut Context<Self>,
     ) -> Option<AnyElement> {
         if total <= shown {
@@ -950,7 +951,7 @@ impl Workspace {
                 .child(btn(
                     p,
                     SharedString::from(format!("more-{key}")),
-                    format!("{} +{}", t("顯示更多", "Show more"), format_int(step as u64)),
+                    format!("{} +{}", self.t("顯示更多", "Show more"), format_int(step as u64)),
                     true,
                     Bk::Normal,
                     true,
@@ -962,7 +963,7 @@ impl Workspace {
                 .child(btn(
                     p,
                     SharedString::from(format!("all-{key}")),
-                    t("全部顯示", "Show all"),
+                    self.t("全部顯示", "Show all"),
                     true,
                     Bk::Normal,
                     true,
@@ -976,17 +977,9 @@ impl Workspace {
     }
 
     /// JSON (`hex = false`) or hex/text (`hex = true`) block with the "show more" footer.
-    fn rec_lines(
-        &self,
-        p: &Pal,
-        key: &str,
-        lines: &[SharedString],
-        hex: bool,
-        t: &dyn Fn(&'static str, &'static str) -> &'static str,
-        cx: &mut Context<Self>,
-    ) -> AnyElement {
+    fn rec_lines(&self, p: &Pal, key: &str, lines: &[SharedString], hex: bool, cx: &mut Context<Self>) -> AnyElement {
         let shown = lines.len().min(self.rec_limit(key, MAX_LINES));
-        let more = self.rec_more(p, key.to_string(), shown, lines.len(), "lines", t, cx);
+        let more = self.rec_more(p, key.to_string(), shown, lines.len(), "lines", cx);
         v_flex()
             .gap(px(6.))
             .child(code_block(p, SharedString::from(key.to_string()), lines, hex, shown))
@@ -2850,7 +2843,7 @@ impl Workspace {
                         };
                         let ref_key = format!("refs-{si}-{key}");
                         let shown = items.len().min(self.rec_limit(&ref_key, MAX_REFS));
-                        let more = self.rec_more(p, ref_key.clone(), shown, items.len(), "rows", t, cx);
+                        let more = self.rec_more(p, ref_key.clone(), shown, items.len(), "rows", cx);
                         v = v.child(
                             v_flex()
                                 .gap(px(6.))
@@ -2929,7 +2922,7 @@ impl Workspace {
                             .child(label(p, "Request"))
                             .child(copy(t("複製 JSON", "Copy JSON"), "copy-req", d.req_lines.clone(), cx)),
                     )
-                    .child(self.rec_lines(p, "json-req", &d.req_lines, false, t, cx))
+                    .child(self.rec_lines(p, "json-req", &d.req_lines, false, cx))
                     .child(
                         h_flex()
                             .justify_between()
@@ -2937,7 +2930,7 @@ impl Workspace {
                             .child(label(p, "Response"))
                             .child(copy(t("複製 JSON", "Copy JSON"), "copy-resp", d.resp_lines.clone(), cx)),
                     )
-                    .child(self.rec_lines(p, "json-resp", &d.resp_lines, false, t, cx))
+                    .child(self.rec_lines(p, "json-resp", &d.resp_lines, false, cx))
                     .into_any_element()
             }
             DetailTab::Payload => self.render_payload(p, t, tr, d, cx),
@@ -3157,7 +3150,6 @@ impl Workspace {
                     &format!("payload-hex-{}-{}", pv.index, pv.offset),
                     &pv.hex_lines,
                     true,
-                    t,
                     cx,
                 )),
                 PayloadMode::Text => v.child(self.rec_lines(
@@ -3165,7 +3157,6 @@ impl Workspace {
                     &format!("payload-text-{}-{}", pv.index, pv.offset),
                     &pv.text_lines,
                     true,
-                    t,
                     cx,
                 )),
             };
@@ -3515,7 +3506,7 @@ impl Workspace {
                                 .child(btn(&p, "export-event", t("匯出此事件", "Export this event"), true, Bk::Normal, s.export_task.is_none(), cx.listener(|this, _, window, cx| this.export_event(window, cx)))),
                         ),
                 )
-                .child(self.rec_lines(&p, "event-json", &lines, false, &t, cx));
+                .child(self.rec_lines(&p, "event-json", &lines, false, cx));
             inspector_shell(&p, "event-inspector", narrow, vh, inner)
         });
 

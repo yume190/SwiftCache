@@ -53,7 +53,7 @@ impl SizeUnit {
     }
     /// Largest unit that shows the value as a whole number (512 MiB, 2 GiB).
     fn fitting(bytes: usize) -> Self {
-        if bytes > 0 && bytes % GIB == 0 {
+        if bytes > 0 && bytes.is_multiple_of(GIB) {
             SizeUnit::Gib
         } else {
             SizeUnit::Mib
@@ -62,7 +62,7 @@ impl SizeUnit {
 }
 
 fn size_text(bytes: usize, unit: SizeUnit) -> String {
-    if bytes % unit.bytes() == 0 {
+    if bytes.is_multiple_of(unit.bytes()) {
         (bytes / unit.bytes()).to_string()
     } else {
         format!("{}", bytes as f64 / unit.bytes() as f64)
@@ -161,10 +161,10 @@ pub fn build_cli(c: &Config) -> String {
     };
     let mut lines = vec![format!("{env}swiftcache {}", c.mode)];
     lines.push(format!("--store {}", shell_quote(&c.store)));
-    if c.mode == "serve" {
-        if let Some(tcp) = c.tcp.as_deref().filter(|v| !v.is_empty()) {
-            lines.push(format!("--tcp {}", shell_quote(tcp)));
-        }
+    if c.mode == "serve"
+        && let Some(tcp) = c.tcp.as_deref().filter(|v| !v.is_empty())
+    {
+        lines.push(format!("--tcp {}", shell_quote(tcp)));
     }
     if let Some(socket) = c.socket.as_deref().filter(|v| !v.is_empty()) {
         lines.push(format!("--socket {}", shell_quote(socket)));
@@ -550,22 +550,22 @@ impl Workspace {
                 );
             }
         }
-        if c.mode == "serve" {
-            if let Some(tcp) = &c.tcp {
-                if tcp.trim().is_empty() {
-                    errs.push(
-                        self.t("TCP 位址不可為空。", "The TCP address can’t be empty.")
-                            .to_string(),
-                    );
-                } else if !port_in(&split_tcp(tcp.trim()).1, 0, 65535) {
-                    errs.push(
-                        self.t(
-                            "TCP Port 必須是 0–65535 的整數。",
-                            "TCP port must be an integer from 0 to 65535.",
-                        )
+        if c.mode == "serve"
+            && let Some(tcp) = &c.tcp
+        {
+            if tcp.trim().is_empty() {
+                errs.push(
+                    self.t("TCP 位址不可為空。", "The TCP address can’t be empty.")
                         .to_string(),
-                    );
-                }
+                );
+            } else if !port_in(&split_tcp(tcp.trim()).1, 0, 65535) {
+                errs.push(
+                    self.t(
+                        "TCP Port 必須是 0–65535 的整數。",
+                        "TCP port must be an integer from 0 to 65535.",
+                    )
+                    .to_string(),
+                );
             }
         }
         if (unix_ok || c.mode == "proxy") && c.socket.as_deref().map(|s| s.trim().is_empty()).unwrap_or(true) {

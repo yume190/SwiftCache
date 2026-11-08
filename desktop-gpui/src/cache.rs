@@ -464,10 +464,10 @@ impl Workspace {
             if self.cache.scanning {
                 return;
             }
-            if let Some((at, ttl)) = self.cache.usage_at {
-                if at.elapsed() < ttl {
-                    return;
-                }
+            if let Some((at, ttl)) = self.cache.usage_at
+                && at.elapsed() < ttl
+            {
+                return;
             }
         }
         self.cache.usage_seq += 1;
@@ -1118,7 +1118,7 @@ impl Workspace {
         let act = |f: fn(&mut Workspace, &mut Context<Workspace>)| {
             let w = ws.clone();
             move |_: &ClickEvent, _: &mut Window, cx: &mut App| {
-                w.update(cx, |this, cx| f(this, cx));
+                w.update(cx, f);
             }
         };
         let mut body = v_flex()

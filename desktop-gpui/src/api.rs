@@ -213,21 +213,22 @@ async fn retire(info: &Discovery) -> Result<(), String> {
 async fn establish(client: &reqwest::Client) -> Result<Discovery, String> {
     let data = data_dir()?;
     let file = descriptor(&data);
-    if let Some(info) = read_discovery(&file) {
-        if alive(client, &info).await {
-            if info.api == Some(API_REVISION) {
-                return Ok(info);
-            }
-            // A daemon left running by an older build speaks an older API; the UI would break on it.
-            retire(&info).await?;
+    if let Some(info) = read_discovery(&file)
+        && alive(client, &info).await
+    {
+        if info.api == Some(API_REVISION) {
+            return Ok(info);
         }
+        // A daemon left running by an older build speaks an older API; the UI would break on it.
+        retire(&info).await?;
     }
     launch_daemon(&data)?;
     for _ in 0..100 {
-        if let Some(info) = read_discovery(&file) {
-            if info.api == Some(API_REVISION) && alive(client, &info).await {
-                return Ok(info);
-            }
+        if let Some(info) = read_discovery(&file)
+            && info.api == Some(API_REVISION)
+            && alive(client, &info).await
+        {
+            return Ok(info);
         }
         tokio::time::sleep(Duration::from_millis(100)).await;
     }
@@ -244,10 +245,10 @@ impl Inner {
         if let Some(info) = self.connection.lock().await.clone() {
             return Ok(info);
         }
-        if let Some((at, error)) = launch.as_ref() {
-            if at.elapsed() < LAUNCH_BACKOFF {
-                return Err(error.clone());
-            }
+        if let Some((at, error)) = launch.as_ref()
+            && at.elapsed() < LAUNCH_BACKOFF
+        {
+            return Err(error.clone());
         }
         match establish(&self.client).await {
             Ok(info) => {
@@ -298,15 +299,15 @@ fn route_allowed(method: &reqwest::Method, pathname: &str) -> bool {
     if parts.first() != Some(&"api") || parts.iter().skip(1).any(|part| part.is_empty()) {
         return false;
     }
-    match (method, &parts[1..]) {
-        (&M::GET, ["status" | "usage" | "transfers" | "events" | "clear-plan"]) => true,
-        (&M::POST, ["services"] | ["clear"]) => true,
-        (&M::POST, ["history", "clear"]) => true,
-        (&M::PUT | &M::DELETE, ["services", _]) => true,
-        (&M::POST, ["services", _, "start" | "stop"]) => true,
-        (&M::GET, ["payload", _] | ["transfers", _] | ["transfers", _, "export"]) => true,
-        _ => false,
-    }
+    matches!(
+        (method, &parts[1..]),
+        (&M::GET, ["status" | "usage" | "transfers" | "events" | "clear-plan"])
+            | (&M::POST, ["services"] | ["clear"])
+            | (&M::POST, ["history", "clear"])
+            | (&M::PUT | &M::DELETE, ["services", _])
+            | (&M::POST, ["services", _, "start" | "stop"])
+            | (&M::GET, ["payload", _] | ["transfers", _] | ["transfers", _, "export"])
+    )
 }
 
 fn validate(method: &str, path: &str) -> Result<reqwest::Method, String> {

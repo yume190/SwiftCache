@@ -770,12 +770,12 @@ mod tests {
         };
         let id = put_id(
             rig.cas
-                .put(put_request(&[leaf.clone()], b"payload"))
+                .put(put_request(std::slice::from_ref(&leaf), b"payload"))
                 .await
                 .unwrap()
                 .into_inner(),
         );
-        assert_eq!(id, hash_object(&[leaf.clone()], b"payload"));
+        assert_eq!(id, hash_object(std::slice::from_ref(&leaf), b"payload"));
         assert_eq!(staging_files(&rig.root), 0);
         // The upstream received the same objects.
         assert!(rig.upstream_store.get_object(&id).await.unwrap().is_some());
@@ -787,11 +787,14 @@ mod tests {
         assert_eq!((data.as_slice(), refs), (&b"leaf"[..], vec![]));
     }
 
+    /// Stored object: references and data, keyed by its opaque id.
+    type OpaqueObjects = HashMap<Vec<u8>, (Vec<Vec<u8>>, Vec<u8>)>;
+
     /// Toolchain ids are opaque (65-byte `luxon.blake2b` digests); they must
     /// be kept exactly, not re-derived locally.
     struct Opaque {
         fail_puts: Arc<AtomicBool>,
-        objects: Mutex<HashMap<Vec<u8>, (Vec<Vec<u8>>, Vec<u8>)>>,
+        objects: Mutex<OpaqueObjects>,
     }
 
     fn opaque_id(data: &[u8]) -> Vec<u8> {
