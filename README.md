@@ -241,8 +241,8 @@ scripts/demo.sh                                                   # end-to-end: 
 
 GitHub Actions (`.github/workflows/ci.yml`) runs on every pull request and on pushes to
 `main`: server tests on Linux and macOS, desktop-gpui tests plus a `SwiftCache.app` bundle
-check on macOS, and `scripts/demo.sh` with the runner's Xcode. CI uses the runner's stock
-Cargo; `scripts/demo.sh` honours `CARGO` for that.
+check on macOS, and `scripts/demo.sh` on the `xcode-27` runner (SwiftPM caching needs
+Swift 6.4+). CI uses the runner's stock Cargo; `scripts/demo.sh` honours `CARGO` for that.
 
 ## Verified on
 

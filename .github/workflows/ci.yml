@@ -67,7 +67,9 @@ jobs:
   e2e:
     name: end-to-end (Xcode, SwiftPM, proxy)
     needs: server
-    runs-on: macos-latest
+    # SwiftPM replays from the remote cache only with Swift 6.4+ (Xcode 27; docs/04-SwiftPM-設定.md).
+    # macos-latest ships Xcode 26 / Swift 6.3, where build 2 misses every job. `xcode-27` is a preview label.
+    runs-on: xcode-27
     steps:
       - uses: actions/checkout@v5
       - uses: dtolnay/rust-toolchain@stable
