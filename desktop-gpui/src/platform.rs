@@ -240,7 +240,8 @@ fn decode_icon() -> Result<Icon, String> {
     let mut reader = png::Decoder::new(Cursor::new(ICON))
         .read_info()
         .map_err(|e| e.to_string())?;
-    let mut buf = vec![0; reader.output_buffer_size()];
+    let size = reader.output_buffer_size().ok_or("tray icon is too large")?;
+    let mut buf = vec![0; size];
     let info = reader.next_frame(&mut buf).map_err(|e| e.to_string())?;
     if info.color_type != png::ColorType::Rgba || info.bit_depth != png::BitDepth::Eight {
         return Err("tray icon must be 8-bit RGBA".into());
@@ -292,10 +293,14 @@ impl Platform {
             services: Vec::new(),
         };
         let menu = Self::menu(&items).map_err(|e| e.to_string())?;
-        let tray = TrayIconBuilder::new()
-            .with_id("swiftcache")
-            .with_icon(decode_icon()?)
-            .with_icon_as_template(true)
+        let icon = decode_icon()?;
+        let builder = TrayIconBuilder::new().with_id("swiftcache");
+        // macOS tints a template image for light and dark menu bars; elsewhere the icon is drawn as is.
+        #[cfg(target_os = "macos")]
+        let builder = builder.with_icon_templated(icon);
+        #[cfg(not(target_os = "macos"))]
+        let builder = builder.with_icon(icon);
+        let tray = builder
             .with_tooltip("SwiftCache")
             .with_menu(Box::new(menu))
             .with_menu_on_left_click(true)

@@ -18,9 +18,9 @@ chrono = "0.4"
 url = "2"
 smol = "2"
 uuid = { version = "1", features = ["v4"] }
-tray-icon = "0.25"
+tray-icon = "0.26"
 sys-locale = "0.3"
-png = "0.17"
+png = "0.18"
 
 [target.'cfg(unix)'.dependencies]
 libc = "0.2"
