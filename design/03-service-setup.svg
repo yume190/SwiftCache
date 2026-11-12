@@ -1,139 +1,157 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1680" height="1120" viewBox="0 0 1680 1120" role="img" aria-labelledby="title desc">
+<svg xmlns="http://www.w3.org/2000/svg" width="1680" height="1120" viewBox="0 0 1680 1120" role="img" aria-labelledby="title desc" xml:space="preserve">
 <title id="title">SwiftCache UI 設計稿 — 服務設定</title>
-<desc id="desc">繁體中文桌面介面設計提案。所有記錄與數據均為示意資料，尚未實作。</desc>
+<desc id="desc">繁體中文桌面介面設計稿，依目前實作更新（視窗內容 1680×1084）。所有記錄與數據均為示意資料。</desc>
 <defs>
 <style>text{font-family:Inter,-apple-system,BlinkMacSystemFont,'PingFang TC','Noto Sans CJK TC',sans-serif}.mono{font-family:'SF Mono',Menlo,monospace}text{text-rendering:optimizeLegibility}</style>
+<clipPath id="c1"><rect x="42" y="111" width="75" height="16.3" rx="0"/></clipPath>
+<clipPath id="c2"><rect x="42" y="156.9" width="86.3" height="16.3" rx="0"/></clipPath>
+<clipPath id="c3"><rect x="0" y="0" width="215" height="1084" rx="0"/></clipPath>
+<clipPath id="c4"><rect x="299" y="37" width="102" height="24" rx="0"/></clipPath>
+<clipPath id="c5"><rect x="489.8" y="59" width="260" height="15" rx="0"/></clipPath>
+<clipPath id="c6"><rect x="773.8" y="59" width="260" height="15" rx="0"/></clipPath>
+<clipPath id="c7"><rect x="1057.8" y="59" width="52.7" height="15" rx="0"/></clipPath>
+<clipPath id="c8"><rect x="270" y="358" width="938" height="34" rx="6"/></clipPath>
+<clipPath id="c9"><rect x="270" y="454" width="938" height="34" rx="6"/></clipPath>
+<clipPath id="c10"><rect x="270" y="550" width="938" height="34" rx="6"/></clipPath>
+<clipPath id="c11"><rect x="1070" y="644" width="138" height="34" rx="6"/></clipPath>
+<clipPath id="c12"><rect x="1270" y="532" width="356" height="120.9" rx="7"/></clipPath>
+<clipPath id="c13"><rect x="216" y="0" width="1464" height="1084" rx="0"/></clipPath>
 </defs>
-<rect x="0" y="0" width="1680" height="1120" rx="0" fill="#F4F7F8" stroke="none"/>
 <rect x="0" y="0" width="1680" height="36" rx="0" fill="#EAF0F2" stroke="none"/>
 <circle cx="22" cy="18" r="5" fill="#D5A1A0"/>
 <circle cx="41" cy="18" r="5" fill="#DCC78B"/>
 <circle cx="60" cy="18" r="5" fill="#9BBEAC"/>
-<text x="750" y="23" font-size="12" fill="#71818D" font-weight="600">SwiftCache</text>
-<text x="1445" y="23" font-size="11" fill="#71818D" font-weight="600">UI CONCEPT / 示意資料</text>
-<rect x="0" y="36" width="200" height="1040" rx="0" fill="#fff" stroke="none"/>
-<rect x="22" y="65" width="34" height="34" rx="10" fill="#087F75" stroke="none"/>
-<text x="30" y="88" font-size="23" fill="#fff" font-weight="700">S</text>
-<text x="67" y="88" font-size="18" fill="#172C38" font-weight="700">SwiftCache</text>
-<text x="24" y="131" font-size="10" fill="#71818D" font-weight="700">WORKSPACE</text>
-<rect x="16" y="148" width="168" height="61" rx="8" fill="#F5F8F9" stroke="#E1E8EB"/>
-<circle cx="32" cy="169" r="4" fill="#94A1AA"/>
-<text x="44" y="173" font-size="13" fill="#172C38" font-weight="600">本機快取服務</text>
-<text x="32" y="193" font-size="11" fill="#71818D" font-weight="400">Serve · 尚未啟動</text>
-<rect x="12" y="235" width="176" height="39" rx="7" fill="#E8F3F0" stroke="none"/>
-<text x="26" y="260" font-size="19" fill="#087F75" font-weight="400">▤</text>
-<text x="55" y="259" font-size="14" fill="#087F75" font-weight="600">服務設定</text>
-<rect x="12" y="282" width="176" height="39" rx="7" fill="#fff" stroke="none"/>
-<text x="26" y="307" font-size="19" fill="#71818D" font-weight="400">↕</text>
-<text x="55" y="306" font-size="14" fill="#71818D" font-weight="400">傳輸明細</text>
-<rect x="12" y="329" width="176" height="39" rx="7" fill="#fff" stroke="none"/>
-<text x="26" y="354" font-size="19" fill="#71818D" font-weight="400">≡</text>
-<text x="55" y="353" font-size="14" fill="#71818D" font-weight="400">事件紀錄</text>
-<rect x="12" y="376" width="176" height="39" rx="7" fill="#fff" stroke="none"/>
-<text x="26" y="401" font-size="19" fill="#71818D" font-weight="400">▦</text>
-<text x="55" y="400" font-size="14" fill="#71818D" font-weight="400">快取管理</text>
-<path d="M22 444H178" fill="none" stroke="#E1E8EB"/>
-<text x="24" y="477" font-size="11" fill="#71818D" font-weight="600">已儲存的連線</text>
-<circle cx="29" cy="509" r="4" fill="#9BA9B1"/>
-<text x="43" y="514" font-size="12" fill="#71818D" font-weight="400">團隊遠端 Proxy</text>
-<rect x="16" y="779" width="168" height="153" rx="9" fill="#F3F8F7" stroke="#DFEAE6"/>
-<text x="29" y="804" font-size="11" fill="#71818D" font-weight="600">目前快取用量</text>
-<text x="29" y="837" font-size="27" fill="#172C38" font-weight="650">768</text>
-<text x="93" y="836" font-size="12" fill="#71818D" font-weight="400">MiB</text>
-<rect x="29" y="851" width="142" height="6" rx="3" fill="#E1E9E7" stroke="none"/>
-<rect x="29" y="851" width="136" height="6" rx="3" fill="#087F75" stroke="none"/>
-<rect x="165" y="851" width="6" height="6" rx="2" fill="#7755B6" stroke="none"/>
-<text x="29" y="878" font-size="10" fill="#71818D" font-weight="400">Server store · 示意</text>
-<text x="29" y="900" font-size="11" fill="#087F75" font-weight="600">查看用量與清除  →</text>
-<text x="24" y="967" font-size="11" fill="#71818D" font-weight="400">CLI 與 UI 共用操作概念</text>
-<text x="24" y="990" font-size="12" fill="#172C38" font-weight="500" class="mono">serve / proxy</text>
-<path d="M0 1076H1680" fill="none" stroke="#E1E8EB"/>
-<text x="24" y="1102" font-size="11" fill="#71818D" font-weight="600">DESIGN PROPOSAL   /   02</text>
-<text x="365" y="1102" font-size="12" fill="#71818D" font-weight="400">所有用量與記錄均為示意；UI 管理、用量掃描、詳細記錄與清除流程尚待實作。</text>
-<text x="1456" y="1102" font-size="12" fill="#087F75" font-weight="600">架構尚未選定</text>
-<text x="236" y="83" font-size="28" fill="#172C38" font-weight="650">服務設定</text>
-<text x="236" y="111" font-size="14" fill="#71818D" font-weight="400">直接在畫面設定並啟動服務，也能複製同等的 CLI 指令。</text>
-<rect x="236" y="140" width="1408" height="64" rx="10" fill="#fff" stroke="#E1E8EB"/>
-<circle cx="259" cy="172" r="4" fill="#94A1AA"/>
-<text x="273" y="170" font-size="14" fill="#172C38" font-weight="600">服務已停止</text>
-<text x="273" y="189" font-size="11" fill="#71818D" font-weight="400">選擇模式並完成設定後啟動</text>
-<text x="470" y="167" font-size="10" fill="#71818D" font-weight="600">LISTENER</text>
-<text x="470" y="188" font-size="13" fill="#172C38" font-weight="400" class="mono">0.0.0.0:50051</text>
-<text x="710" y="167" font-size="10" fill="#71818D" font-weight="600">STORE</text>
-<text x="710" y="188" font-size="13" fill="#172C38" font-weight="400" class="mono">./cache/store</text>
-<rect x="1008" y="159" width="140" height="25" rx="6" fill="#F0F3F5" stroke="none"/>
-<text x="1017" y="176" font-size="12" fill="#71818D" font-weight="600">●  設定待啟動</text>
-<rect x="1370" y="154" width="112" height="36" rx="7" fill="#fff" stroke="#E1E8EB"/>
-<text x="1384" y="177" font-size="13" fill="#172C38" font-weight="600">編輯設定</text>
-<rect x="1494" y="154" width="130" height="36" rx="7" fill="#087F75" stroke="none"/>
-<text x="1508" y="177" font-size="13" fill="#fff" font-weight="600">▶  啟動服務</text>
-<rect x="236" y="226" width="1408" height="63" rx="10" fill="#fff" stroke="#E1E8EB"/>
-<rect x="252" y="239" width="164" height="36" rx="7" fill="#E8F3F0" stroke="none"/>
-<text x="272" y="262" font-size="14" fill="#087F75" font-weight="600">Serve · 快取服務</text>
-<text x="440" y="262" font-size="14" fill="#71818D" font-weight="600">Proxy · 本機中繼</text>
-<text x="1186" y="262" font-size="12" fill="#71818D" font-weight="400">執行中修改設定需重新啟動服務</text>
-<rect x="236" y="310" width="888" height="650" rx="10" fill="#fff" stroke="#E1E8EB"/>
-<text x="256" y="341" font-size="17" fill="#172C38" font-weight="650">Serve 連線與儲存</text>
-<text x="256" y="367" font-size="12" fill="#71818D" font-weight="400">TCP 與 Unix socket 可同時啟用；至少選擇一種接收方式。</text>
-<rect x="256" y="390" width="16" height="16" rx="4" fill="#087F75" stroke="#087F75"/>
-<text x="259" y="402" font-size="12" fill="#fff" font-weight="650">✓</text>
-<text x="283" y="403" font-size="13" fill="#172C38" font-weight="500">啟用 TCP</text>
-<text x="256" y="433" font-size="12" fill="#71818D" font-weight="500">監聽位址與 Port · --tcp</text>
-<rect x="256" y="445" width="848" height="40" rx="7" fill="#FAFCFC" stroke="#E1E8EB"/>
-<text x="269" y="471" font-size="13" fill="#172C38" font-weight="400" class="mono">0.0.0.0:50051</text>
-<rect x="256" y="507" width="16" height="16" rx="4" fill="#fff" stroke="#B5C3CB"/>
-<text x="283" y="520" font-size="13" fill="#172C38" font-weight="500">啟用 Unix socket</text>
-<rect x="450" y="496" width="654" height="38" rx="7" fill="#F4F7F8" stroke="#E1E8EB"/>
-<text x="464" y="520" font-size="13" fill="#71818D" font-weight="400" class="mono">/tmp/swiftcache/cache.sock</text>
-<text x="450" y="554" font-size="11" fill="#71818D" font-weight="400">--socket · 本機 client 使用；遠端主機可以不啟用。</text>
-<text x="256" y="592" font-size="12" fill="#71818D" font-weight="500">快取目錄 · --store / SWIFTCACHE_STORE</text>
-<rect x="256" y="604" width="848" height="40" rx="7" fill="#FAFCFC" stroke="#E1E8EB"/>
-<text x="269" y="630" font-size="13" fill="#172C38" font-weight="400" class="mono">/Users/yume/git/yume/SwiftCache/cache/store</text>
-<text x="256" y="678" font-size="12" fill="#71818D" font-weight="500">單筆訊息上限 · --max-message-size</text>
-<rect x="256" y="690" width="400" height="40" rx="7" fill="#FAFCFC" stroke="#E1E8EB"/>
-<text x="269" y="716" font-size="13" fill="#172C38" font-weight="400" class="mono">512 MiB</text>
-<text x="680" y="678" font-size="12" fill="#71818D" font-weight="500">文字 Log 層級 · SWIFTCACHE_LOG</text>
-<rect x="680" y="690" width="424" height="40" rx="7" fill="#FAFCFC" stroke="#E1E8EB"/>
-<text x="693" y="716" font-size="13" fill="#172C38" font-weight="400" class="mono">swiftcache=info  ▾</text>
-<rect x="256" y="756" width="16" height="16" rx="4" fill="#fff" stroke="#B5C3CB"/>
-<text x="283" y="769" font-size="13" fill="#172C38" font-weight="500">啟用檔案回應目錄 · --blob-dir</text>
-<rect x="256" y="785" width="848" height="38" rx="7" fill="#F4F7F8" stroke="#E1E8EB"/>
-<text x="269" y="810" font-size="13" fill="#71818D" font-weight="400">未設定；目前回傳 inline bytes</text>
-<text x="256" y="850" font-size="12" fill="#71818D" font-weight="400">此選項只適用於 client 與 server 共用檔案系統。</text>
-<text x="256" y="876" font-size="12" fill="#71818D" font-weight="400">跨機器部署維持 bytes；Proxy 端可另設本機 blob 目錄。</text>
-<path d="M256 896H1104" fill="none" stroke="#E1E8EB"/>
-<text x="256" y="928" font-size="12" fill="#087F75" font-weight="500">快取容量、手動清除與清除紀錄已移至「快取管理」。</text>
-<rect x="236" y="982" width="143" height="36" rx="7" fill="#fff" stroke="#E1E8EB"/>
-<text x="250" y="1005" font-size="13" fill="#172C38" font-weight="600">儲存設定</text>
-<rect x="392" y="982" width="143" height="36" rx="7" fill="#087F75" stroke="none"/>
-<text x="406" y="1005" font-size="13" fill="#fff" font-weight="600">▶  啟動服務</text>
-<text x="558" y="1006" font-size="12" fill="#71818D" font-weight="400">不支援熱更新；套用設定時明確重啟。</text>
-<rect x="1144" y="310" width="500" height="333" rx="10" fill="#fff" stroke="#E1E8EB"/>
-<text x="1166" y="343" font-size="17" fill="#172C38" font-weight="650">UI 紀錄設定</text>
-<rect x="1475" y="326" width="147" height="25" rx="6" fill="#E7F4F0" stroke="none"/>
-<text x="1484" y="343" font-size="12" fill="#087F75" font-weight="600">完整紀錄 · 開啟</text>
-<text x="1166" y="379" font-size="13" fill="#172C38" font-weight="600">每條事件</text>
-<text x="1300" y="379" font-size="12" fill="#71818D" font-weight="400">訊息、層級、時間、來源</text>
-<text x="1166" y="412" font-size="13" fill="#172C38" font-weight="600">每筆傳輸</text>
-<text x="1300" y="412" font-size="12" fill="#71818D" font-weight="400">完整請求 / 回應、結果與耗時</text>
-<text x="1166" y="445" font-size="13" fill="#172C38" font-weight="600">Payload</text>
-<text x="1300" y="445" font-size="12" fill="#71818D" font-weight="400">保存原始 bytes，供預覽與匯出</text>
-<text x="1166" y="485" font-size="12" fill="#71818D" font-weight="400">紀錄存放位置</text>
-<rect x="1166" y="501" width="456" height="66" rx="7" fill="#F5F8F9" stroke="#E1E8EB"/>
-<text x="1178" y="525" font-size="12" fill="#172C38" font-weight="400" class="mono">~/Library/Application Support/</text>
-<text x="1178" y="549" font-size="12" fill="#172C38" font-weight="400" class="mono">SwiftCache/Records</text>
-<text x="1166" y="598" font-size="12" fill="#71818D" font-weight="400">紀錄與 server store 分開；清空快取時保留。</text>
-<text x="1166" y="623" font-size="11" fill="#71818D" font-weight="400">文字 log 層級與 UI 詳細紀錄分別設定。</text>
-<rect x="1144" y="663" width="500" height="367" rx="10" fill="#fff" stroke="#E1E8EB"/>
-<text x="1166" y="696" font-size="17" fill="#172C38" font-weight="650">同等 CLI 指令</text>
-<text x="1166" y="722" font-size="12" fill="#71818D" font-weight="400">反映 server 設定；UI 詳細紀錄另由 UI 管理。</text>
-<rect x="1166" y="742" width="456" height="177" rx="8" fill="#162F3B" stroke="none"/>
-<text x="1180" y="771" font-size="12" fill="#D1E1E7" font-weight="400" class="mono">SWIFTCACHE_LOG=swiftcache=info \</text>
-<text x="1180" y="799" font-size="12" fill="#D1E1E7" font-weight="400" class="mono">./server/target/release/swiftcache serve \</text>
-<text x="1180" y="827" font-size="12" fill="#D1E1E7" font-weight="400" class="mono">  --store ./cache/store \</text>
-<text x="1180" y="855" font-size="12" fill="#D1E1E7" font-weight="400" class="mono">  --tcp 0.0.0.0:50051 \</text>
-<text x="1180" y="883" font-size="12" fill="#D1E1E7" font-weight="400" class="mono">  --max-message-size 536870912</text>
-<rect x="1475" y="938" width="147" height="36" rx="7" fill="#fff" stroke="#E1E8EB"/>
-<text x="1489" y="961" font-size="13" fill="#172C38" font-weight="600">複製 CLI 指令</text>
-<text x="1166" y="1005" font-size="11" fill="#71818D" font-weight="400">未勾選的 socket / blob 選項不產生 CLI 參數。</text>
+<text x="808" y="23" font-size="12" fill="#71818D" font-weight="600">SwiftCache</text>
+<text x="1560" y="23" font-size="11" fill="#71818D" font-weight="600">示意資料</text>
+<g transform="translate(0 36)">
+<rect x="0" y="0" width="1680" height="1084" rx="0" fill="#F4F7F8" stroke="none"/>
+<rect x="0" y="0" width="216" height="1084" rx="0" fill="#FFFFFF" stroke="none"/>
+<path d="M215.5 0L215.5 1084" fill="none" stroke="#E1E8EB"/>
+<g clip-path="url(#c3)">
+<rect x="22" y="22" width="34" height="34" rx="10" fill="#087F75" stroke="none"/>
+<text x="32" y="47" font-size="22" fill="#FFFFFF" font-weight="700">S</text>
+<text x="67" y="45.5" font-size="18" fill="#172C38" font-weight="700">SwiftCache</text>
+<text x="24" y="91" font-size="10" fill="#71818D" font-weight="700" letter-spacing="0.6">連線</text>
+<text x="183.1" y="93" font-size="16" fill="#71818D" font-weight="400">+</text>
+<rect x="12" y="104" width="191" height="43.9" rx="6" fill="#F5F8F9" stroke="none"/>
+<rect x="24" y="121.9" width="8" height="8" rx="4" fill="#12A08F" stroke="none"/>
+<g clip-path="url(#c1)">
+<text x="42" y="123" font-size="12.5" fill="#172C38" font-weight="600">本機快取服務</text>
+</g>
+<text x="42" y="137.3" font-size="10.5" fill="#71818D" font-weight="400">Server</text>
+<text x="77.8" y="137.3" font-size="10.5" fill="#71818D" font-weight="400">·</text>
+<text x="84.1" y="137.3" font-size="10.5" fill="#71818D" font-weight="400">執行中</text>
+<rect x="24" y="167.8" width="8" height="8" rx="4" fill="#94A1AA" stroke="none"/>
+<g clip-path="url(#c2)">
+<text x="42" y="168.9" font-size="12.5" fill="#172C38" font-weight="400">團隊遠端 Proxy</text>
+</g>
+<text x="42" y="183.1" font-size="10.5" fill="#71818D" font-weight="400">Proxy</text>
+<text x="73.2" y="183.1" font-size="10.5" fill="#71818D" font-weight="400">·</text>
+<text x="79.5" y="183.1" font-size="10.5" fill="#71818D" font-weight="400">已停止</text>
+<text x="24" y="1056" font-size="12.5" fill="#71818D" font-weight="400">⚙</text>
+<text x="39.5" y="1056" font-size="12.5" fill="#71818D" font-weight="400">設定</text>
+</g>
+<g clip-path="url(#c13)">
+<rect x="248.5" y="22.5" width="1399" height="74" rx="9.5" fill="#FFFFFF" stroke="#E1E8EB"/>
+<rect x="267" y="53.5" width="12" height="12" rx="6" fill="#12A08F" stroke="none"/>
+<g clip-path="url(#c4)">
+<text x="299" y="55" font-size="17" fill="#172C38" font-weight="650">本機快取服務</text>
+</g>
+<rect x="411" y="37.5" width="58.8" height="23" rx="6" fill="#E8F3F0" stroke="none"/>
+<text x="421" y="53.5" font-size="12" fill="#087F75" font-weight="600">Server</text>
+<text x="299" y="78" font-size="12" fill="#71818D" font-weight="400">執行中</text>
+<text x="338.4" y="78" font-size="12" fill="#71818D" font-weight="400">·</text>
+<text x="345.3" y="78" font-size="12" fill="#71818D" font-weight="400">已執行 00:12:34</text>
+<text x="489.8" y="55" font-size="10" fill="#71818D" font-weight="600">LISTENER</text>
+<g clip-path="url(#c5)">
+<text x="489.8" y="71" font-size="12.5" fill="#172C38" font-weight="400" class="mono">0.0.0.0:50051 · /tmp/swiftcache/c…</text>
+</g>
+<text x="773.8" y="55" font-size="10" fill="#71818D" font-weight="600">STORE</text>
+<g clip-path="url(#c6)">
+<text x="773.8" y="71" font-size="12.5" fill="#172C38" font-weight="400" class="mono">/Users/yume/git/yume/SwiftCache/c…</text>
+</g>
+<text x="1057.8" y="55" font-size="10" fill="#71818D" font-weight="600">USAGE</text>
+<g clip-path="url(#c7)">
+<text x="1057.8" y="71" font-size="12.5" fill="#172C38" font-weight="400" class="mono">768 MiB</text>
+</g>
+<rect x="1246.2" y="42" width="85" height="35" rx="6.5" fill="#FFFFFF" fill-opacity="0.5" stroke="#E7C8BD" stroke-opacity="0.5"/>
+<text x="1262.7" y="64.5" font-size="13" fill="#B25A43" fill-opacity="0.5" font-weight="600">刪除連線</text>
+<rect x="1340.2" y="42" width="85" height="35" rx="6.5" fill="#FFFFFF" fill-opacity="0.5" stroke="#E1E8EB" stroke-opacity="0.5"/>
+<text x="1356.7" y="64.5" font-size="13" fill="#172C38" fill-opacity="0.5" font-weight="600">還原變更</text>
+<rect x="1434.2" y="42" width="85" height="35" rx="6.5" fill="#FFFFFF" fill-opacity="0.5" stroke="#E1E8EB" stroke-opacity="0.5"/>
+<text x="1450.7" y="64.5" font-size="13" fill="#172C38" fill-opacity="0.5" font-weight="600">儲存設定</text>
+<rect x="1528.2" y="42" width="100.3" height="35" rx="6.5" fill="#FFFFFF" stroke="#E1E8EB"/>
+<text x="1544.7" y="64.5" font-size="13" fill="#172C38" font-weight="600">■ 停止服務</text>
+<path d="M248 146.5L1648 146.5" fill="none" stroke="#E1E8EB"/>
+<path d="M248 146L294 146" fill="none" stroke="#087F75" stroke-width="2"/>
+<text x="258" y="133" font-size="13" fill="#087F75" font-weight="600">組態</text>
+<text x="306" y="133" font-size="13" fill="#71818D" font-weight="600">傳輸明細</text>
+<text x="364" y="133" font-size="12" fill="#71818D" font-weight="400">2,412</text>
+<text x="416.7" y="133" font-size="13" fill="#71818D" font-weight="600">事件紀錄</text>
+<text x="490.7" y="133" font-size="13" fill="#71818D" font-weight="600">快取</text>
+<rect x="248.5" y="161.5" width="981" height="47" rx="9.5" fill="#FFFFFF" stroke="#E1E8EB"/>
+<text x="265" y="190" font-size="14" fill="#172C38" font-weight="700">Server · 快取服務</text>
+<text x="949" y="189.5" font-size="12" fill="#71818D" font-weight="400">類型已固定；如需改用另一種類型，請新增連線。</text>
+<text x="248" y="240" font-size="12" fill="#71818D" font-weight="400">服務執行中；停止後才能修改設定。</text>
+<rect x="248.5" y="262.5" width="981" height="535" rx="9.5" fill="#FFFFFF" stroke="#E1E8EB"/>
+<text x="269" y="298" font-size="16" fill="#172C38" font-weight="650">Server 連線與儲存</text>
+<text x="269" y="316" font-size="12" fill="#71818D" font-weight="400">本機工具鏈透過 socket 使用快取；其他機器的 Proxy 透過 TCP 連入。</text>
+<text x="269" y="347" font-size="12" fill="#71818D" font-weight="600">連線名稱（選填）</text>
+<rect x="269.5" y="357.5" width="939" height="35" rx="6.5" fill="#F4F7F8" stroke="#E1E8EB"/>
+<g clip-path="url(#c8)"><text x="282" y="380.5" font-size="14" fill="#71818D" font-weight="400">本機快取服務</text></g>
+<text x="269" y="412" font-size="12" fill="#71818D" font-weight="400">留空會依連線位址自動顯示預設名稱。名稱可以重複。</text>
+<text x="269" y="443" font-size="12" fill="#71818D" font-weight="600">快取目錄 · --store / SWIFTCACHE_STORE</text>
+<rect x="269.5" y="453.5" width="939" height="35" rx="6.5" fill="#F4F7F8" stroke="#E1E8EB"/>
+<g clip-path="url(#c9)"><text x="282" y="475.5" font-size="12.5" fill="#71818D" font-weight="400" class="mono">/Users/yume/git/yume/SwiftCache/cache/store</text></g>
+<text x="269" y="508" font-size="12" fill="#71818D" font-weight="400">Serve 的所有 CAS / KV 資料都存放在此目錄。</text>
+<text x="269" y="539" font-size="12" fill="#71818D" font-weight="600">本機 Unix socket · --socket</text>
+<rect x="269.5" y="549.5" width="939" height="35" rx="6.5" fill="#F4F7F8" stroke="#E1E8EB"/>
+<g clip-path="url(#c10)"><text x="282" y="571.5" font-size="12.5" fill="#71818D" font-weight="400" class="mono">/tmp/swiftcache/cache.sock</text></g>
+<text x="269" y="604" font-size="12" fill="#71818D" font-weight="400">將此 socket 路徑填入 Xcode／Swift 的快取設定；TCP 供其他機器連入。</text>
+<text x="269" y="635" font-size="12" fill="#71818D" font-weight="600">監聽範圍</text>
+<circle cx="277" cy="659" r="7.5" fill="#FFFFFF" stroke="#8D8D92"/>
+<text x="293" y="664" font-size="14" fill="#71818D" font-weight="400">僅本機</text>
+<text x="338.8" y="664" font-size="12.5" fill="#71818D" font-weight="400" class="mono">127.0.0.1</text>
+<circle cx="434.5" cy="659" r="7.5" fill="#FFFFFF" stroke="#087f75" stroke-width="1.5"/>
+<circle cx="434.5" cy="659" r="3.8" fill="#087f75" stroke="none"/>
+<text x="450.5" y="664" font-size="14" fill="#71818D" font-weight="400">所有介面</text>
+<text x="510.3" y="664" font-size="12.5" fill="#71818D" font-weight="400" class="mono">0.0.0.0</text>
+<text x="1069" y="634" font-size="12" fill="#71818D" font-weight="600">Port</text>
+<rect x="1069.5" y="643.5" width="139" height="35" rx="6.5" fill="#F4F7F8" stroke="#E1E8EB"/>
+<g clip-path="url(#c11)"><text x="1082" y="665.5" font-size="12.5" fill="#71818D" font-weight="400" class="mono">50051</text></g>
+<path d="M269 693.5L1209 693.5" fill="none" stroke="#E1E8EB"/>
+<path d="M269.5 711L276.7 715.5L269.5 720Z" fill="#172C38" stroke="none"/>
+<text x="283.8" y="721" font-size="14" fill="#172C38" font-weight="600">進階設定</text>
+<text x="285" y="744" font-size="12" fill="#71818D" font-weight="400">訊息上限、Log、檔案回應與本機清除路徑</text>
+<text x="269" y="775" font-size="12" fill="#71818D" font-weight="400">不支援熱更新；套用設定時明確重啟。</text>
+<rect x="1248.5" y="161.5" width="399" height="290" rx="9.5" fill="#FFFFFF" stroke="#E1E8EB"/>
+<text x="1269" y="197" font-size="16" fill="#172C38" font-weight="650">紀錄內容</text>
+<text x="1269" y="230" font-size="13" fill="#71818D" font-weight="400">每條事件</text>
+<text x="1377" y="230" font-size="13" fill="#172C38" font-weight="400">訊息、層級、時間、來源</text>
+<text x="1269" y="257" font-size="13" fill="#71818D" font-weight="400">每筆傳輸</text>
+<text x="1377" y="257" font-size="13" fill="#172C38" font-weight="400">完整請求 / 回應、結果與耗時</text>
+<text x="1269" y="283" font-size="13" fill="#71818D" font-weight="400">Payload</text>
+<text x="1377" y="284" font-size="13" fill="#172C38" font-weight="400">保存原始 bytes，供預覽與匯出</text>
+<text x="1269" y="315" font-size="12" fill="#71818D" font-weight="600">紀錄存放位置（唯讀）</text>
+<rect x="1269.5" y="333.5" width="357" height="51" rx="6.5" fill="#FAFCFC" stroke="#E1E8EB"/>
+<text x="1282" y="356" font-size="12.5" fill="#172C38" font-weight="400" class="mono">/Users/yume/Library/Application Support/dev.</text>
+<text x="1282" y="371" font-size="12.5" fill="#172C38" font-weight="400" class="mono">yume.SwiftCache/records</text>
+<text x="1269" y="412" font-size="12" fill="#71818D" font-weight="400">紀錄與快取目錄分開；清空快取時保留。文字 log 層級與 UI 詳細紀</text>
+<text x="1269" y="429" font-size="12" fill="#71818D" font-weight="400">錄分別設定。</text>
+<rect x="1248.5" y="470.5" width="399" height="249.9" rx="9.5" fill="#FFFFFF" stroke="#E1E8EB"/>
+<text x="1269" y="509" font-size="16" fill="#172C38" font-weight="650">同等 CLI 指令</text>
+<rect x="1531.7" y="489.5" width="94.8" height="27" rx="6.5" fill="#FFFFFF" stroke="#E1E8EB"/>
+<text x="1542.2" y="507.5" font-size="12" fill="#172C38" font-weight="600">複製 CLI 指令</text>
+<rect x="1269.5" y="531.5" width="357" height="121.9" rx="7.5" fill="#F5F8F9" stroke="#E1E8EB"/>
+<g clip-path="url(#c12)">
+<text x="1282" y="558" font-size="12.5" fill="#172C38" font-weight="400" class="mono">SWIFTCACHE_LOG=swiftcache=info swiftcache serve \</text>
+<text x="1297" y="577.4" font-size="12.5" fill="#172C38" font-weight="400" class="mono">--store /Users/yume/git/yume/SwiftCache/cache/store \</text>
+<text x="1297" y="596.8" font-size="12.5" fill="#172C38" font-weight="400" class="mono">--tcp 0.0.0.0:50051 \</text>
+<text x="1297" y="616.1" font-size="12.5" fill="#172C38" font-weight="400" class="mono">--socket /tmp/swiftcache/cache.sock \</text>
+<text x="1297" y="635.5" font-size="12.5" fill="#172C38" font-weight="400" class="mono">--max-message-size 536870912</text>
+</g>
+<text x="1269" y="680.9" font-size="12" fill="#71818D" font-weight="400">反映上方表單內容；未啟用的 socket / blob 選項不產生 CLI 參數。</text>
+<text x="1269" y="697.9" font-size="12" fill="#71818D" font-weight="400">UI 詳細紀錄另由 UI 管理。</text>
+</g>
+</g>
 </svg>
