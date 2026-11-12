@@ -1,132 +1,448 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1680" height="1120" viewBox="0 0 1680 1120" role="img" aria-labelledby="title desc">
+<svg xmlns="http://www.w3.org/2000/svg" width="1680" height="1120" viewBox="0 0 1680 1120" role="img" aria-labelledby="title desc" xml:space="preserve">
 <title id="title">SwiftCache UI 設計稿 — 傳輸明細 / KV GetValue</title>
-<desc id="desc">繁體中文桌面介面設計提案。所有記錄與數據均為示意資料，尚未實作。</desc>
+<desc id="desc">繁體中文桌面介面設計稿，依目前實作更新（視窗內容 1680×1084）。所有記錄與數據均為示意資料。</desc>
 <defs>
 <style>text{font-family:Inter,-apple-system,BlinkMacSystemFont,'PingFang TC','Noto Sans CJK TC',sans-serif}.mono{font-family:'SF Mono',Menlo,monospace}text{text-rendering:optimizeLegibility}</style>
+<clipPath id="c1"><rect x="42" y="111" width="75" height="16.3" rx="0"/></clipPath>
+<clipPath id="c2"><rect x="42" y="156.9" width="86.3" height="16.3" rx="0"/></clipPath>
+<clipPath id="c3"><rect x="0" y="0" width="215" height="1084" rx="0"/></clipPath>
+<clipPath id="c4"><rect x="299" y="37" width="102" height="24" rx="0"/></clipPath>
+<clipPath id="c5"><rect x="489.8" y="59" width="260" height="15" rx="0"/></clipPath>
+<clipPath id="c6"><rect x="773.8" y="59" width="260" height="15" rx="0"/></clipPath>
+<clipPath id="c7"><rect x="1057.8" y="59" width="52.7" height="15" rx="0"/></clipPath>
+<clipPath id="c8"><rect x="270" y="354" width="918" height="34" rx="6"/></clipPath>
+<clipPath id="c9"><rect x="270" y="404" width="96" height="34" rx="6"/></clipPath>
+<clipPath id="c10"><rect x="376" y="404" width="100" height="34" rx="6"/></clipPath>
+<clipPath id="c11"><rect x="486" y="404" width="96" height="34" rx="6"/></clipPath>
+<clipPath id="c12"><rect x="592" y="404" width="120" height="34" rx="6"/></clipPath>
+<clipPath id="c13"><rect x="270" y="454" width="918" height="508" rx="7"/></clipPath>
+<clipPath id="c14"><rect x="1250" y="462" width="376" height="82.1" rx="7"/></clipPath>
+<clipPath id="c15"><rect x="1250" y="585.1" width="376" height="217.8" rx="7"/></clipPath>
+<clipPath id="c16"><rect x="1229" y="293" width="418" height="578.9" rx="9"/></clipPath>
+<clipPath id="c17"><rect x="216" y="0" width="1464" height="1084" rx="0"/></clipPath>
 </defs>
-<rect x="0" y="0" width="1680" height="1120" rx="0" fill="#F4F7F8" stroke="none"/>
 <rect x="0" y="0" width="1680" height="36" rx="0" fill="#EAF0F2" stroke="none"/>
 <circle cx="22" cy="18" r="5" fill="#D5A1A0"/>
 <circle cx="41" cy="18" r="5" fill="#DCC78B"/>
 <circle cx="60" cy="18" r="5" fill="#9BBEAC"/>
-<text x="750" y="23" font-size="12" fill="#71818D" font-weight="600">SwiftCache</text>
-<text x="1445" y="23" font-size="11" fill="#71818D" font-weight="600">UI CONCEPT / 示意資料</text>
-<rect x="0" y="36" width="200" height="1040" rx="0" fill="#fff" stroke="none"/>
-<rect x="22" y="65" width="34" height="34" rx="10" fill="#087F75" stroke="none"/>
-<text x="30" y="88" font-size="23" fill="#fff" font-weight="700">S</text>
-<text x="67" y="88" font-size="18" fill="#172C38" font-weight="700">SwiftCache</text>
-<text x="24" y="131" font-size="10" fill="#71818D" font-weight="700">WORKSPACE</text>
-<rect x="16" y="148" width="168" height="61" rx="8" fill="#F5F8F9" stroke="#E1E8EB"/>
-<circle cx="32" cy="169" r="4" fill="#087F75"/>
-<text x="44" y="173" font-size="13" fill="#172C38" font-weight="600">本機快取服務</text>
-<text x="32" y="193" font-size="11" fill="#71818D" font-weight="400">Serve · TCP :50051</text>
-<rect x="12" y="235" width="176" height="39" rx="7" fill="#fff" stroke="none"/>
-<text x="26" y="260" font-size="19" fill="#71818D" font-weight="400">▤</text>
-<text x="55" y="259" font-size="14" fill="#71818D" font-weight="400">服務設定</text>
-<rect x="12" y="282" width="176" height="39" rx="7" fill="#E8F3F0" stroke="none"/>
-<text x="26" y="307" font-size="19" fill="#087F75" font-weight="400">↕</text>
-<text x="55" y="306" font-size="14" fill="#087F75" font-weight="600">傳輸明細</text>
-<rect x="12" y="329" width="176" height="39" rx="7" fill="#fff" stroke="none"/>
-<text x="26" y="354" font-size="19" fill="#71818D" font-weight="400">≡</text>
-<text x="55" y="353" font-size="14" fill="#71818D" font-weight="400">事件紀錄</text>
-<rect x="12" y="376" width="176" height="39" rx="7" fill="#fff" stroke="none"/>
-<text x="26" y="401" font-size="19" fill="#71818D" font-weight="400">▦</text>
-<text x="55" y="400" font-size="14" fill="#71818D" font-weight="400">快取管理</text>
-<path d="M22 444H178" fill="none" stroke="#E1E8EB"/>
-<text x="24" y="477" font-size="11" fill="#71818D" font-weight="600">已儲存的連線</text>
-<circle cx="29" cy="509" r="4" fill="#9BA9B1"/>
-<text x="43" y="514" font-size="12" fill="#71818D" font-weight="400">團隊遠端 Proxy</text>
-<rect x="16" y="779" width="168" height="153" rx="9" fill="#F3F8F7" stroke="#DFEAE6"/>
-<text x="29" y="804" font-size="11" fill="#71818D" font-weight="600">目前快取用量</text>
-<text x="29" y="837" font-size="27" fill="#172C38" font-weight="650">768</text>
-<text x="93" y="836" font-size="12" fill="#71818D" font-weight="400">MiB</text>
-<rect x="29" y="851" width="142" height="6" rx="3" fill="#E1E9E7" stroke="none"/>
-<rect x="29" y="851" width="136" height="6" rx="3" fill="#087F75" stroke="none"/>
-<rect x="165" y="851" width="6" height="6" rx="2" fill="#7755B6" stroke="none"/>
-<text x="29" y="878" font-size="10" fill="#71818D" font-weight="400">Server store · 示意</text>
-<text x="29" y="900" font-size="11" fill="#087F75" font-weight="600">查看用量與清除  →</text>
-<text x="24" y="967" font-size="11" fill="#71818D" font-weight="400">CLI 與 UI 共用操作概念</text>
-<text x="24" y="990" font-size="12" fill="#172C38" font-weight="500" class="mono">serve / proxy</text>
-<path d="M0 1076H1680" fill="none" stroke="#E1E8EB"/>
-<text x="24" y="1102" font-size="11" fill="#71818D" font-weight="600">DESIGN PROPOSAL   /   02</text>
-<text x="365" y="1102" font-size="12" fill="#71818D" font-weight="400">所有用量與記錄均為示意；UI 管理、用量掃描、詳細記錄與清除流程尚待實作。</text>
-<text x="1456" y="1102" font-size="12" fill="#087F75" font-weight="600">架構尚未選定</text>
-<text x="236" y="83" font-size="28" fill="#172C38" font-weight="650">傳輸明細 / KV GetValue</text>
-<text x="236" y="111" font-size="14" fill="#71818D" font-weight="400">逐筆追蹤請求與回應，從列表查看每一次資料交換。</text>
-<rect x="236" y="140" width="1408" height="64" rx="10" fill="#fff" stroke="#E1E8EB"/>
-<circle cx="259" cy="172" r="4" fill="#087F75"/>
-<text x="273" y="170" font-size="14" fill="#172C38" font-weight="600">服務執行中</text>
-<text x="273" y="189" font-size="11" fill="#71818D" font-weight="400">已執行 00:12:34</text>
-<text x="470" y="167" font-size="10" fill="#71818D" font-weight="600">LISTENER</text>
-<text x="470" y="188" font-size="13" fill="#172C38" font-weight="400" class="mono">0.0.0.0:50051</text>
-<text x="710" y="167" font-size="10" fill="#71818D" font-weight="600">STORE</text>
-<text x="710" y="188" font-size="13" fill="#172C38" font-weight="400" class="mono">./cache/store</text>
-<rect x="1008" y="159" width="140" height="25" rx="6" fill="#E7F4F0" stroke="none"/>
-<text x="1017" y="176" font-size="12" fill="#087F75" font-weight="600">●  詳細記錄開啟</text>
-<rect x="1370" y="154" width="112" height="36" rx="7" fill="#fff" stroke="#E1E8EB"/>
-<text x="1384" y="177" font-size="13" fill="#172C38" font-weight="600">編輯設定</text>
-<rect x="1494" y="154" width="130" height="36" rx="7" fill="#fff" stroke="#E1E8EB"/>
-<text x="1508" y="177" font-size="13" fill="#172C38" font-weight="600">■  停止服務</text>
-<text x="236" y="243" font-size="13" fill="#087F75" font-weight="600">← 返回傳輸列表</text>
-<rect x="236" y="264" width="1408" height="135" rx="10" fill="#fff" stroke="#E1E8EB"/>
-<text x="256" y="297" font-size="23" fill="#172C38" font-weight="650">#003695</text>
-<rect x="398" y="275" width="105" height="25" rx="6" fill="#EDF2FC" stroke="none"/>
-<text x="407" y="292" font-size="12" fill="#356BC4" font-weight="600">↓  KV 查詢</text>
-<rect x="512" y="275" width="64" height="25" rx="6" fill="#E7F4F0" stroke="none"/>
-<text x="521" y="292" font-size="12" fill="#087F75" font-weight="600">命中</text>
-<text x="256" y="325" font-size="12" fill="#71818D" font-weight="400" class="mono">req_2e4a170c</text>
-<text x="256" y="376" font-size="12" fill="#172C38" font-weight="400" class="mono">來源   192.168.1.24:54102</text>
-<text x="654" y="376" font-size="12" fill="#172C38" font-weight="400" class="mono">完成時間   14:32:18.399 +08:00</text>
-<text x="1072" y="376" font-size="12" fill="#172C38" font-weight="400" class="mono">耗時   1.2 ms</text>
-<text x="1332" y="376" font-size="12" fill="#087F75" font-weight="600" class="mono">gRPC   OK</text>
-<rect x="1474" y="279" width="148" height="36" rx="7" fill="#fff" stroke="#E1E8EB"/>
-<text x="1488" y="302" font-size="13" fill="#172C38" font-weight="600">匯出此筆詳細資料</text>
-<rect x="236" y="419" width="684" height="271" rx="10" fill="#fff" stroke="#E1E8EB"/>
-<text x="256" y="450" font-size="17" fill="#172C38" font-weight="650">請求</text>
-<rect x="800" y="432" width="100" height="25" rx="6" fill="#F0F3F5" stroke="none"/>
-<text x="809" y="449" font-size="12" fill="#172C38" font-weight="600">GetValue</text>
-<text x="256" y="481" font-size="12" fill="#71818D" font-weight="400">完整 KV key · bytes，以 hex 顯示</text>
-<rect x="256" y="497" width="644" height="101" rx="7" fill="#F5F8F9" stroke="none"/>
-<text x="270" y="524" font-size="13" fill="#172C38" font-weight="400" class="mono">deadbeef0102a12f7c4821e2f3d49b0052a017aa</text>
-<text x="270" y="550" font-size="13" fill="#172C38" font-weight="400" class="mono">8fd7c8d2e4b39c70ef5c804246d5286f</text>
-<text x="270" y="576" font-size="13" fill="#172C38" font-weight="400" class="mono">（示意 key）</text>
-<text x="256" y="629" font-size="12" fill="#71818D" font-weight="400">Key 為不透明資料，不推測對應的原始碼或編譯參數。</text>
-<rect x="256" y="644" width="121" height="36" rx="7" fill="#fff" stroke="#E1E8EB"/>
-<text x="270" y="667" font-size="13" fill="#172C38" font-weight="600">複製完整 key</text>
-<rect x="940" y="419" width="704" height="271" rx="10" fill="#fff" stroke="#E1E8EB"/>
-<text x="960" y="450" font-size="17" fill="#172C38" font-weight="650">回應</text>
-<rect x="1516" y="432" width="106" height="25" rx="6" fill="#E7F4F0" stroke="none"/>
-<text x="1525" y="449" font-size="12" fill="#087F75" font-weight="600">SUCCESS</text>
-<text x="960" y="484" font-size="12" fill="#71818D" font-weight="400">Outcome</text>
-<text x="1110" y="484" font-size="13" fill="#087F75" font-weight="600" class="mono">SUCCESS</text>
-<text x="960" y="519" font-size="12" fill="#71818D" font-weight="400">Entries</text>
-<text x="1110" y="519" font-size="13" fill="#172C38" font-weight="400">1 筆</text>
-<text x="960" y="554" font-size="12" fill="#71818D" font-weight="400">Entries value 合計</text>
-<text x="1110" y="554" font-size="13" fill="#172C38" font-weight="400" class="mono">248 bytes</text>
-<text x="960" y="607" font-size="12" fill="#71818D" font-weight="400">未命中時顯示 KEY_NOT_FOUND，沒有 entries。</text>
-<text x="960" y="635" font-size="12" fill="#71818D" font-weight="400">錯誤時保留 gRPC 狀態與完整錯誤訊息。</text>
-<rect x="236" y="710" width="1408" height="320" rx="10" fill="#fff" stroke="#E1E8EB"/>
-<text x="256" y="743" font-size="17" fill="#172C38" font-weight="650">回應 Entries</text>
-<text x="420" y="742" font-size="12" fill="#71818D" font-weight="400">逐項保留名稱與原始 bytes</text>
-<path d="M256 763H1624" fill="none" stroke="#E1E8EB"/>
-<rect x="256" y="780" width="400" height="37" rx="6" fill="#F5F8F9" stroke="none"/>
-<text x="270" y="804" font-size="10" fill="#71818D" font-weight="600">ENTRY 名稱</text>
-<text x="552" y="804" font-size="10" fill="#71818D" font-weight="600">VALUE 大小</text>
-<rect x="256" y="823" width="400" height="47" rx="6" fill="#EAF4F2" stroke="none"/>
-<text x="270" y="852" font-size="13" fill="#087F75" font-weight="600" class="mono">value</text>
-<text x="552" y="852" font-size="12" fill="#172C38" font-weight="400" class="mono">248 B</text>
-<text x="256" y="902" font-size="12" fill="#71818D" font-weight="400">可選取任一 entry 查看其完整內容。</text>
-<text x="256" y="930" font-size="12" fill="#71818D" font-weight="400">保存的是原始 bytes；預覽依 Hex / Text 切換。</text>
-<text x="256" y="958" font-size="12" fill="#71818D" font-weight="400">資料不作檔案類型或樹狀結構的自動推測。</text>
-<text x="688" y="799" font-size="14" fill="#172C38" font-weight="600" class="mono">value</text>
-<text x="1150" y="799" font-size="12" fill="#087F75" font-weight="600">Hex  /  Text</text>
-<rect x="1475" y="777" width="148" height="36" rx="7" fill="#fff" stroke="#E1E8EB"/>
-<text x="1489" y="800" font-size="13" fill="#172C38" font-weight="600">匯出此 entry</text>
-<rect x="688" y="816" width="936" height="143" rx="8" fill="#162F3B" stroke="none"/>
-<text x="704" y="844" font-size="12" fill="#D1E1E7" font-weight="400" class="mono">000000  0a 19 0a 17 72 6f 6f 74 20 70 61 79 6c 6f 61 64  | ....root payload</text>
-<text x="704" y="869" font-size="12" fill="#D1E1E7" font-weight="400" class="mono">000010  12 19 0a 17 6c 65 61 66 20 70 61 79 6c 6f 61 64  | ....leaf payload</text>
-<text x="704" y="894" font-size="12" fill="#D1E1E7" font-weight="400" class="mono">000020  1a 20 98 ab 76 cd 54 ef 20 e1 9a 61 8f d7 c8 d2  | . ..v.T. ..a....</text>
-<text x="704" y="940" font-size="11" fill="#93B5C2" font-weight="400">示意預覽 · 可捲動查看全部 248 bytes</text>
-<text x="688" y="994" font-size="12" fill="#087F75" font-weight="600">關聯事件  2 筆</text>
-<text x="1130" y="994" font-size="12" fill="#71818D" font-weight="400">完整請求 / 回應可切換為原始資料檢視。</text>
+<text x="808" y="23" font-size="12" fill="#71818D" font-weight="600">SwiftCache</text>
+<text x="1560" y="23" font-size="11" fill="#71818D" font-weight="600">示意資料</text>
+<g transform="translate(0 36)">
+<rect x="0" y="0" width="1680" height="1084" rx="0" fill="#F4F7F8" stroke="none"/>
+<rect x="0" y="0" width="216" height="1084" rx="0" fill="#FFFFFF" stroke="none"/>
+<path d="M215.5 0L215.5 1084" fill="none" stroke="#E1E8EB"/>
+<g clip-path="url(#c3)">
+<rect x="22" y="22" width="34" height="34" rx="10" fill="#087F75" stroke="none"/>
+<text x="32" y="47" font-size="22" fill="#FFFFFF" font-weight="700">S</text>
+<text x="67" y="45.5" font-size="18" fill="#172C38" font-weight="700">SwiftCache</text>
+<text x="24" y="91" font-size="10" fill="#71818D" font-weight="700" letter-spacing="0.6">連線</text>
+<text x="183.1" y="93" font-size="16" fill="#71818D" font-weight="400">+</text>
+<rect x="12" y="104" width="191" height="43.9" rx="6" fill="#F5F8F9" stroke="none"/>
+<rect x="24" y="121.9" width="8" height="8" rx="4" fill="#12A08F" stroke="none"/>
+<g clip-path="url(#c1)">
+<text x="42" y="123" font-size="12.5" fill="#172C38" font-weight="600">本機快取服務</text>
+</g>
+<text x="42" y="137.3" font-size="10.5" fill="#71818D" font-weight="400">Server</text>
+<text x="77.8" y="137.3" font-size="10.5" fill="#71818D" font-weight="400">·</text>
+<text x="84.1" y="137.3" font-size="10.5" fill="#71818D" font-weight="400">執行中</text>
+<rect x="24" y="167.8" width="8" height="8" rx="4" fill="#94A1AA" stroke="none"/>
+<g clip-path="url(#c2)">
+<text x="42" y="168.9" font-size="12.5" fill="#172C38" font-weight="400">團隊遠端 Proxy</text>
+</g>
+<text x="42" y="183.1" font-size="10.5" fill="#71818D" font-weight="400">Proxy</text>
+<text x="73.2" y="183.1" font-size="10.5" fill="#71818D" font-weight="400">·</text>
+<text x="79.5" y="183.1" font-size="10.5" fill="#71818D" font-weight="400">已停止</text>
+<text x="24" y="1056" font-size="12.5" fill="#71818D" font-weight="400">⚙</text>
+<text x="39.5" y="1056" font-size="12.5" fill="#71818D" font-weight="400">設定</text>
+</g>
+<g clip-path="url(#c17)">
+<rect x="248.5" y="22.5" width="1399" height="74" rx="9.5" fill="#FFFFFF" stroke="#E1E8EB"/>
+<rect x="267" y="53.5" width="12" height="12" rx="6" fill="#12A08F" stroke="none"/>
+<g clip-path="url(#c4)">
+<text x="299" y="55" font-size="17" fill="#172C38" font-weight="650">本機快取服務</text>
+</g>
+<rect x="411" y="37.5" width="58.8" height="23" rx="6" fill="#E8F3F0" stroke="none"/>
+<text x="421" y="53.5" font-size="12" fill="#087F75" font-weight="600">Server</text>
+<text x="299" y="78" font-size="12" fill="#71818D" font-weight="400">執行中</text>
+<text x="338.4" y="78" font-size="12" fill="#71818D" font-weight="400">·</text>
+<text x="345.3" y="78" font-size="12" fill="#71818D" font-weight="400">已執行 00:12:34</text>
+<text x="489.8" y="55" font-size="10" fill="#71818D" font-weight="600">LISTENER</text>
+<g clip-path="url(#c5)">
+<text x="489.8" y="71" font-size="12.5" fill="#172C38" font-weight="400" class="mono">0.0.0.0:50051 · /tmp/swiftcache/c…</text>
+</g>
+<text x="773.8" y="55" font-size="10" fill="#71818D" font-weight="600">STORE</text>
+<g clip-path="url(#c6)">
+<text x="773.8" y="71" font-size="12.5" fill="#172C38" font-weight="400" class="mono">/Users/yume/git/yume/SwiftCache/c…</text>
+</g>
+<text x="1057.8" y="55" font-size="10" fill="#71818D" font-weight="600">USAGE</text>
+<g clip-path="url(#c7)">
+<text x="1057.8" y="71" font-size="12.5" fill="#172C38" font-weight="400" class="mono">768 MiB</text>
+</g>
+<rect x="1246.2" y="42" width="85" height="35" rx="6.5" fill="#FFFFFF" fill-opacity="0.5" stroke="#E7C8BD" stroke-opacity="0.5"/>
+<text x="1262.7" y="64.5" font-size="13" fill="#B25A43" fill-opacity="0.5" font-weight="600">刪除連線</text>
+<rect x="1340.2" y="42" width="85" height="35" rx="6.5" fill="#FFFFFF" fill-opacity="0.5" stroke="#E1E8EB" stroke-opacity="0.5"/>
+<text x="1356.7" y="64.5" font-size="13" fill="#172C38" fill-opacity="0.5" font-weight="600">還原變更</text>
+<rect x="1434.2" y="42" width="85" height="35" rx="6.5" fill="#FFFFFF" fill-opacity="0.5" stroke="#E1E8EB" stroke-opacity="0.5"/>
+<text x="1450.7" y="64.5" font-size="13" fill="#172C38" fill-opacity="0.5" font-weight="600">儲存設定</text>
+<rect x="1528.2" y="42" width="100.3" height="35" rx="6.5" fill="#FFFFFF" stroke="#E1E8EB"/>
+<text x="1544.7" y="64.5" font-size="13" fill="#172C38" font-weight="600">■ 停止服務</text>
+<path d="M248 146.5L1648 146.5" fill="none" stroke="#E1E8EB"/>
+<text x="258" y="133" font-size="13" fill="#71818D" font-weight="600">組態</text>
+<path d="M296 146L404.7 146" fill="none" stroke="#087F75" stroke-width="2"/>
+<text x="306" y="133" font-size="13" fill="#087F75" font-weight="600">傳輸明細</text>
+<text x="364" y="133" font-size="12" fill="#71818D" font-weight="400">2,412</text>
+<text x="416.7" y="133" font-size="13" fill="#71818D" font-weight="600">事件紀錄</text>
+<text x="490.7" y="133" font-size="13" fill="#71818D" font-weight="600">快取</text>
+<rect x="248.5" y="161.5" width="337" height="112" rx="9.5" fill="#FFFFFF" stroke="#E1E8EB"/>
+<text x="267" y="191" font-size="12" fill="#71818D" font-weight="500">上傳資料</text>
+<text x="267" y="229" font-size="29" fill="#7755B6" font-weight="650">693</text>
+<text x="329.8" y="229" font-size="12" fill="#71818D" font-weight="400">MiB</text>
+<text x="267" y="253" font-size="11" fill="#71818D" font-weight="400">Client → Server（累計傳輸）</text>
+<rect x="602.5" y="161.5" width="337" height="112" rx="9.5" fill="#FFFFFF" stroke="#E1E8EB"/>
+<text x="621" y="191" font-size="12" fill="#71818D" font-weight="500">下載資料</text>
+<text x="621" y="229" font-size="29" fill="#356BC4" font-weight="650">435</text>
+<text x="682.8" y="229" font-size="12" fill="#71818D" font-weight="400">MiB</text>
+<text x="621" y="253" font-size="11" fill="#71818D" font-weight="400">Server → Client（累計傳輸）</text>
+<rect x="956.5" y="161.5" width="337" height="112" rx="9.5" fill="#FFFFFF" stroke="#E1E8EB"/>
+<text x="975" y="191" font-size="12" fill="#71818D" font-weight="500">KV 查詢命中率</text>
+<text x="975" y="229" font-size="29" fill="#087F75" font-weight="650">81.7</text>
+<text x="1037.2" y="229" font-size="12" fill="#71818D" font-weight="400">%</text>
+<text x="975" y="252" font-size="11" fill="#71818D" font-weight="400">1,834 hit / 412 miss</text>
+<rect x="1310.5" y="161.5" width="337" height="112" rx="9.5" fill="#FFFFFF" stroke="#E1E8EB"/>
+<text x="1329" y="191" font-size="12" fill="#71818D" font-weight="500">錯誤</text>
+<text x="1329" y="229" font-size="29" fill="#B25A43" font-weight="650">3</text>
+<text x="1353.5" y="229" font-size="12" fill="#71818D" font-weight="400">筆</text>
+<text x="1329" y="253" font-size="11" fill="#71818D" font-weight="400">點選篩選失敗請求</text>
+<rect x="248.5" y="292.5" width="961" height="773" rx="9.5" fill="#FFFFFF" stroke="#E1E8EB"/>
+<text x="269" y="331" font-size="16" fill="#172C38" font-weight="650">所有傳輸</text>
+<text x="341" y="330.5" font-size="14" fill="#71818D" font-weight="400">2,412</text>
+<rect x="992.5" y="312.5" width="94.5" height="25" rx="6" fill="#E8F3F0" stroke="none"/>
+<text x="1002.5" y="329.5" font-size="12" fill="#087F75" font-weight="600">● 持續記錄中</text>
+<rect x="1095.5" y="311.5" width="93" height="27" rx="6.5" fill="#FFFFFF" stroke="#E7C8BD"/>
+<text x="1106" y="329.5" font-size="12" fill="#B25A43" font-weight="600">清除傳輸明細</text>
+<rect x="269.5" y="353.5" width="919" height="35" rx="6.5" fill="#FAFCFC" stroke="#E1E8EB"/>
+<g clip-path="url(#c8)"><text x="282" y="376.5" font-size="14" fill="#757575" font-weight="400">搜尋完整 CAS ID、KV key、來源或 method…</text></g>
+<rect x="269.5" y="403.5" width="97" height="35" rx="6.5" fill="#FFFFFF" stroke="#E1E8EB"/>
+<path d="M348 419L352 423L356 419" fill="none" stroke="#172C38" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<g clip-path="url(#c9)"><text x="282" y="426" font-size="13" fill="#172C38" font-weight="600">全部方向</text></g>
+<rect x="375.5" y="403.5" width="101" height="35" rx="6.5" fill="#FFFFFF" stroke="#E1E8EB"/>
+<path d="M458 419L462 423L466 419" fill="none" stroke="#172C38" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<g clip-path="url(#c10)"><text x="388" y="426" font-size="13" fill="#172C38" font-weight="600">CAS / KV</text></g>
+<rect x="485.5" y="403.5" width="97" height="35" rx="6.5" fill="#FFFFFF" stroke="#E1E8EB"/>
+<path d="M564 419L568 423L572 419" fill="none" stroke="#172C38" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<g clip-path="url(#c11)"><text x="498" y="426" font-size="13" fill="#172C38" font-weight="600">全部結果</text></g>
+<rect x="591.5" y="403.5" width="121" height="35" rx="6.5" fill="#FFFFFF" stroke="#E1E8EB"/>
+<path d="M694 419L698 423L702 419" fill="none" stroke="#172C38" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<g clip-path="url(#c12)"><text x="604" y="426" font-size="13" fill="#172C38" font-weight="600">全部時間</text></g>
+<rect x="1064.5" y="403.5" width="124" height="35" rx="6.5" fill="#FFFFFF" stroke="#E1E8EB"/>
+<text x="1081" y="426" font-size="13" fill="#172C38" font-weight="600">暫停並凍結清單</text>
+<rect x="269.5" y="453.5" width="919" height="509" rx="7.5" fill="none" stroke="#E1E8EB"/>
+<g clip-path="url(#c13)">
+<rect x="270" y="454" width="243.2" height="34.5" rx="0" fill="#F5F8F9" stroke="none"/>
+<path d="M270 488L513.2 488" fill="none" stroke="#E1E8EB"/>
+<text x="282" y="475" font-size="11" fill="#71818D" font-weight="600">時間 / REQUEST</text>
+<rect x="513.2" y="454" width="163.9" height="34.5" rx="0" fill="#F5F8F9" stroke="none"/>
+<path d="M513.2 488L677.1 488" fill="none" stroke="#E1E8EB"/>
+<text x="525.2" y="475" font-size="11" fill="#71818D" font-weight="600">操作</text>
+<rect x="677.1" y="454" width="181.5" height="34.5" rx="0" fill="#F5F8F9" stroke="none"/>
+<path d="M677.1 488L858.6 488" fill="none" stroke="#E1E8EB"/>
+<text x="689.1" y="475" font-size="11" fill="#71818D" font-weight="600">物件 ID / KEY</text>
+<rect x="858.6" y="454" width="109.7" height="34.5" rx="0" fill="#F5F8F9" stroke="none"/>
+<path d="M858.6 488L968.2 488" fill="none" stroke="#E1E8EB"/>
+<text x="870.6" y="475" font-size="11" fill="#71818D" font-weight="600">結果</text>
+<rect x="968.2" y="454" width="113.4" height="34.5" rx="0" fill="#F5F8F9" stroke="none"/>
+<path d="M968.2 488L1081.6 488" fill="none" stroke="#E1E8EB"/>
+<text x="1025.6" y="475" font-size="11" fill="#71818D" font-weight="600">內容大小</text>
+<rect x="1081.6" y="454" width="106.4" height="34.5" rx="0" fill="#F5F8F9" stroke="none"/>
+<path d="M1081.6 488L1188 488" fill="none" stroke="#E1E8EB"/>
+<text x="1154" y="475" font-size="11" fill="#71818D" font-weight="600">耗時</text>
+<path d="M270 535L513.2 535" fill="none" stroke="#EEF2F4"/>
+<text x="282" y="509.5" font-size="12.5" fill="#172C38" font-weight="400" class="mono">14:32:33.528</text>
+<text x="282" y="523.5" font-size="12" fill="#71818D" font-weight="400" class="mono">2026-11-04</text>
+<text x="361.5" y="523.5" font-size="12" fill="#71818D" font-weight="400" class="mono">· #</text>
+<text x="383.2" y="523.5" font-size="12" fill="#71818D" font-weight="400" class="mono">002412</text>
+<path d="M513.2 535L677.1 535" fill="none" stroke="#EEF2F4"/>
+<text x="525.2" y="510" font-size="13" fill="#7755B6" font-weight="700">↑</text>
+<text x="539.3" y="510" font-size="13" fill="#172C38" font-weight="400">CAS Save</text>
+<text x="525.2" y="524" font-size="12" fill="#71818D" font-weight="400" class="mono">pid:43264</text>
+<path d="M677.1 535L858.6 535" fill="none" stroke="#EEF2F4"/>
+<text x="689.1" y="516.5" font-size="13" fill="#172C38" font-weight="400" class="mono">d87b580e93b3…</text>
+<path d="M858.6 535L968.2 535" fill="none" stroke="#EEF2F4"/>
+<rect x="870.6" y="501.5" width="40" height="21" rx="5" fill="#E8F3F0" stroke="none"/>
+<text x="878.6" y="516.5" font-size="12" fill="#087F75" font-weight="600">成功</text>
+<path d="M968.2 535L1081.6 535" fill="none" stroke="#EEF2F4"/>
+<text x="1021.6" y="517" font-size="13" fill="#172C38" font-weight="400">343 KiB</text>
+<path d="M1081.6 535L1188 535" fill="none" stroke="#EEF2F4"/>
+<text x="1134.4" y="517" font-size="13" fill="#172C38" font-weight="400">1.0 ms</text>
+<rect x="270" y="535.5" width="918" height="47" rx="0" fill="#E8F3F0" stroke="none"/>
+<path d="M270 582L513.2 582" fill="none" stroke="#EEF2F4"/>
+<text x="282" y="556.5" font-size="12.5" fill="#172C38" font-weight="400" class="mono">14:32:31.088</text>
+<text x="282" y="570.5" font-size="12" fill="#71818D" font-weight="400" class="mono">2026-11-04</text>
+<text x="361.5" y="570.5" font-size="12" fill="#71818D" font-weight="400" class="mono">· #</text>
+<text x="383.2" y="570.5" font-size="12" fill="#71818D" font-weight="400" class="mono">002411</text>
+<path d="M513.2 582L677.1 582" fill="none" stroke="#EEF2F4"/>
+<text x="525.2" y="557" font-size="13" fill="#356BC4" font-weight="700">↓</text>
+<text x="539.3" y="557" font-size="13" fill="#172C38" font-weight="400">KV GetValue</text>
+<text x="525.2" y="571" font-size="12" fill="#71818D" font-weight="400" class="mono">pid:43302</text>
+<path d="M677.1 582L858.6 582" fill="none" stroke="#EEF2F4"/>
+<text x="689.1" y="563.5" font-size="13" fill="#172C38" font-weight="400" class="mono">95b9f88f93fc…</text>
+<path d="M858.6 582L968.2 582" fill="none" stroke="#EEF2F4"/>
+<rect x="870.6" y="548.5" width="40" height="21" rx="5" fill="#E8F3F0" stroke="none"/>
+<text x="878.6" y="563.5" font-size="12" fill="#087F75" font-weight="600">命中</text>
+<path d="M968.2 582L1081.6 582" fill="none" stroke="#EEF2F4"/>
+<text x="1033.3" y="564" font-size="13" fill="#172C38" font-weight="400">134 B</text>
+<path d="M1081.6 582L1188 582" fill="none" stroke="#EEF2F4"/>
+<text x="1133.4" y="564" font-size="13" fill="#172C38" font-weight="400">641 µs</text>
+<path d="M270 629L513.2 629" fill="none" stroke="#EEF2F4"/>
+<text x="282" y="603.5" font-size="12.5" fill="#172C38" font-weight="400" class="mono">14:32:28.860</text>
+<text x="282" y="617.5" font-size="12" fill="#71818D" font-weight="400" class="mono">2026-11-04</text>
+<text x="361.5" y="617.5" font-size="12" fill="#71818D" font-weight="400" class="mono">· #</text>
+<text x="383.2" y="617.5" font-size="12" fill="#71818D" font-weight="400" class="mono">002410</text>
+<path d="M513.2 629L677.1 629" fill="none" stroke="#EEF2F4"/>
+<text x="525.2" y="604" font-size="13" fill="#356BC4" font-weight="700">↓</text>
+<text x="539.3" y="604" font-size="13" fill="#172C38" font-weight="400">KV GetValue</text>
+<text x="525.2" y="618" font-size="12" fill="#71818D" font-weight="400" class="mono">pid:43271</text>
+<path d="M677.1 629L858.6 629" fill="none" stroke="#EEF2F4"/>
+<text x="689.1" y="610.5" font-size="13" fill="#172C38" font-weight="400" class="mono">63f898f08235…</text>
+<path d="M858.6 629L968.2 629" fill="none" stroke="#EEF2F4"/>
+<rect x="870.6" y="595.5" width="52" height="21" rx="5" fill="#FBF4E2" stroke="none"/>
+<text x="878.6" y="610.5" font-size="12" fill="#7A6218" font-weight="600">未命中</text>
+<path d="M968.2 629L1081.6 629" fill="none" stroke="#EEF2F4"/>
+<text x="1058.3" y="611" font-size="13" fill="#172C38" font-weight="400">—</text>
+<path d="M1081.6 629L1188 629" fill="none" stroke="#EEF2F4"/>
+<text x="1133.4" y="611" font-size="13" fill="#172C38" font-weight="400">715 µs</text>
+<path d="M270 676L513.2 676" fill="none" stroke="#EEF2F4"/>
+<text x="282" y="650.5" font-size="12.5" fill="#172C38" font-weight="400" class="mono">14:32:26.500</text>
+<text x="282" y="664.5" font-size="12" fill="#71818D" font-weight="400" class="mono">2026-11-04</text>
+<text x="361.5" y="664.5" font-size="12" fill="#71818D" font-weight="400" class="mono">· #</text>
+<text x="383.2" y="664.5" font-size="12" fill="#71818D" font-weight="400" class="mono">002409</text>
+<path d="M513.2 676L677.1 676" fill="none" stroke="#EEF2F4"/>
+<text x="525.2" y="651" font-size="13" fill="#356BC4" font-weight="700">↓</text>
+<text x="539.3" y="651" font-size="13" fill="#172C38" font-weight="400">KV GetValue</text>
+<text x="525.2" y="665" font-size="12" fill="#71818D" font-weight="400" class="mono">pid:43264</text>
+<path d="M677.1 676L858.6 676" fill="none" stroke="#EEF2F4"/>
+<text x="689.1" y="657.5" font-size="13" fill="#172C38" font-weight="400" class="mono">31363871726e…</text>
+<path d="M858.6 676L968.2 676" fill="none" stroke="#EEF2F4"/>
+<rect x="870.6" y="642.5" width="40" height="21" rx="5" fill="#E8F3F0" stroke="none"/>
+<text x="878.6" y="657.5" font-size="12" fill="#087F75" font-weight="600">命中</text>
+<path d="M968.2 676L1081.6 676" fill="none" stroke="#EEF2F4"/>
+<text x="1033.3" y="658" font-size="13" fill="#172C38" font-weight="400">134 B</text>
+<path d="M1081.6 676L1188 676" fill="none" stroke="#EEF2F4"/>
+<text x="1133.4" y="658" font-size="13" fill="#172C38" font-weight="400">394 µs</text>
+<path d="M270 723L513.2 723" fill="none" stroke="#EEF2F4"/>
+<text x="282" y="697.5" font-size="12.5" fill="#172C38" font-weight="400" class="mono">14:32:24.140</text>
+<text x="282" y="711.5" font-size="12" fill="#71818D" font-weight="400" class="mono">2026-11-04</text>
+<text x="361.5" y="711.5" font-size="12" fill="#71818D" font-weight="400" class="mono">· #</text>
+<text x="383.2" y="711.5" font-size="12" fill="#71818D" font-weight="400" class="mono">002408</text>
+<path d="M513.2 723L677.1 723" fill="none" stroke="#EEF2F4"/>
+<text x="525.2" y="698" font-size="13" fill="#356BC4" font-weight="700">↓</text>
+<text x="539.3" y="698" font-size="13" fill="#172C38" font-weight="400">KV GetValue</text>
+<text x="525.2" y="712" font-size="12" fill="#71818D" font-weight="400" class="mono">pid:43264</text>
+<path d="M677.1 723L858.6 723" fill="none" stroke="#EEF2F4"/>
+<text x="689.1" y="704.5" font-size="13" fill="#172C38" font-weight="400" class="mono">ff74d7f262a7…</text>
+<path d="M858.6 723L968.2 723" fill="none" stroke="#EEF2F4"/>
+<rect x="870.6" y="689.5" width="40" height="21" rx="5" fill="#E8F3F0" stroke="none"/>
+<text x="878.6" y="704.5" font-size="12" fill="#087F75" font-weight="600">命中</text>
+<path d="M968.2 723L1081.6 723" fill="none" stroke="#EEF2F4"/>
+<text x="1033.3" y="705" font-size="13" fill="#172C38" font-weight="400">134 B</text>
+<path d="M1081.6 723L1188 723" fill="none" stroke="#EEF2F4"/>
+<text x="1133.4" y="705" font-size="13" fill="#172C38" font-weight="400">188 µs</text>
+<path d="M270 770L513.2 770" fill="none" stroke="#EEF2F4"/>
+<text x="282" y="744.5" font-size="12.5" fill="#172C38" font-weight="400" class="mono">14:32:21.780</text>
+<text x="282" y="758.5" font-size="12" fill="#71818D" font-weight="400" class="mono">2026-11-04</text>
+<text x="361.5" y="758.5" font-size="12" fill="#71818D" font-weight="400" class="mono">· #</text>
+<text x="383.2" y="758.5" font-size="12" fill="#71818D" font-weight="400" class="mono">002407</text>
+<path d="M513.2 770L677.1 770" fill="none" stroke="#EEF2F4"/>
+<text x="525.2" y="745" font-size="13" fill="#356BC4" font-weight="700">↓</text>
+<text x="539.3" y="745" font-size="13" fill="#172C38" font-weight="400">KV GetValue</text>
+<text x="525.2" y="759" font-size="12" fill="#71818D" font-weight="400" class="mono">pid:43302</text>
+<path d="M677.1 770L858.6 770" fill="none" stroke="#EEF2F4"/>
+<text x="689.1" y="751.5" font-size="13" fill="#172C38" font-weight="400" class="mono">cdb2777351e0…</text>
+<path d="M858.6 770L968.2 770" fill="none" stroke="#EEF2F4"/>
+<rect x="870.6" y="736.5" width="40" height="21" rx="5" fill="#E8F3F0" stroke="none"/>
+<text x="878.6" y="751.5" font-size="12" fill="#087F75" font-weight="600">命中</text>
+<path d="M968.2 770L1081.6 770" fill="none" stroke="#EEF2F4"/>
+<text x="1033.3" y="752" font-size="13" fill="#172C38" font-weight="400">134 B</text>
+<path d="M1081.6 770L1188 770" fill="none" stroke="#EEF2F4"/>
+<text x="1141.5" y="752" font-size="13" fill="#172C38" font-weight="400">95 µs</text>
+<path d="M270 817L513.2 817" fill="none" stroke="#EEF2F4"/>
+<text x="282" y="791.5" font-size="12.5" fill="#172C38" font-weight="400" class="mono">14:32:19.421</text>
+<text x="282" y="805.5" font-size="12" fill="#71818D" font-weight="400" class="mono">2026-11-04</text>
+<text x="361.5" y="805.5" font-size="12" fill="#71818D" font-weight="400" class="mono">· #</text>
+<text x="383.2" y="805.5" font-size="12" fill="#71818D" font-weight="400" class="mono">002406</text>
+<path d="M513.2 817L677.1 817" fill="none" stroke="#EEF2F4"/>
+<text x="525.2" y="792" font-size="13" fill="#356BC4" font-weight="700">↓</text>
+<text x="539.3" y="792" font-size="13" fill="#172C38" font-weight="400">CAS Load</text>
+<text x="525.2" y="806" font-size="12" fill="#71818D" font-weight="400" class="mono">pid:43271</text>
+<path d="M677.1 817L858.6 817" fill="none" stroke="#EEF2F4"/>
+<text x="689.1" y="798.5" font-size="13" fill="#172C38" font-weight="400" class="mono">9bf007f44128…</text>
+<path d="M858.6 817L968.2 817" fill="none" stroke="#EEF2F4"/>
+<rect x="870.6" y="783.5" width="40" height="21" rx="5" fill="#E8F3F0" stroke="none"/>
+<text x="878.6" y="798.5" font-size="12" fill="#087F75" font-weight="600">命中</text>
+<path d="M968.2 817L1081.6 817" fill="none" stroke="#EEF2F4"/>
+<text x="1015" y="799" font-size="13" fill="#172C38" font-weight="400">17.3 MiB</text>
+<path d="M1081.6 817L1188 817" fill="none" stroke="#EEF2F4"/>
+<text x="1126.3" y="799" font-size="13" fill="#172C38" font-weight="400">38.4 ms</text>
+<path d="M270 864L513.2 864" fill="none" stroke="#EEF2F4"/>
+<text x="282" y="838.5" font-size="12.5" fill="#172C38" font-weight="400" class="mono">14:32:17.061</text>
+<text x="282" y="852.5" font-size="12" fill="#71818D" font-weight="400" class="mono">2026-11-04</text>
+<text x="361.5" y="852.5" font-size="12" fill="#71818D" font-weight="400" class="mono">· #</text>
+<text x="383.2" y="852.5" font-size="12" fill="#71818D" font-weight="400" class="mono">002405</text>
+<path d="M513.2 864L677.1 864" fill="none" stroke="#EEF2F4"/>
+<text x="525.2" y="839" font-size="13" fill="#356BC4" font-weight="700">↓</text>
+<text x="539.3" y="839" font-size="13" fill="#172C38" font-weight="400">CAS Load</text>
+<text x="525.2" y="853" font-size="12" fill="#71818D" font-weight="400" class="mono">pid:43264</text>
+<path d="M677.1 864L858.6 864" fill="none" stroke="#EEF2F4"/>
+<text x="689.1" y="845.5" font-size="13" fill="#172C38" font-weight="400" class="mono">693ea7653061…</text>
+<path d="M858.6 864L968.2 864" fill="none" stroke="#EEF2F4"/>
+<rect x="870.6" y="830.5" width="40" height="21" rx="5" fill="#E8F3F0" stroke="none"/>
+<text x="878.6" y="845.5" font-size="12" fill="#087F75" font-weight="600">命中</text>
+<path d="M968.2 864L1081.6 864" fill="none" stroke="#EEF2F4"/>
+<text x="1021.6" y="846" font-size="13" fill="#172C38" font-weight="400">377 KiB</text>
+<path d="M1081.6 864L1188 864" fill="none" stroke="#EEF2F4"/>
+<text x="1134.4" y="846" font-size="13" fill="#172C38" font-weight="400">1.4 ms</text>
+<path d="M270 911L513.2 911" fill="none" stroke="#EEF2F4"/>
+<text x="282" y="885.5" font-size="12.5" fill="#172C38" font-weight="400" class="mono">14:32:14.701</text>
+<text x="282" y="899.5" font-size="12" fill="#71818D" font-weight="400" class="mono">2026-11-04</text>
+<text x="361.5" y="899.5" font-size="12" fill="#71818D" font-weight="400" class="mono">· #</text>
+<text x="383.2" y="899.5" font-size="12" fill="#71818D" font-weight="400" class="mono">002404</text>
+<path d="M513.2 911L677.1 911" fill="none" stroke="#EEF2F4"/>
+<text x="525.2" y="886" font-size="13" fill="#356BC4" font-weight="700">↓</text>
+<text x="539.3" y="886" font-size="13" fill="#172C38" font-weight="400">CAS Load</text>
+<text x="525.2" y="900" font-size="12" fill="#71818D" font-weight="400" class="mono">pid:43302</text>
+<path d="M677.1 911L858.6 911" fill="none" stroke="#EEF2F4"/>
+<text x="689.1" y="892.5" font-size="13" fill="#172C38" font-weight="400" class="mono">277c46e6309a…</text>
+<path d="M858.6 911L968.2 911" fill="none" stroke="#EEF2F4"/>
+<rect x="870.6" y="877.5" width="40" height="21" rx="5" fill="#E8F3F0" stroke="none"/>
+<text x="878.6" y="892.5" font-size="12" fill="#087F75" font-weight="600">命中</text>
+<path d="M968.2 911L1081.6 911" fill="none" stroke="#EEF2F4"/>
+<text x="1015" y="893" font-size="13" fill="#172C38" font-weight="400">3.16 MiB</text>
+<path d="M1081.6 911L1188 911" fill="none" stroke="#EEF2F4"/>
+<text x="1126.3" y="893" font-size="13" fill="#172C38" font-weight="400">16.5 ms</text>
+<path d="M270 958L513.2 958" fill="none" stroke="#EEF2F4"/>
+<text x="282" y="932.5" font-size="12.5" fill="#172C38" font-weight="400" class="mono">14:32:12.341</text>
+<text x="282" y="946.5" font-size="12" fill="#71818D" font-weight="400" class="mono">2026-11-04</text>
+<text x="361.5" y="946.5" font-size="12" fill="#71818D" font-weight="400" class="mono">· #</text>
+<text x="383.2" y="946.5" font-size="12" fill="#71818D" font-weight="400" class="mono">002403</text>
+<path d="M513.2 958L677.1 958" fill="none" stroke="#EEF2F4"/>
+<text x="525.2" y="933" font-size="13" fill="#356BC4" font-weight="700">↓</text>
+<text x="539.3" y="933" font-size="13" fill="#172C38" font-weight="400">CAS Load</text>
+<text x="525.2" y="947" font-size="12" fill="#71818D" font-weight="400" class="mono">pid:43271</text>
+<path d="M677.1 958L858.6 958" fill="none" stroke="#EEF2F4"/>
+<text x="689.1" y="939.5" font-size="13" fill="#172C38" font-weight="400" class="mono">f4bae6672fd3…</text>
+<path d="M858.6 958L968.2 958" fill="none" stroke="#EEF2F4"/>
+<rect x="870.6" y="924.5" width="40" height="21" rx="5" fill="#E8F3F0" stroke="none"/>
+<text x="878.6" y="939.5" font-size="12" fill="#087F75" font-weight="600">命中</text>
+<path d="M968.2 958L1081.6 958" fill="none" stroke="#EEF2F4"/>
+<text x="1015" y="940" font-size="13" fill="#172C38" font-weight="400">10.9 MiB</text>
+<path d="M1081.6 958L1188 958" fill="none" stroke="#EEF2F4"/>
+<text x="1134.4" y="940" font-size="13" fill="#172C38" font-weight="400">9.0 ms</text>
+<path d="M270 1005L513.2 1005" fill="none" stroke="#EEF2F4"/>
+<text x="282" y="979.5" font-size="12.5" fill="#172C38" font-weight="400" class="mono">14:32:09.982</text>
+<text x="282" y="993.5" font-size="12" fill="#71818D" font-weight="400" class="mono">2026-11-04</text>
+<text x="361.5" y="993.5" font-size="12" fill="#71818D" font-weight="400" class="mono">· #</text>
+<text x="383.2" y="993.5" font-size="12" fill="#71818D" font-weight="400" class="mono">002402</text>
+<path d="M513.2 1005L677.1 1005" fill="none" stroke="#EEF2F4"/>
+<text x="525.2" y="980" font-size="13" fill="#356BC4" font-weight="700">↓</text>
+<text x="539.3" y="980" font-size="13" fill="#172C38" font-weight="400">CAS Load</text>
+<text x="525.2" y="994" font-size="12" fill="#71818D" font-weight="400" class="mono">pid:43264</text>
+<path d="M677.1 1005L858.6 1005" fill="none" stroke="#EEF2F4"/>
+<text x="689.1" y="986.5" font-size="13" fill="#172C38" font-weight="400" class="mono">c2f886e81f1c…</text>
+<path d="M858.6 1005L968.2 1005" fill="none" stroke="#EEF2F4"/>
+<rect x="870.6" y="971.5" width="40" height="21" rx="5" fill="#E8F3F0" stroke="none"/>
+<text x="878.6" y="986.5" font-size="12" fill="#087F75" font-weight="600">命中</text>
+<path d="M968.2 1005L1081.6 1005" fill="none" stroke="#EEF2F4"/>
+<text x="1017.8" y="987" font-size="13" fill="#172C38" font-weight="400">46.0 KiB</text>
+<path d="M1081.6 1005L1188 1005" fill="none" stroke="#EEF2F4"/>
+<text x="1133.4" y="987" font-size="13" fill="#172C38" font-weight="400">272 µs</text>
+<path d="M270 1052L513.2 1052" fill="none" stroke="#EEF2F4"/>
+<text x="282" y="1026.5" font-size="12.5" fill="#172C38" font-weight="400" class="mono">14:32:07.519</text>
+<text x="282" y="1040.5" font-size="12" fill="#71818D" font-weight="400" class="mono">2026-11-04</text>
+<text x="361.5" y="1040.5" font-size="12" fill="#71818D" font-weight="400" class="mono">· #</text>
+<text x="383.2" y="1040.5" font-size="12" fill="#71818D" font-weight="400" class="mono">002401</text>
+<path d="M513.2 1052L677.1 1052" fill="none" stroke="#EEF2F4"/>
+<text x="525.2" y="1027" font-size="13" fill="#7755B6" font-weight="700">↑</text>
+<text x="539.3" y="1027" font-size="13" fill="#172C38" font-weight="400">KV PutValue</text>
+<text x="525.2" y="1041" font-size="12" fill="#71818D" font-weight="400" class="mono">pid:43264</text>
+<path d="M677.1 1052L858.6 1052" fill="none" stroke="#EEF2F4"/>
+<text x="689.1" y="1033.5" font-size="13" fill="#172C38" font-weight="400" class="mono">903626590f55…</text>
+<path d="M858.6 1052L968.2 1052" fill="none" stroke="#EEF2F4"/>
+<rect x="870.6" y="1018.5" width="40" height="21" rx="5" fill="#E8F3F0" stroke="none"/>
+<text x="878.6" y="1033.5" font-size="12" fill="#087F75" font-weight="600">成功</text>
+<path d="M968.2 1052L1081.6 1052" fill="none" stroke="#EEF2F4"/>
+<text x="1033.3" y="1034" font-size="13" fill="#172C38" font-weight="400">134 B</text>
+<path d="M1081.6 1052L1188 1052" fill="none" stroke="#EEF2F4"/>
+<text x="1133.4" y="1034" font-size="13" fill="#172C38" font-weight="400">918 µs</text>
+<path d="M270 1099L513.2 1099" fill="none" stroke="#EEF2F4"/>
+<text x="282" y="1073.5" font-size="12.5" fill="#172C38" font-weight="400" class="mono">14:32:04.982</text>
+<text x="282" y="1087.5" font-size="12" fill="#71818D" font-weight="400" class="mono">2026-11-04</text>
+<text x="361.5" y="1087.5" font-size="12" fill="#71818D" font-weight="400" class="mono">· #</text>
+<text x="383.2" y="1087.5" font-size="12" fill="#71818D" font-weight="400" class="mono">002400</text>
+<path d="M513.2 1099L677.1 1099" fill="none" stroke="#EEF2F4"/>
+<text x="525.2" y="1074" font-size="13" fill="#7755B6" font-weight="700">↑</text>
+<text x="539.3" y="1074" font-size="13" fill="#172C38" font-weight="400">KV PutValue</text>
+<text x="525.2" y="1088" font-size="12" fill="#71818D" font-weight="400" class="mono">pid:43302</text>
+<path d="M677.1 1099L858.6 1099" fill="none" stroke="#EEF2F4"/>
+<text x="689.1" y="1080.5" font-size="13" fill="#172C38" font-weight="400" class="mono">5e74c5dafe8e…</text>
+<path d="M858.6 1099L968.2 1099" fill="none" stroke="#EEF2F4"/>
+<rect x="870.6" y="1065.5" width="40" height="21" rx="5" fill="#E8F3F0" stroke="none"/>
+<text x="878.6" y="1080.5" font-size="12" fill="#087F75" font-weight="600">成功</text>
+<path d="M968.2 1099L1081.6 1099" fill="none" stroke="#EEF2F4"/>
+<text x="1033.3" y="1081" font-size="13" fill="#172C38" font-weight="400">134 B</text>
+<path d="M1081.6 1099L1188 1099" fill="none" stroke="#EEF2F4"/>
+<text x="1133.4" y="1081" font-size="13" fill="#172C38" font-weight="400">948 µs</text>
+</g>
+<text x="269" y="995.5" font-size="12" fill="#71818D" font-weight="400">未命中為正常查詢結果；不列入錯誤。</text>
+<rect x="1095.5" y="977.5" width="93" height="27" rx="6.5" fill="#FFFFFF" stroke="#E1E8EB"/>
+<text x="1106" y="995.5" font-size="12" fill="#172C38" font-weight="600">匯出篩選結果</text>
+<text x="269" y="1037.5" font-size="12" fill="#71818D" font-weight="400">顯示 1–50 / 共 2,412 筆</text>
+<rect x="929.4" y="1019.5" width="57" height="27" rx="6.5" fill="#FFFFFF" fill-opacity="0.5" stroke="#E1E8EB" stroke-opacity="0.5"/>
+<text x="939.9" y="1037.5" font-size="12" fill="#172C38" fill-opacity="0.5" font-weight="600">第一頁</text>
+<rect x="995.4" y="1019.5" width="57" height="27" rx="6.5" fill="#FFFFFF" fill-opacity="0.5" stroke="#E1E8EB" stroke-opacity="0.5"/>
+<text x="1005.9" y="1037.5" font-size="12" fill="#172C38" fill-opacity="0.5" font-weight="600">上一頁</text>
+<text x="1060.9" y="1037.5" font-size="12" fill="#71818D" font-weight="400">第 1 / 49 頁</text>
+<rect x="1131.5" y="1019.5" width="57" height="27" rx="6.5" fill="#FFFFFF" stroke="#E1E8EB"/>
+<text x="1142" y="1037.5" font-size="12" fill="#172C38" font-weight="600">下一頁</text>
+<rect x="1228.5" y="292.5" width="419" height="579.9" rx="9.5" fill="#FFFFFF" stroke="#E1E8EB"/>
+<g clip-path="url(#c16)">
+<text x="1249" y="329" font-size="16" fill="#172C38" font-weight="650">傳輸詳細資料</text>
+<text x="1609" y="330" font-size="20" fill="#71818D" font-weight="400">×</text>
+<text x="1249" y="364" font-size="12.5" fill="#172C38" font-weight="700" class="mono">#</text>
+<text x="1256.5" y="364" font-size="12.5" fill="#172C38" font-weight="700" class="mono">002411</text>
+<text x="1309.7" y="364.5" font-size="14" fill="#356BC4" font-weight="700">↓ 下載</text>
+<text x="1360.4" y="365" font-size="14" fill="#172C38" font-weight="400">KV GetValue</text>
+<rect x="1449" y="349" width="40" height="21" rx="5" fill="#E8F3F0" stroke="none"/>
+<text x="1457" y="364" font-size="12" fill="#087F75" font-weight="600">命中</text>
+<path d="M1249 419.5L1627 419.5" fill="none" stroke="#E1E8EB"/>
+<text x="1259" y="406" font-size="13" fill="#71818D" font-weight="600">概覽</text>
+<path d="M1297 419L1379.9 419" fill="none" stroke="#087F75" stroke-width="2"/>
+<text x="1307" y="406" font-size="13" fill="#087F75" font-weight="600">請求 / 回應</text>
+<text x="1391.9" y="406" font-size="13" fill="#71818D" font-weight="600">Payload 1</text>
+<text x="1473.7" y="406" font-size="13" fill="#71818D" font-weight="600">關聯事件 1</text>
+<text x="1249" y="446" font-size="12" fill="#71818D" font-weight="600">Request</text>
+<rect x="1249.5" y="461.5" width="377" height="83.1" rx="7.5" fill="#F5F8F9" stroke="#E1E8EB"/>
+<g clip-path="url(#c14)">
+<text x="1262" y="488" font-size="12.5" fill="#172C38" font-weight="400" class="mono">{</text>
+<text x="1277" y="507.4" font-size="12.5" fill="#172C38" font-weight="400" class="mono">&quot;key&quot;: &quot;95b9f88f93fcdf86d03b248cecb40210ba8e2047800bb30aac4970fcc1740fe3&quot;</text>
+<text x="1262" y="526.8" font-size="12.5" fill="#172C38" font-weight="400" class="mono">}</text>
+</g>
+<text x="1249" y="569.1" font-size="12" fill="#71818D" font-weight="600">Response</text>
+<rect x="1249.5" y="584.6" width="377" height="218.8" rx="7.5" fill="#F5F8F9" stroke="#E1E8EB"/>
+<g clip-path="url(#c15)">
+<text x="1262" y="611.1" font-size="12.5" fill="#172C38" font-weight="400" class="mono">{</text>
+<text x="1277" y="630.5" font-size="12.5" fill="#172C38" font-weight="400" class="mono">&quot;entries&quot;: [</text>
+<text x="1292.1" y="649.9" font-size="12.5" fill="#172C38" font-weight="400" class="mono">{</text>
+<text x="1307.1" y="669.3" font-size="12.5" fill="#172C38" font-weight="400" class="mono">&quot;bytes&quot;: 134,</text>
+<text x="1307.1" y="688.6" font-size="12.5" fill="#172C38" font-weight="400" class="mono">&quot;name&quot;: &quot;value&quot;,</text>
+<text x="1307.1" y="708" font-size="12.5" fill="#172C38" font-weight="400" class="mono">&quot;payload&quot;: &quot;0fc9d6e59f1283ba6828c184acb53f25070c89d71e7d008ec3909feb49650126&quot;</text>
+<text x="1292.1" y="727.4" font-size="12.5" fill="#172C38" font-weight="400" class="mono">}</text>
+<text x="1277" y="746.8" font-size="12.5" fill="#172C38" font-weight="400" class="mono">],</text>
+<text x="1277" y="766.1" font-size="12.5" fill="#172C38" font-weight="400" class="mono">&quot;outcome&quot;: &quot;success&quot;</text>
+<text x="1262" y="785.5" font-size="12.5" fill="#172C38" font-weight="400" class="mono">}</text>
+</g>
+<rect x="1489.5" y="818.4" width="137" height="35" rx="6.5" fill="#FFFFFF" stroke="#E1E8EB"/>
+<text x="1506" y="840.9" font-size="13" fill="#172C38" font-weight="600">匯出此筆詳細資料</text>
+</g>
+</g>
+</g>
 </svg>
