@@ -7,7 +7,7 @@ description = "Native GPUI desktop manager for SwiftCache"
 license = "Apache-2.0"
 
 [dependencies]
-gpui-kit = "=0.9.0"
+gpui-kit = "=0.9.1"
 reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
 tokio = { version = "1", features = ["rt-multi-thread", "time", "sync", "net", "fs"] }
 serde = { version = "1", features = ["derive"] }
